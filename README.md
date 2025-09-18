@@ -47,6 +47,7 @@
 [![Nest][NestJS]][Nest-url] 
 [![Vite][Vite]][Vite-url]
 [![MongoDB][MongoDB]][MongoDB-url]
+[![Jest][Jest]][Jest-url]
 [![Tailwind][Tailwind]][Tailwind-url]
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
@@ -62,7 +63,23 @@ Pour obtenir une copie locale et la faire fonctionner, suivez ces étapes simple
 
 * Node.js version 18+ (recommandé Node.js 20.x LTS)
 * npm version 7+ (recommandé npm 9+)
-* Base de données MongoDB version 4.4+ 
+* MongoDB version 4.4+ 
+
+```sh
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+
+# Ubuntu 20.04
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/multiverse amd64 mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+# Debian 11 
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/debian bullseye/multiverse amd64 mongodb-org/6.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+
+sudo apt-get update
+sudo apt-get install -y mongodb-org nodejs npm
+sudo systemctl start mongod
+
+# Facultatif
+sudo systemctl enable mongod
+```
 
 ### Installation
 
@@ -200,3 +217,5 @@ Tutoriels
 [Tailwind-url]: https://tailwindcss.com
 [Vite]: https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white
 [Vite-url]: https://vite.dev
+[Jest]: https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white
+[Jest-url]: https://vite.dev
