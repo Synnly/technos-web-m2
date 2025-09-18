@@ -1,35 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import Login from "./Login";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Register from "./Registration";
 
+/**
+ * Le composant `App` est le point d'entrée principal de l'application React.
+ * Il configure le routage de l'application en utilisant `react-router-dom` pour définir
+ * les différentes routes et leurs composants associés.
+ *
+ * @example
+ * <App />
+ *
+ * @remarks
+ * - Ce composant utilise `BrowserRouter` pour gérer l'historique de navigation.
+ * - Les routes définies incluent :
+ *   - `/signin` pour le composant `Login`.
+ *   - `/signup` pour le composant `Register`.
+ *
+ * @dependencies
+ * - `react-router-dom` pour la gestion des routes.
+ *
+ * @requires
+ * - Les composants `Login` et `Register` doivent être définis et importés.
+ */
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/signin" element={<Login />} />
+        <Route path="/signup" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
