@@ -19,9 +19,9 @@
       </ul>
     </li>
     <li>
-      <a href="#pour commencer">Pour commencer</a>
+      <a href="#pour-commencer">Pour commencer</a>
       <ul>
-        <li><a href="#prerequisites">Prérequis</a></li>
+        <li><a href="#prerequis">Prérequis</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
@@ -54,6 +54,7 @@ Pour obtenir une copie locale et la faire fonctionner, suivez ces étapes simple
 
 * Node.js version 18+ (recommandé Node.js 20.x LTS)
 * npm version 7+ (recommandé npm 9+)
+* MongoDB version 4.4+ 
 
 ### Installation
 

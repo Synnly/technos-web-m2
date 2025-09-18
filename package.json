@@ -1,15 +1,18 @@
 {
     "name": "loozamax",
     "version": "0.0.0",
+    "workspaces": [
+        "apps/api",
+        "apps/client"
+    ],
     "scripts": {
-        "api": "cd apps/api && npm run start:dev",
-        "client": "cd apps/client && npm run dev",
+        "api": "npm run start:dev --workspace=apps/api",
+        "client": "npm run dev --workspace=apps/client",
         "dev": "npm-run-all --parallel api client"
     },
     "dependencies": {},
     "devDependencies": {
         "npm-run-all": "^4.1.5"
     },
-    "author": "",
-    "license": "ISC"
+    "authors": ["Synnly", "Azteck"]
 }
