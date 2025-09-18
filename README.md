@@ -129,7 +129,7 @@ JWT_SECRET=<secret JWT>
 npm run dev
 ```
 
-Par défaut, l'API est joignable à [localhost:3000](localhost:3000) et le client à [localhost:5173](localhost:5173)
+Par défaut, l'API est joignable à [localhost:3000](http://localhost:3000) et le client à [localhost:5173](http://localhost:5173)
 
 Pour lancer seulement l'API
 ```sh
