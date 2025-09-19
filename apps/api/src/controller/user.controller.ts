@@ -36,6 +36,9 @@ export class UserController {
     @Get('/{:pseudo}')
     async getUserByPseudo(@Res() response, @Param('pseudo') pseudo: string) {
         const user = await this.userService.getByPseudo(pseudo);
+        if (!user) {
+            return response.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
+        }
         return response.status(HttpStatus.OK).json(user);
     }
 

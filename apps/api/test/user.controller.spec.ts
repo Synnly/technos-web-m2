@@ -16,24 +16,13 @@ const expectedUser = {
     pointsQuotidiensRecuperes: false
 } as User;
 
-const userMocker = (token) => {
-    if (token === UserService) {
-        return { 
-            getByPseudo: jest.fn().mockResolvedValue(expectedUser),
-        }
-    }
-    
-    if (token === JwtService) {
-        return {
-            sign: jest.fn().mockReturnValue('mock-jwt-token'),
-        }
-    }
+const mockUserService = {
+    getByPseudo: jest.fn(),
+};
 
-    if (typeof token === 'function') {
-        const mockMetadata = moduleMocker.getMetadata(token) as MockMetadata<any, any>;
-        const Mock = moduleMocker.generateFromMetadata(mockMetadata) as ObjectConstructor;
-        return new Mock();
-    }
+// Mock du JwtService
+const mockJwtService = {
+    sign: jest.fn().mockReturnValue('mock-jwt-token'),
 };
 
 describe("UserController", () => {
@@ -42,10 +31,21 @@ describe("UserController", () => {
 
     // Initialiser le module de test avant chaque test
     beforeEach(async () => {
+        jest.clearAllMocks();
+        
         const moduleRef = await Test.createTestingModule({
             controllers: [UserController],
+            providers: [
+                {
+                    provide: UserService,
+                    useValue: mockUserService,
+                },
+                {
+                    provide: JwtService,
+                    useValue: mockJwtService,
+                }
+            ],
         })
-        .useMocker(userMocker)
         .compile();
         
         userService = moduleRef.get(UserService);
@@ -54,10 +54,11 @@ describe("UserController", () => {
 
     describe('getUserByPseudo', () => {
         it('should return a user when found', async () => {
-
             const pseudo = 'testuser';
 
-            // Mock de l'objet response
+            // Configuration du mock pour retourner l'utilisateur attendu
+            mockUserService.getByPseudo.mockResolvedValue(expectedUser);
+
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
@@ -71,6 +72,29 @@ describe("UserController", () => {
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
             expect(mockResponse.json).toHaveBeenCalledWith(expectedUser);
+        });
+    });
+
+    describe('getUserByPseudo', () => {
+        it('should return 404 when user is not found', async () => {
+            const pseudo = 'unknownuser';
+            
+            // Configuration du mock pour retourner null (utilisateur non trouvé)
+            mockUserService.getByPseudo.mockResolvedValue(null);
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.getUserByPseudo(mockResponse, pseudo);
+
+            // Vérifier que le service a été appelé correctement
+            expect(userService.getByPseudo).toHaveBeenCalledWith(pseudo);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(404);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'User not found' });
         });
     });
 });
