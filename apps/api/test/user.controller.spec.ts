@@ -1,10 +1,10 @@
 import { UserController } from "../src/controller/user.controller";
 import { UserService } from "../src/service/user.service";
 import { Test } from "@nestjs/testing";
-// import { getModelToken } from '@nestjs/mongoose';
+import { getModelToken } from '@nestjs/mongoose';
 import { User } from "../src/model/user.schema";
 import { ModuleMocker, MockMetadata } from 'jest-mock';
-
+import { JwtService } from '@nestjs/jwt';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -16,10 +16,16 @@ const expectedUser = {
     pointsQuotidiensRecuperes: false
 } as User;
 
-const userMock = (token) => {
+const userMocker = (token) => {
     if (token === UserService) {
         return { 
             getByPseudo: jest.fn().mockResolvedValue(expectedUser),
+        }
+    }
+    
+    if (token === JwtService) {
+        return {
+            sign: jest.fn().mockReturnValue('mock-jwt-token'),
         }
     }
 
@@ -30,7 +36,6 @@ const userMock = (token) => {
     }
 };
 
-
 describe("UserController", () => {
     let userService: UserService;
     let userController: UserController;
@@ -39,9 +44,8 @@ describe("UserController", () => {
     beforeEach(async () => {
         const moduleRef = await Test.createTestingModule({
             controllers: [UserController],
-            providers: [UserService],
         })
-        .useMocker(userMock)
+        .useMocker(userMocker)
         .compile();
         
         userService = moduleRef.get(UserService);
@@ -51,18 +55,22 @@ describe("UserController", () => {
     describe('getUserByPseudo', () => {
         it('should return a user when found', async () => {
 
-            expect(true).toBe(true);
-            // const pseudo = 'testuser';
-            
-            // // Mock de la méthode getByPseudo du service utilisateur
-            // // jest.spyOn(userService, 'getByPseudo').mockResolvedValue(expectedUser);
-            // const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-            // const result = await userController.getUserByPseudo(mockResponse, pseudo);
+            const pseudo = 'testuser';
 
-            // // Vérifier que le résultat est conforme aux attentes
-            // expect(result).toEqual(expectedUser);
-            // expect(mockResponse.status).toHaveBeenCalledWith(200);
-            // expect(mockResponse.json).toHaveBeenCalledWith(expectedUser);
+            // Mock de l'objet response
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.getUserByPseudo(mockResponse, pseudo);
+
+            // Vérifier que le service a été appelé correctement
+            expect(userService.getByPseudo).toHaveBeenCalledWith(pseudo);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith(expectedUser);
         });
     });
 });
