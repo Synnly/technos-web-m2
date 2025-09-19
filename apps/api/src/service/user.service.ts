@@ -145,7 +145,13 @@ export class UserService {
      * @param id - L'identifiant unique de l'utilisateur à supprimer.
      * @returns Une promesse qui résout l'utilisateur supprimé s'il existe, ou `undefined` si aucun utilisateur n'a été trouvé avec cet identifiant.
      */
-    async deleteById(id : string) : Promise<User | undefined> {
-        return await this.userModel.findByIdAndDelete(id).exec() ?? undefined;
+    async deleteById(id : string) : Promise<User> {
+        const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
+    
+        if (!deletedUser) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        
+        return deletedUser
     }
 }
