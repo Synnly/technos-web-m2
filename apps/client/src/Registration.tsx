@@ -55,7 +55,7 @@ function Register() {
         return;
         }
         else{
-            axios.post(`${API_URL}/user/signup`, { pseudo: data.pseudo, motDePasse: data.password })
+            axios.post(`${API_URL}/user`, { pseudo: data.pseudo, motDePasse: data.password })
                 .then((response) => {
                     console.log("User registered successfully:", response.data);
                 })

@@ -11,17 +11,7 @@ import { JwtService } from '@nestjs/jwt';
  * Service responsable de la gestion des opérations liées aux utilisateurs.
  */
 export class UserService {
-    
 
-    /**
-     * Récupère un utilisateur unique basé sur le pseudo fourni.
-     *
-     * @param pseudo - Le pseudo (nom d'utilisateur ou identifiant) de l'utilisateur à récupérer.
-     * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond au pseudo donné.
-     */
-    async getOne(pseudo: any): Promise<User | undefined> {
-        return await this.userModel.findOne({ pseudo }).exec() ?? undefined;
-    }
     
     /**
      * Crée une instance de UserService.
@@ -29,6 +19,36 @@ export class UserService {
      */
     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
+    
+    /**
+     * Récupère tous les utilisateurs du système.
+     * 
+     * @returns Une promesse qui résout un tableau d'objets utilisateur.
+     */
+    async getAll(): Promise<User[]> {
+        return await this.userModel.find().exec();
+    }
+
+    /**
+     * Récupère un utilisateur unique basé sur le pseudo fourni.
+     *
+     * @param pseudo - Le pseudo (nom d'utilisateur ou identifiant) de l'utilisateur à récupérer.
+     * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond au pseudo donné.
+     */
+    async getByPseudo(pseudo: any): Promise<User | undefined> {
+        return await this.userModel.findOne({ pseudo }).exec() ?? undefined;
+    }
+
+
+    /**
+     * Récupère un utilisateur unique basé sur l'identifiant fourni.
+     * 
+     * @param id - L'identifiant unique de l'utilisateur à récupérer.
+     * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond à l'identifiant donné.
+     */
+    async getById(id: string): Promise<User | undefined> {
+        return await this.userModel.findById(id).exec() ?? undefined;
+    }
     
     /**
      * Enregistre un nouvel utilisateur dans le système.
@@ -42,11 +62,16 @@ export class UserService {
      * @returns Une promesse qui résout le nouvel utilisateur créé.
      * @throws {HttpException} Si le pseudo est déjà utilisé.
      */
-    async signup(user: User): Promise<User> {
+    async createUser(user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ pseudo: user.pseudo }).exec();
         if (existingUser) {
             throw new HttpException('Pseudo déjà utilisé.', HttpStatus.BAD_REQUEST);
         }
+
+        // Validation des champs requis
+        if (!user.motDePasse) throw new HttpException('Le mot de passe est requis.', HttpStatus.BAD_REQUEST);
+        if (!user.pseudo) throw new HttpException('Le pseudo est requis.', HttpStatus.BAD_REQUEST);
+
         const hash = await bcrypt.hash(user.motDePasse, 10);
         const reqBody = {
             pseudo: user.pseudo,
@@ -64,7 +89,7 @@ export class UserService {
      *
      * @throws HttpException - Levée avec un statut HttpStatus.UNAUTHORIZED si le nom d'utilisateur ou le mot de passe est incorrect.
      */
-    async signin(user: User, jwt: JwtService): Promise<any> {
+    async getJwtToken(user: User, jwt: JwtService): Promise<any> {
         const foundUser = await this.userModel.findOne({ pseudo: user.pseudo }).exec();
         if (foundUser) {
             const { motDePasse } = foundUser;
@@ -77,5 +102,50 @@ export class UserService {
             throw new HttpException('Identifiants incorrects.', HttpStatus.UNAUTHORIZED);
         }
         throw new HttpException('Identifiants incorrects', HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Crée un nouvel utilisateur ou met à jour un utilisateur existant par son identifiant.
+     * 
+     * Si un utilisateur avec l'identifiant spécifié existe, ses informations sont mises à jour.
+     * Si aucun utilisateur n'existe avec l'identifiant donné, un nouvel utilisateur est créé.
+     * 
+     * @param id - L'identifiant unique de l'utilisateur.
+     * @param user - Les données de l'utilisateur à créer ou mettre à jour. Doit inclure `pseudo` et `motDePasse` pour les nouveaux utilisateurs.
+     * @returns Une promesse qui résout l'utilisateur créé ou mis à jour.
+     * 
+     * @throws {HttpException} Si `motDePasse` ou `pseudo` est manquant lors de la création d'un nouvel utilisateur.
+     */
+    async createOrUpdateById(id: string, user: User): Promise<User> {
+        const existingUser = await this.userModel.findById(id).exec();
+        
+        if (existingUser) {     // Met à jour l'utilisateur existant
+            existingUser.pseudo = user.pseudo ?? existingUser.pseudo;
+            existingUser.motDePasse = await bcrypt.hash(user.motDePasse, 10) ?? existingUser.motDePasse;
+            
+            return await existingUser.save();
+        } else {                // Crée un nouvel utilisateur
+
+            if (!user.motDePasse) throw new HttpException('Le mot de passe est requis.', HttpStatus.BAD_REQUEST);
+            if (!user.pseudo) throw new HttpException('Le pseudo est requis.', HttpStatus.BAD_REQUEST);
+            
+            const hash = await bcrypt.hash(user.motDePasse, 10);
+            const reqBody = {
+                pseudo: user.pseudo,
+                motDePasse: hash
+            }
+            const newUser = new this.userModel(reqBody);
+            return await newUser.save();
+        }
+    }
+    
+    /**
+     * Supprime un utilisateur de la base de données en utilisant son identifiant.
+     *
+     * @param id - L'identifiant unique de l'utilisateur à supprimer.
+     * @returns Une promesse qui résout l'utilisateur supprimé s'il existe, ou `undefined` si aucun utilisateur n'a été trouvé avec cet identifiant.
+     */
+    async deleteById(id : string) : Promise<User | undefined> {
+        return await this.userModel.findByIdAndDelete(id).exec() ?? undefined;
     }
 }

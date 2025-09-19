@@ -25,7 +25,7 @@ export class MainController {
      */
     @Get('/main')
     async hello(@Res() Response, @Body() user: User) {
-        const newUser = await this.userService.signup(user)
+        const newUser = await this.userService.createUser(user)
         return Response.status(HttpStatus.CREATED).json(newUser)
     }
 }

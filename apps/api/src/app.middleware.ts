@@ -40,7 +40,7 @@ export class isAuthenticated implements NestMiddleware {
 				// Extraction de l'utilisateur à partir du token dans l'en-tête Authorization
 				const token = req.headers.authorization.split(' ')[1];
 				const decoded = await this.jwt.verify(token);
-				const user = await this.userService.getOne(decoded.pseudo)
+				const user = await this.userService.getByPseudo(decoded.pseudo)
 
 				if (user) {
 					req.user = user

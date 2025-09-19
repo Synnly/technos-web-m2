@@ -47,7 +47,7 @@ function Login() {
 
     const onSubmit = (data: LoginFormInputs) => {
         // Envoi d'une requête POST à l'API pour authentifier l'utilisateur
-        axios.post(`${API_URL}/user/signin`, { pseudo: data.pseudo, motDePasse: data.password })
+        axios.get(`${API_URL}/user/${data.pseudo}/token`)
             .then((response) => {
                 // Extraction du jeton JWT de la réponse et décodage pour obtenir les informations utilisateur
                 const token = response.data.token;
