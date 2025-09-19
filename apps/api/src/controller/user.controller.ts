@@ -31,7 +31,7 @@ export class UserController {
      * Récupère un utilisateur par son pseudo.
      * @param response - L'objet de réponse HTTP.
      * @param pseudo - Le pseudo de l'utilisateur à récupérer.
-     * @returns Les données de l'utilisateur avec le statut HTTP 200.
+     * @returns Les données de l'utilisateur avec le statut HTTP 200 si trouvé, sinon une erreur HTTP 404 (Not Found).
      */
     @Get('/{:pseudo}')
     async getUserByPseudo(@Res() response, @Param('pseudo') pseudo: string) {
