@@ -13,7 +13,7 @@ const moduleMocker = new ModuleMocker(global);
 const expectedUser1 = { 
     _id: '1', 
     pseudo: 'testuser1', 
-    motDePasse: 'hashedpassword', 
+    motDePasse: 'H@sh3dpassword', 
     points: 50, 
     pointsQuotidiensRecuperes: false
 } as User;
@@ -21,7 +21,7 @@ const expectedUser1 = {
 const expectedUser2 = { 
     _id: '2', 
     pseudo: 'testuser2', 
-    motDePasse: 'hashedpassword2', 
+    motDePasse: 'H@sh3dpassword2', 
     points: 100, 
     pointsQuotidiensRecuperes: true
 } as User;
@@ -216,11 +216,6 @@ describe("UserController", () => {
 
     describe('createUser', () => {
         it('should return a 400 if the user already exists', async () => {
-            const pseudo = 'testuser';
-            const motDePasse = 'testpassword';
-            
-            const newUser = {pseudo, motDePasse} as User;
-            
             // Configuration du mock pour lancer une exception
             mockUserService.createUser.mockImplementation(() => {
                 throw new HttpException('Pseudo déjà utilisé.', HttpStatus.BAD_REQUEST);
@@ -231,10 +226,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.createUser(mockResponse, newUser);
+            await userController.createUser(mockResponse, expectedUser1);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createUser).toHaveBeenCalledWith(newUser);
+            expect(userService.createUser).toHaveBeenCalledWith(expectedUser1);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -279,7 +274,106 @@ describe("UserController", () => {
         });
     });
 
-    
+    describe('createUser', () => {
+        it('should return a 400 if the password is too short', async () => {
+            const newUser = {
+                pseudo: 'testuser',
+                motDePasse: 'Short1!'
+            } as User;
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.createUser(mockResponse, newUser);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le mot de passe doit contenir au moins 8 caractères.'});
+        });
+    });
+
+    describe('createUser', () => {
+        it('should return a 400 if the password doesn\'t contain an uppercase letter', async () => {
+            const newUser = {
+                pseudo: 'testuser',
+                motDePasse: 'lowercase123!'
+            } as User;
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.createUser(mockResponse, newUser);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le mot de passe doit contenir au moins une lettre majuscule.'});
+        });
+    });
+
+    describe('createUser', () => {
+        it('should return a 400 if the password doesn\'t contain a lowercase letter', async () => {
+            const newUser = {
+                pseudo: 'testuser',
+                motDePasse: 'UPPERCASE123!'
+            } as User;
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.createUser(mockResponse, newUser);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le mot de passe doit contenir au moins une lettre minuscule.'});
+        });
+    });
+
+    describe('createUser', () => {
+        it('should return a 400 if the password doesn\'t contain a digit', async () => {
+            const newUser = {
+                pseudo: 'testuser',
+                motDePasse: 'NoDigits!'
+            } as User;
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.createUser(mockResponse, newUser);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le mot de passe doit contenir au moins un chiffre.'});
+        });
+    });
+
+    describe('createUser', () => {
+        it('should return a 400 if the password doesn\'t contain a special character', async () => {
+            const newUser = {
+                pseudo: 'testuser',
+                motDePasse: 'NoSpecial123'
+            } as User;
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.createUser(mockResponse, newUser);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le mot de passe doit contenir au moins un caractère spécial.'});
+        });
+    });
+
 
 
 

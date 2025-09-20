@@ -61,6 +61,12 @@ export class UserController {
         if (!user.motDePasse) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis.' });
         if (!user.pseudo) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis.' });
 
+        // Validation des contraintes du mot de passe
+            if (user.motDePasse.length < 8) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
+            if (!/[A-Z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre majuscule.' });
+            if (!/[a-z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre minuscule.' });
+            if (!/[0-9]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
 
         let newUser;
         try {
