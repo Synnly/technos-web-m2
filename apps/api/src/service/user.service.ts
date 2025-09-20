@@ -51,26 +51,25 @@ export class UserService {
     }
     
     /**
-     * Enregistre un nouvel utilisateur dans le système.
+     * Crée un nouvel utilisateur dans la base de données.
      * 
-     * Cette méthode vérifie si un utilisateur avec le même pseudo existe déjà.
-     * Si le pseudo est déjà utilisé, elle lève une exception HTTP avec un 
-     * statut `BAD_REQUEST`. Sinon, elle hache le mot de passe de l'utilisateur et 
-     * crée un nouvel enregistrement utilisateur dans la base de données.
+     * Avant de créer l'utilisateur, cette méthode vérifie si un utilisateur avec le même pseudo existe déjà.
+     * Si c'est le cas, une exception HTTP est levée pour indiquer que le pseudo est déjà utilisé.
+     * Le mot de passe de l'utilisateur est haché avant d'être stocké dans la base de données pour des raisons de 
+     * sécurité.
      * 
-     * @param user - L'objet utilisateur contenant le pseudo et le motDePasse (mot de passe).
-     * @returns Une promesse qui résout le nouvel utilisateur créé.
-     * @throws {HttpException} Si le pseudo est déjà utilisé.
+     * @param user - L'objet utilisateur contenant les informations nécessaires à la création (doit inclure `pseudo` et 
+     * `motDePasse`).
+     * @returns Une promesse qui résout l'utilisateur nouvellement créé.
+     * 
+     * @throws HttpException - Levée avec un statut HttpStatus.BAD_REQUEST si le pseudo est déjà utilisé ou si les 
+     * champs requis sont manquants.
      */
     async createUser(user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ pseudo: user.pseudo }).exec();
         if (existingUser) {
             throw new HttpException('Pseudo déjà utilisé.', HttpStatus.BAD_REQUEST);
         }
-
-        // Validation des champs requis
-        if (!user.motDePasse) throw new HttpException('Le mot de passe est requis.', HttpStatus.BAD_REQUEST);
-        if (!user.pseudo) throw new HttpException('Le pseudo est requis.', HttpStatus.BAD_REQUEST);
 
         const hash = await bcrypt.hash(user.motDePasse, 10);
         const reqBody = {
@@ -87,14 +86,18 @@ export class UserService {
      * @param jwt - L'instance JwtService utilisée pour signer et générer le token JWT.
      * @returns Une promesse qui résout un objet contenant le token JWT si l'authentification réussit.
      *
-     * @throws HttpException - Levée avec un statut HttpStatus.UNAUTHORIZED si le nom d'utilisateur ou le mot de passe est incorrect.
+     * @throws HttpException - Levée avec un statut HttpStatus.UNAUTHORIZED si le nom d'utilisateur ou le mot de passe 
+     * est incorrect.
      */
-    async getJwtToken(user: User, jwt: JwtService): Promise<any> {
-        const foundUser = await this.userModel.findOne({ pseudo: user.pseudo }).exec();
+    async getJwtToken(pseudo: string, password: string, jwt: JwtService): Promise<any> {
+        const foundUser = await this.userModel.findOne({ pseudo: pseudo }).exec();
+        if (!foundUser) throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+
         if (foundUser) {
             const { motDePasse } = foundUser;
-            if (bcrypt.compare(user.motDePasse, motDePasse)) {
-                const payload = { pseudo: user.pseudo };
+            const hash = await bcrypt.hash(password, 10);
+            if (bcrypt.compare(hash, motDePasse)) {
+                const payload = { pseudo: pseudo };
                 return {
                     token: jwt.sign(payload),
                 };
@@ -121,13 +124,14 @@ export class UserService {
         
         if (existingUser) {     // Met à jour l'utilisateur existant
             existingUser.pseudo = user.pseudo ?? existingUser.pseudo;
-            existingUser.motDePasse = await bcrypt.hash(user.motDePasse, 10) ?? existingUser.motDePasse;
+            if (user.motDePasse){
+                existingUser.motDePasse = await bcrypt.hash(user.motDePasse, 10)
+            }
+            existingUser.points = user.points ?? existingUser.points;
+            existingUser.pointsQuotidiensRecuperes = user.pointsQuotidiensRecuperes ?? existingUser.pointsQuotidiensRecuperes;
             
             return await existingUser.save();
         } else {                // Crée un nouvel utilisateur
-
-            if (!user.motDePasse) throw new HttpException('Le mot de passe est requis.', HttpStatus.BAD_REQUEST);
-            if (!user.pseudo) throw new HttpException('Le pseudo est requis.', HttpStatus.BAD_REQUEST);
             
             const hash = await bcrypt.hash(user.motDePasse, 10);
             const reqBody = {
@@ -140,16 +144,17 @@ export class UserService {
     }
     
     /**
-     * Supprime un utilisateur de la base de données en utilisant son identifiant.
+     * Supprime un utilisateur de la base de données à partir de son identifiant.
      *
-     * @param id - L'identifiant unique de l'utilisateur à supprimer.
-     * @returns Une promesse qui résout l'utilisateur supprimé s'il existe, ou `undefined` si aucun utilisateur n'a été trouvé avec cet identifiant.
+     * @param id - Identifiant unique de l'utilisateur à supprimer.
+     * @returns Une promesse qui résout l'utilisateur supprimé si trouvé, ou lève une exception si aucun utilisateur n'est trouvé avec cet identifiant.
+     * @throws HttpException - Levée avec un statut HttpStatus.NOT_FOUND si l'utilisateur n'existe pas.
      */
     async deleteById(id : string) : Promise<User> {
         const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
     
         if (!deletedUser) {
-            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
         }
         
         return deletedUser

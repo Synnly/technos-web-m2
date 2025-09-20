@@ -31,14 +31,18 @@ export class UserController {
      * Récupère un utilisateur par son pseudo.
      * @param response - L'objet de réponse HTTP.
      * @param pseudo - Le pseudo de l'utilisateur à récupérer.
-     * @returns Les données de l'utilisateur avec le statut HTTP 200 si trouvé, sinon une erreur HTTP 404 (Not Found).
+     * @returns Les données de l'utilisateur avec le statut HTTP 200 si trouvé, sinon une erreur HTTP 400 (Bad Request) 
+     * s'il n'y a pas de pseudo, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
      */
     @Get('/{:pseudo}')
     async getUserByPseudo(@Res() response, @Param('pseudo') pseudo: string) {
-        const user = await this.userService.getByPseudo(pseudo);
-        if (!user) {
-            return response.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
+        if (pseudo === undefined || pseudo === null) {
+            return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
         }
+
+        const user = await this.userService.getByPseudo(pseudo);
+        if (!user) return response.status(HttpStatus.NOT_FOUND).json({ message: 'L\'utilisateur n\'est pas trouvable' });
+
         return response.status(HttpStatus.OK).json(user);
     }
 
@@ -47,12 +51,24 @@ export class UserController {
      * @param Response - L'objet de réponse HTTP.
      * @param user - Les données de l'utilisateur à créer.
      * @returns Les données du nouvel utilisateur avec le statut HTTP 201 (Created) si l'utilisateur est créé avec 
-     * succès, sinon une erreur HTTP 400 (Bad Request).
+     * succès, sinon une erreur HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur.
      */
     @Post('')
     async createUser(@Res() Response, @Body() user: User) {
-        const newUser = await this.userService.createUser(user);
-        return Response.status(HttpStatus.CREATED).json(newUser);
+        if (!user) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
+
+        // Validation des champs requis
+        if (!user.motDePasse) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis.' });
+        if (!user.pseudo) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis.' });
+
+
+        let newUser;
+        try {
+            newUser = await this.userService.createUser(user);
+            return Response.status(HttpStatus.CREATED).json(newUser);
+        } catch (error) {
+            return Response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
+        }
     }
     
     @Put('/{:id}')
@@ -62,11 +78,23 @@ export class UserController {
      * @param response - L'objet de réponse HTTP.
      * @param id - L'ID de l'utilisateur à mettre à jour.
      * @param user - Les données de l'utilisateur à mettre à jour.
-     * @returns Une réponse JSON contenant l'utilisateur mis à jour avec le statut HTTP 200.
+     * @returns Une réponse JSON contenant l'utilisateur mis à jour avec le statut HTTP 200 (Ok), ou un message d'erreur avec le
+     * statut HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur, de pseudo ni mot de passe.
      */
     async updateUserById(@Res() response, @Param('id') id: string, @Body() user: User) {
-        const updatedUser = await this.userService.createOrUpdateById(id, user);
-        return response.status(HttpStatus.OK).json(updatedUser);
+        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
+        if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
+
+        if (!user) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
+
+        let updatedUser;
+        try{
+            updatedUser = await this.userService.createOrUpdateById(id, user);
+            return response.status(HttpStatus.OK).json(updatedUser);
+        }
+        catch (error) {
+            return response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
+        }
     }
 
     /**
@@ -74,16 +102,20 @@ export class UserController {
      *
      * @param response - L'objet de réponse HTTP utilisé pour envoyer la réponse.
      * @param id - L'identifiant unique de l'utilisateur à supprimer.
-     * @returns La réponse HTTP contenant l'utilisateur supprimé.
-     *
-     * @remarks
-     * Cette méthode appelle le service utilisateur pour supprimer l'utilisateur correspondant à l'identifiant fourni,
-     * puis retourne le résultat avec un statut HTTP 200 (OK).
+     * @returns La réponse HTTP 200 (Ok) contenant l'utilisateur supprimé, sinon une erreur HTTP 400 (Bad Request) si
+     * s'il n'y a pas d'id, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas
      */
     @Delete('/delete/{:id}')
     async deleteUser(@Res() response, @Param('id') id : string) {
-        const deletedUser = await this.userService.deleteById(id);
-        return response.status(HttpStatus.OK).json(deletedUser);
+        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
+        if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
+
+        try{
+            const deletedUser = await this.userService.deleteById(id);
+            return response.status(HttpStatus.OK).json(deletedUser);
+        } catch (error) {
+            return response.status(HttpStatus.NOT_FOUND).json({ message : error.message });
+        }
     }
 
     /**
@@ -95,13 +127,15 @@ export class UserController {
      * statut HTTP 404 (Not Found) si l'utilisateur n'existe pas.
      */
     @Get('/{:pseudo}/token')
-    async getJwtToken(@Res() response, @Param('pseudo') pseudo: string) {
-        const user = await this.userService.getByPseudo(pseudo);
-        if (!user) {
-            return response.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
-        }
+    async getJwtToken(@Res() response, @Param('pseudo') pseudo: string, @Body('password') password: string) {
+        if (!pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
+        if (!password) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis' });
 
-        const token = await this.userService.getJwtToken(user, this.jwtService);
-        return response.status(HttpStatus.OK).json(token);
+        try{
+            const token = await this.userService.getJwtToken(pseudo, password, this.jwtService);
+            return response.status(HttpStatus.OK).json(token);
+        } catch (error) {
+            return response.status(error.status).json({ message : error.message });
+        }
     }
 }
