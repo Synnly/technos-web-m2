@@ -111,7 +111,7 @@ export class UserController {
      * @returns La réponse HTTP 200 (Ok) contenant l'utilisateur supprimé, sinon une erreur HTTP 400 (Bad Request) si
      * s'il n'y a pas d'id, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas
      */
-    @Delete('/{:id}')
+    @Delete('/{:pseudo}')
     async deleteUser(@Res() response, @Param('id') id : string) {
         if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
         if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
