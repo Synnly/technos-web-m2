@@ -62,15 +62,14 @@ export class UserController {
         if (!user.pseudo) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis.' });
 
         // Validation des contraintes du mot de passe
-            if (user.motDePasse.length < 8) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
-            if (!/[A-Z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre majuscule.' });
-            if (!/[a-z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre minuscule.' });
-            if (!/[0-9]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
-            if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
+        if (user.motDePasse.length < 8) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
+        if (!/[A-Z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre majuscule.' });
+        if (!/[a-z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre minuscule.' });
+        if (!/[0-9]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
 
-        let newUser;
         try {
-            newUser = await this.userService.createUser(user);
+            const newUser = await this.userService.createUser(user);
             return Response.status(HttpStatus.CREATED).json(newUser);
         } catch (error) {
             return Response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
@@ -78,24 +77,21 @@ export class UserController {
     }
     
     /**
-     * Met à jour un utilisateur par son ID.
-     *
+     * Met à jour un utilisateur par son pseudo.
      * @param response - L'objet de réponse HTTP.
-     * @param id - L'ID de l'utilisateur à mettre à jour.
-     * @param user - Les données de l'utilisateur à mettre à jour.
-     * @returns Une réponse JSON contenant l'utilisateur mis à jour avec le statut HTTP 200 (Ok), ou un message d'erreur avec le
-     * statut HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur, de pseudo ni mot de passe.
+     * @param pseudo - Le pseudo de l'utilisateur à mettre à jour.
+     * @param user - Les nouvelles données de l'utilisateur.
+     * @returns Les données de l'utilisateur mis à jour avec le statut HTTP 200 (Ok) si trouvé, sinon une erreur HTTP 404 
+     * (Not Found) si l'utilisateur n'existe pas, ou une erreur HTTP 400 (Bad Request) s'il n'y a pas de pseudo ou 
+     * d'utilisateur.
      */
-    @Put('/{:id}')
-    async updateUserById(@Res() response, @Param('id') id: string, @Body() user: User) {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
-        if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
-
+    @Put('/{:pseudo}')
+    async updateUserByPseudo(@Res() response, @Param('pseudo') pseudo: string, @Body() user: User) {
+        if (!pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
         if (!user) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
 
-        let updatedUser;
         try{
-            updatedUser = await this.userService.createOrUpdateById(id, user);
+            const updatedUser = await this.userService.createOrUpdateByPseudo(pseudo, user);
             return response.status(HttpStatus.OK).json(updatedUser);
         }
         catch (error) {
@@ -103,7 +99,13 @@ export class UserController {
         }
     }
 
-    
+    /**
+     * Supprime un utilisateur par son pseudo.
+     * @param response - L'objet de réponse HTTP.
+     * @param pseudo - Le pseudo de l'utilisateur à supprimer.
+     * @returns Les données de l'utilisateur supprimé avec le statut HTTP 200 (Ok) si trouvé, sinon une erreur HTTP 404 
+     * (Not Found) si l'utilisateur n'existe pas ou une erreur HTTP 400 (Bad Request) s'il n'y a pas de pseudo.
+     */
     @Delete('/{:pseudo}')
     async deleteUser(@Res() response, @Param('pseudo') pseudo : string) {
         if (!pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
@@ -118,11 +120,10 @@ export class UserController {
 
     /**
      * Authentifie un utilisateur et génère un token JWT.
-     *
      * @param response - L'objet de réponse HTTP utilisé pour envoyer la réponse.
      * @param credentials - Les identifiants de connexion (pseudo et mot de passe).
-     * @returns La réponse HTTP contenant le token JWT si l'authentification réussit, 
-     * ou un message d'erreur avec le statut HTTP approprié.
+     * @returns La réponse HTTP contenant le token JWT si l'authentification réussit, ou un message d'erreur avec le 
+     * statut HTTP approprié.
      */
     @Post('/login')
     async login(@Res() response, @Body() credentials: { pseudo: string; password: string }) {

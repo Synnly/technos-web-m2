@@ -2,6 +2,12 @@ import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * Composant principal de l'application.
+ * Affiche un message de bienvenue et un bouton de déconnexion si l'utilisateur est authentifié.
+ * Sinon, invite l'utilisateur à se connecter ou à s'inscrire.
+ * @returns Le composant Index.
+ */
 function Index() {
     const { isAuthenticated, logout } = useAuth();
     const navigate = useNavigate()

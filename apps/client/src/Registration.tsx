@@ -1,9 +1,9 @@
-import React from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 import axios from "axios";
 import { useAuth } from "./hooks/useAuth";
+import PasswordWithConfirmationInput from "./PasswordWithConfirmationInput";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,12 +13,17 @@ interface FormData {
     passwordConfirmation: string;
 }
 
-
+/**
+ * Composant pour le formulaire d'inscription.
+ * Récupère les informations du formulaire et envoie une requête POST à l'API pour créer un nouvel utilisateur.
+ * En cas de succès, redirige l'utilisateur vers la page de connexion.
+ * En cas d'erreur, affiche un message d'erreur dans la console.
+ * @returns Le composant Register permettant à l'utilisateur de s'inscrire.
+ */
 function Register() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
     if(isAuthenticated) navigate("", {replace: true})
-
 
     const {
         register,
@@ -26,32 +31,14 @@ function Register() {
         watch,
     } = useForm<FormData>();
 
-    // Fonction de validation pour le mot de passe
-    const validatePassword = (password: string) => {
-        if (password.length < 8) {
-            return "Le mot de passe doit contenir au moins 8 caractères";
-        }
-        if (!/[A-Z]/.test(password)) {
-            return "Le mot de passe doit contenir au moins une lettre majuscule";
-        }
-        if (!/[a-z]/.test(password)) {
-            return "Le mot de passe doit contenir au moins une lettre minuscule";
-        }
-        if (!/[0-9]/.test(password)) {
-            return "Le mot de passe doit contenir au moins un chiffre";
-        }
-        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-            return "Le mot de passe doit contenir au moins un caractère spécial";
-        }
-        return true;
-    };
-
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         try {
             await axios.post(`${API_URL}/user`, { 
                 pseudo: data.pseudo, 
                 motDePasse: data.password 
             });
+
+            navigate("/signin", {replace: true});
         } catch (error) {
             console.error("Error registering user:", error);
         }
@@ -74,26 +61,7 @@ function Register() {
                     placeholder="Pseudo"
                 />
 
-                <input
-                    type="password"
-                    {...register("password", { 
-                        required: "Champ requis",
-                        validate: validatePassword
-                    })}
-                    placeholder="Mot de passe"
-                />
-
-                 <input
-                    type="password"
-                    {...register("passwordConfirmation", { 
-                        required: "Champ requis",
-                        validate: (value) => {
-                            const password = watch("password");
-                            return value === password || "Les mots de passe ne correspondent pas";
-                        }
-                    })}
-                    placeholder="Confirmation du mot de passe"
-                />
+                <PasswordWithConfirmationInput register={register} watch={watch} />
 
                 <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
             </form>

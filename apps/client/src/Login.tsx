@@ -12,6 +12,13 @@ type LoginFormInputs = {
     password: string;
 };
 
+/**
+ * Composant Login permettant à l'utilisateur de se connecter.
+ * Récupère les informations du formulaire et envoie une requête POST à l'API pour authentifier l'utilisateur.
+ * En cas de succès, stocke le token JWT dans le localStorage et redirige l'utilisateur vers la page initialement demandée.
+ * En cas d'erreur, affiche un message d'erreur.
+ * @returns Le composant Login permettant à l'utilisateur de se connecter.
+ */
 function Login() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();

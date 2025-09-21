@@ -32,7 +32,7 @@ const mockUserService = {
     getAll: jest.fn(),
     getByPseudo: jest.fn(),
     createUser: jest.fn(),
-    createOrUpdateById : jest.fn(),
+    createOrUpdateByPseudo : jest.fn(),
     deleteByPseudo : jest.fn(),
     getJwtToken : jest.fn()
 };
@@ -377,21 +377,21 @@ describe("UserController", () => {
 
 
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user is updated', async () => {
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(expectedUser1);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(expectedUser1);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", expectedUser1);
+            await userController.updateUserByPseudo(mockResponse, "1", expectedUser1);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", expectedUser1);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith("1", expectedUser1);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -399,22 +399,22 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user\'s pseudo is updated', async () => {
             const updatedUser = {...expectedUser1, pseudo: 'updatedPseudo'} as User;
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(updatedUser);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(updatedUser);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -422,22 +422,22 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user\'s password is updated', async () => {
             const updatedUser = {...expectedUser1, motDePasse: 'updatedMotDePasse'} as User;
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(updatedUser);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(updatedUser);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -445,22 +445,22 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user\'s points is updated', async () => {
             const updatedUser = {...expectedUser1, points: 200} as User;
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(updatedUser);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(updatedUser);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -468,22 +468,22 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user\'s pointsQuotidiensRecuperes is updated', async () => {
             const updatedUser = {...expectedUser1, pointsQuotidiensRecuperes: true} as User;
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(updatedUser);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(updatedUser);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -491,21 +491,21 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user is updated to the same user', async () => {
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(expectedUser1);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(expectedUser1);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", expectedUser1);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, expectedUser1);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", expectedUser1);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, expectedUser1);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -513,7 +513,7 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 if the user doesn\'t have a password', async () => {
             const pseudo = 'testuser';
             const noPasswordUser = {pseudo: pseudo} as User;
@@ -524,10 +524,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", noPasswordUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, noPasswordUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", noPasswordUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, noPasswordUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -535,7 +535,7 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 if the user doesn\'t have a pseudo', async () => {
             const motDePasse = 'testpassword';
             const noPseudoUser = {motDePasse: motDePasse} as User;
@@ -545,7 +545,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", noPseudoUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, noPseudoUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -553,22 +553,22 @@ describe("UserController", () => {
         });
     });
 
-    describe('updateUserById', () => {
+    describe('updateUserByPseudo', () => {
         it('should return a 200 when a user is updated with empty object', async () => {
             const updatedUser = {} as User;
             
             // Configuration du mock pour retourner l'utilisateur créé
-            mockUserService.createOrUpdateById.mockResolvedValue(expectedUser1);
+            mockUserService.createOrUpdateByPseudo.mockResolvedValue(expectedUser1);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserById(mockResponse, "1", updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateById).toHaveBeenCalledWith("1", updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
