@@ -33,7 +33,7 @@ const mockUserService = {
     getByPseudo: jest.fn(),
     createUser: jest.fn(),
     createOrUpdateById : jest.fn(),
-    deleteById : jest.fn(),
+    deleteByPseudo : jest.fn(),
     getJwtToken : jest.fn()
 };
 
@@ -581,20 +581,20 @@ describe("UserController", () => {
 
     describe('deleteUser', () => {
         it('should delete the user when given a valid user', async () => {
-            const userId = '1';
+            const pseudo = expectedUser1.pseudo;
             
             // Configuration du mock pour retourner l'utilisateur attendu
-            mockUserService.deleteById.mockResolvedValue(expectedUser1);
+            mockUserService.deleteByPseudo.mockResolvedValue(expectedUser1);
 
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.deleteUser(mockResponse, userId);
+            await userController.deleteUser(mockResponse, pseudo);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.deleteById).toHaveBeenCalledWith(userId);
+            expect(userService.deleteByPseudo).toHaveBeenCalledWith(pseudo);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -604,10 +604,10 @@ describe("UserController", () => {
 
     describe('deleteUser', () => {
         it('should return a 404 when the user doesn\'t exist', async () => {
-            const userId = '3';
+            const pseudo = 'wrongPseudo';
 
             // Configuration du mock pour lancer une exception
-            mockUserService.deleteById.mockImplementation(() => {
+            mockUserService.deleteByPseudo.mockImplementation(() => {
                 throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
             });
             
@@ -616,10 +616,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.deleteUser(mockResponse, userId);
+            await userController.deleteUser(mockResponse, pseudo);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.deleteById).toHaveBeenCalledWith(userId);
+            expect(userService.deleteByPseudo).toHaveBeenCalledWith(pseudo);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -628,70 +628,19 @@ describe("UserController", () => {
     });
 
     describe('deleteUser', () => {
-        it('should return a 400 when no id is given', async () => {
-            const userId = "";
+        it('should return a 400 when no pseudo is given', async () => {
+            const pseudo = "";
         
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.deleteUser(mockResponse, userId);
+            await userController.deleteUser(mockResponse, pseudo);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'L\'id est requis' });
-        });
-    });
-
-    describe('deleteUser', () => {
-        it('should return a 400 when the id is not a number', async () => {
-            const userId = "notANumber";
-
-            const mockResponse = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-            };
-
-            await userController.deleteUser(mockResponse, userId);
-
-            // Vérifier que les méthodes du mock de response ont été appelées correctement
-            expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'L\'id doit être un entier positif' });
-        });
-    });
-
-    describe('deleteUser', () => {
-        it('should return a 400 when the id is not an integer', async () => {
-            const userId = "6.9";
-
-            const mockResponse = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-            };
-
-            await userController.deleteUser(mockResponse, userId);
-
-            // Vérifier que les méthodes du mock de response ont été appelées correctement
-            expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'L\'id doit être un entier positif' });
-        });
-    });
-
-    describe('deleteUser', () => {
-        it('should return a 400 when the id is not a positive integer', async () => {
-            const userId = "-2";
-
-            const mockResponse = {
-                status: jest.fn().mockReturnThis(),
-                json: jest.fn().mockReturnThis(),
-            };
-
-            await userController.deleteUser(mockResponse, userId);
-
-            // Vérifier que les méthodes du mock de response ont été appelées correctement
-            expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'L\'id doit être un entier positif' });
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le pseudo est requis' });
         });
     });
 

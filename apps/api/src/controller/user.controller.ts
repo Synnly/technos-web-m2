@@ -103,21 +103,13 @@ export class UserController {
         }
     }
 
-    /**
-     * Supprime un utilisateur par son identifiant.
-     *
-     * @param response - L'objet de réponse HTTP utilisé pour envoyer la réponse.
-     * @param id - L'identifiant unique de l'utilisateur à supprimer.
-     * @returns La réponse HTTP 200 (Ok) contenant l'utilisateur supprimé, sinon une erreur HTTP 400 (Bad Request) si
-     * s'il n'y a pas d'id, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas
-     */
+    
     @Delete('/{:pseudo}')
-    async deleteUser(@Res() response, @Param('id') id : string) {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
-        if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
+    async deleteUser(@Res() response, @Param('pseudo') pseudo : string) {
+        if (!pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
 
         try{
-            const deletedUser = await this.userService.deleteById(id);
+            const deletedUser = await this.userService.deleteByPseudo(pseudo);
             return response.status(HttpStatus.OK).json(deletedUser);
         } catch (error) {
             return response.status(HttpStatus.NOT_FOUND).json({ message : error.message });

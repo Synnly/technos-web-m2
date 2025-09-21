@@ -159,4 +159,14 @@ export class UserService {
         
         return deletedUser
     }
+
+    async deleteByPseudo(pseudo: string){
+        const deletedUser = await this.userModel.findOneAndDelete({ pseudo }).exec();
+
+        if (!deletedUser) {
+            throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+        }
+
+        return deletedUser;
+    }
 }
