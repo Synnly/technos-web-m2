@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 
-
 function Index() {
     const token = localStorage.getItem("token");
 
@@ -20,6 +19,7 @@ function Index() {
                 <div>
                     <h1>Bienvenue sur la page principale</h1>
                     <p>Vous êtes connecté avec le token : {JSON.stringify(token)}</p>
+                    <button onClick={() => {localStorage.removeItem("token"); window.location.href = "/signin" }}>Deconnexion</button>
                 </div>
             </>
         );
