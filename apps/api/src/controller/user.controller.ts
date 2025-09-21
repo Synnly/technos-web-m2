@@ -77,7 +77,6 @@ export class UserController {
         }
     }
     
-    @Put('/{:id}')
     /**
      * Met à jour un utilisateur par son ID.
      *
@@ -87,6 +86,7 @@ export class UserController {
      * @returns Une réponse JSON contenant l'utilisateur mis à jour avec le statut HTTP 200 (Ok), ou un message d'erreur avec le
      * statut HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur, de pseudo ni mot de passe.
      */
+    @Put('/{:id}')
     async updateUserById(@Res() response, @Param('id') id: string, @Body() user: User) {
         if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
         if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
@@ -111,7 +111,7 @@ export class UserController {
      * @returns La réponse HTTP 200 (Ok) contenant l'utilisateur supprimé, sinon une erreur HTTP 400 (Bad Request) si
      * s'il n'y a pas d'id, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas
      */
-    @Delete('/delete/{:id}')
+    @Delete('/{:id}')
     async deleteUser(@Res() response, @Param('id') id : string) {
         if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
         if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
@@ -125,23 +125,25 @@ export class UserController {
     }
 
     /**
-     * Génère un token JWT pour un utilisateur donné.
+     * Authentifie un utilisateur et génère un token JWT.
      *
      * @param response - L'objet de réponse HTTP utilisé pour envoyer la réponse.
-     * @param pseudo - Le pseudo de l'utilisateur pour lequel générer le token.
-     * @returns La réponse HTTP contenant le token JWT si l'utilisateur est trouvé, ou un message d'erreur avec le 
-     * statut HTTP 404 (Not Found) si l'utilisateur n'existe pas.
+     * @param credentials - Les identifiants de connexion (pseudo et mot de passe).
+     * @returns La réponse HTTP contenant le token JWT si l'authentification réussit, 
+     * ou un message d'erreur avec le statut HTTP approprié.
      */
-    @Get('/{:pseudo}/token')
-    async getJwtToken(@Res() response, @Param('pseudo') pseudo: string, @Body('password') password: string) {
-        if (!pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
-        if (!password) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis' });
+    @Post('/login')
+    async login(@Res() response, @Body() credentials: { pseudo: string; password: string }) {
+        if (!credentials.pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
+        if (!credentials.password) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis' });
 
-        try{
-            const token = await this.userService.getJwtToken(pseudo, password, this.jwtService);
-            return response.status(HttpStatus.OK).json(token);
+        try {
+            const token = await this.userService.getJwtToken(credentials.pseudo, credentials.password, this.jwtService);
+            return response.status(HttpStatus.OK).json({ token: token});
         } catch (error) {
-            return response.status(error.status).json({ message : error.message });
+            return response.status(error.status || HttpStatus.UNAUTHORIZED).json({ 
+                message: error.message || 'Échec de l\'authentification' 
+            });
         }
     }
 }

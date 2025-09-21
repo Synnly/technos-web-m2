@@ -1,9 +1,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { jwtDecode } from "jwt-decode";
 import "./App.css";
-import axios from "axios";
 
+import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 
 type LoginFormInputs = {
@@ -42,21 +41,29 @@ function Login() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors },
     } = useForm<LoginFormInputs>();
 
     const onSubmit = (data: LoginFormInputs) => {
         // Envoi d'une requête POST à l'API pour authentifier l'utilisateur
-        axios.get(`${API_URL}/user/${data.pseudo}/token`)
-            .then((response) => {
-                // Extraction du jeton JWT de la réponse et décodage pour obtenir les informations utilisateur
-                const token = response.data.token;
-                const userInfo = jwtDecode(token);
-                console.log("Informations utilisateur à partir du jeton :", userInfo);
+        axios.post(`${API_URL}/user/login`, {
+            pseudo: data.pseudo,
+            password: data.password
+        })
+        .then((response) => {
+            // Stockage du token dans le stockage local
+            localStorage.setItem("token", response.data.token.token);
+
+            // Redirection vers la page d'acceuil
+            window.location.href = "";
+        })
+        .catch((error) => {
+            setError("root", {
+                type: "manual",
+                message: "Identifiants invalides"
             })
-            .catch((error) => {
-                console.log("Identifiants invalides", error, `${API_URL}/user/signin`);
-            })
+        });
     };
 
     return (
@@ -64,22 +71,28 @@ function Login() {
             <h2>Formulaire de Connexion</h2>
 
             <form className="App" onSubmit={handleSubmit(onSubmit)}>
+
+                {errors.root && <span style={{ color: "red" }}>{errors.root.message}</span>}
                 <input
                     type="text"
-                    {...register("pseudo", { required: true })}
+                    {...register("pseudo", { 
+                        required: "Champ requis" 
+                    })}
                     placeholder="Pseudo"
                 />
-                {errors.pseudo && <span style={{ color: "red" }}>*Pseudo* est obligatoire</span>}
 
                 <input
                     type="password"
-                    {...register("password", { required: true })}
+                    {...register("password", { 
+                        required: "Champ requis" 
+                    })}
                     placeholder="Mot de passe"
                 />
-                {errors.password && <span style={{ color: "red" }}>*Mot de passe* est obligatoire</span>}
 
                 <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
             </form>
+
+            <p>Pas encore de compte ? <a href="/signup">Créer un compte</a></p>
         </>
     );
 }

@@ -710,14 +710,14 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getJwtToken(mockResponse, expectedUser1.pseudo, expectedUser1.motDePasse);
+            await userController.login(mockResponse, {pseudo : expectedUser1.pseudo, password: expectedUser1.motDePasse});
 
             // Vérifier que le service a été appelé correctement
             expect(userService.getJwtToken).toHaveBeenCalledWith(expectedUser1.pseudo,  expectedUser1.motDePasse, mockJwtService);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
-            expect(mockResponse.json).toHaveBeenCalledWith(token);
+            expect(mockResponse.json).toHaveBeenCalledWith({token: token});
         });
     });
 
@@ -735,7 +735,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getJwtToken(mockResponse, "", expectedUser1.motDePasse);
+            await userController.login(mockResponse, {pseudo: "", password: expectedUser1.motDePasse});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -758,7 +758,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getJwtToken(mockResponse, expectedUser1.pseudo, "");
+            await userController.login(mockResponse, {pseudo: expectedUser1.pseudo, password: ""});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -780,7 +780,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getJwtToken(mockResponse, "unkonwnUser", expectedUser1.motDePasse);
+            await userController.login(mockResponse, { pseudo: "unkonwnUser", password: expectedUser1.motDePasse});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(401);
@@ -802,7 +802,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getJwtToken(mockResponse, expectedUser1.pseudo, "wrongPassword");
+            await userController.login(mockResponse, {pseudo: expectedUser1.pseudo, password: "wrongPassword"});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(401);
