@@ -1,25 +1,23 @@
 import { useState } from "react";
-import { jwtDecode, type JwtPayload } from "jwt-decode";
+import { useAuth } from "./hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 function Index() {
-    const token = localStorage.getItem("token");
+    const { isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate()
 
-    if (token) {
-        const decodedToken: JwtPayload = jwtDecode(token);
-        
-        // Vérifier si le token est expiré
-        if(Date.now() >= decodedToken.exp! * 1000) {
-            localStorage.removeItem("token");
-            window.location.reload();
-            return (<></>);
-        }
+    const handleLogout = () => {
+        logout();
+        navigate('/signin');
+    };
 
+    if (isAuthenticated) {
         return (
             <>
                 <div>
                     <h1>Bienvenue sur la page principale</h1>
-                    <p>Vous êtes connecté avec le token : {JSON.stringify(token)}</p>
-                    <button onClick={() => {localStorage.removeItem("token"); window.location.href = "/signin" }}>Deconnexion</button>
+
+                    <button onClick={handleLogout}>Deconnexion</button>
                 </div>
             </>
         );

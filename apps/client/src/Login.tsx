@@ -1,8 +1,10 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
-
 import axios from "axios";
+import { useAuth } from "./hooks/useAuth";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 type LoginFormInputs = {
@@ -10,34 +12,13 @@ type LoginFormInputs = {
     password: string;
 };
 
-/**
- * Le composant `Login` affiche un formulaire de connexion permettant aux utilisateurs
- * de saisir leurs identifiants (pseudo et mot de passe) et de les soumettre pour authentification.
- *
- * Ce composant utilise la bibliothèque `react-hook-form` pour la gestion et la validation des formulaires.
- * Il utilise également `axios` pour envoyer une requête POST à l'API d'authentification et `jwt-decode`
- * pour décoder le jeton JWT reçu dans la réponse.
- *
- * @example
- * <Login />
- *
- * @remarks
- * - Le formulaire comprend deux champs : `pseudo` (nom d'utilisateur) et `password`.
- * - Les deux champs sont obligatoires, et des messages d'erreur de validation sont affichés s'ils sont laissés vides.
- * - En cas de soumission réussie, le jeton JWT est extrait de la réponse de l'API et décodé
- *   pour récupérer les informations de l'utilisateur.
- * - Si l'authentification échoue, un message d'erreur est enregistré dans la console.
- *
- * @dependencies
- * - `react-hook-form` pour la gestion des formulaires.
- * - `axios` pour les requêtes HTTP.
- * - `jwt-decode` pour décoder les jetons JWT.
- *
- * @requires
- * - `API_URL` doit être défini comme l'URL de base de l'API.
- * - `LoginFormInputs` doit être une interface TypeScript définissant la structure des entrées du formulaire.
- */
 function Login() {
+    const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
+    if(isAuthenticated) navigate("", {replace: true})
+        
+    const from = useLocation().state?.from ?? "/";
+
     const {
         register,
         handleSubmit,
@@ -54,9 +35,10 @@ function Login() {
         .then((response) => {
             // Stockage du token dans le stockage local
             localStorage.setItem("token", response.data.token.token);
-
-            // Redirection vers la page d'acceuil
-            window.location.href = "";
+            console.log(from);
+            
+            // Redirection vers la page initialement demandée
+            navigate(from, {replace: true});
         })
         .catch((error) => {
             setError("root", {
@@ -75,17 +57,13 @@ function Login() {
                 {errors.root && <span style={{ color: "red" }}>{errors.root.message}</span>}
                 <input
                     type="text"
-                    {...register("pseudo", { 
-                        required: "Champ requis" 
-                    })}
+                    {...register("pseudo", { required: "Champ requis" })}
                     placeholder="Pseudo"
                 />
 
                 <input
                     type="password"
-                    {...register("password", { 
-                        required: "Champ requis" 
-                    })}
+                    {...register("password", { required: "Champ requis" })}
                     placeholder="Mot de passe"
                 />
 

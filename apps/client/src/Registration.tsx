@@ -1,7 +1,9 @@
 import React from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import axios from "axios";
+import { useAuth } from "./hooks/useAuth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,11 +15,15 @@ interface FormData {
 
 
 function Register() {
+    const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
+    if(isAuthenticated) navigate("", {replace: true})
+
+
     const {
         register,
         handleSubmit,
         watch,
-        formState: { errors },
     } = useForm<FormData>();
 
     // Fonction de validation pour le mot de passe
