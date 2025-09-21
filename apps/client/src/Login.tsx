@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import axios from "axios";
 import { useAuth } from "./hooks/useAuth";
+import { InputText } from "./components/inputs/Input.component";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -61,11 +62,16 @@ function Login() {
             <form className="App" onSubmit={handleSubmit(onSubmit)}>
 
                 {errors.root && <span style={{ color: "red" }}>{errors.root.message}</span>}
-                <input
-                    type="text"
-                    {...register("pseudo", { required: "Champ requis" })}
-                    placeholder="Pseudo"
+                <InputText
+                
+                      type="text"
+                      placeholder="Pseudo"
+                      name="pseudo"
+                      register={register}
+                      rules={{ required: "Champ requis" }}
+                      error={errors.pseudo?.message}
                 />
+
 
                 <input
                     type="password"
