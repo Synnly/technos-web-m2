@@ -35,7 +35,6 @@ function Login() {
         .then((response) => {
             // Stockage du token dans le stockage local
             localStorage.setItem("token", response.data.token.token);
-            console.log(from);
             
             // Redirection vers la page initialement demandée
             navigate(from, {replace: true});
