@@ -68,34 +68,22 @@ export class UserController {
             if (!/[0-9]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
             if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
 
-        let newUser;
         try {
-            newUser = await this.userService.createUser(user);
+            const newUser = await this.userService.createUser(user);
             return Response.status(HttpStatus.CREATED).json(newUser);
         } catch (error) {
             return Response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
         }
     }
     
-    /**
-     * Met à jour un utilisateur par son ID.
-     *
-     * @param response - L'objet de réponse HTTP.
-     * @param id - L'ID de l'utilisateur à mettre à jour.
-     * @param user - Les données de l'utilisateur à mettre à jour.
-     * @returns Une réponse JSON contenant l'utilisateur mis à jour avec le statut HTTP 200 (Ok), ou un message d'erreur avec le
-     * statut HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur, de pseudo ni mot de passe.
-     */
-    @Put('/{:id}')
-    async updateUserById(@Res() response, @Param('id') id: string, @Body() user: User) {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id est requis' });
-        if (isNaN(Number(id)) || Number(id) % 1 !== 0 || Number(id) < 0) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'id doit être un entier positif' });
-
+    
+    @Put('/{:pseudo}')
+    async updateUserByPseudo(@Res() response, @Param('pseudo') pseudo: string, @Body() user: User) {
+        if (!pseudo) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le pseudo est requis' });
         if (!user) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
 
-        let updatedUser;
         try{
-            updatedUser = await this.userService.createOrUpdateById(id, user);
+            const updatedUser = await this.userService.createOrUpdateByPseudo(pseudo, user);
             return response.status(HttpStatus.OK).json(updatedUser);
         }
         catch (error) {

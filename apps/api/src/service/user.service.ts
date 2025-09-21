@@ -142,6 +142,30 @@ export class UserService {
             return await newUser.save();
         }
     }
+
+    async createOrUpdateByPseudo(pseudo: string, user: User): Promise<User> {
+        const existingUser = await this.userModel.findOne({ pseudo }).exec();
+        
+        if (existingUser) {     // Met à jour l'utilisateur existant
+            existingUser.pseudo = user.pseudo ?? existingUser.pseudo;
+            if (user.motDePasse){
+                existingUser.motDePasse = await bcrypt.hash(user.motDePasse, 10)
+            }
+            existingUser.points = user.points ?? existingUser.points;
+            existingUser.pointsQuotidiensRecuperes = user.pointsQuotidiensRecuperes ?? existingUser.pointsQuotidiensRecuperes;
+            
+            return await existingUser.save();
+        } else {                // Crée un nouvel utilisateur
+            
+            const hash = await bcrypt.hash(user.motDePasse, 10);
+            const reqBody = {
+                pseudo: user.pseudo,
+                motDePasse: hash
+            }
+            const newUser = new this.userModel(reqBody);
+            return await newUser.save();
+        }
+    }
     
     /**
      * Supprime un utilisateur de la base de données à partir de son identifiant.
