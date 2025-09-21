@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import axios from "axios";
 import { useAuth } from "./hooks/useAuth";
-import { InputText } from "./components/inputs/Input.component";
+import { InputText } from "./components/inputs/InputText.component";
+import { InputSubmit } from "./components/inputs/InputSubmit.component";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -57,9 +58,10 @@ function Login() {
 
     return (
         <>
-            <h2>Formulaire de Connexion</h2>
+        <div className="flex flex-col gap-8 items-center justify-center bg-neutral-800 rounded-2xl p-8">
+            <h2 className="text-5xl font-semibold">Connexion</h2>
 
-            <form className="App" onSubmit={handleSubmit(onSubmit)}>
+            <form className="App flex flex-col w-full" onSubmit={handleSubmit(onSubmit)}>
 
                 {errors.root && <span style={{ color: "red" }}>{errors.root.message}</span>}
                 <InputText
@@ -68,21 +70,24 @@ function Login() {
                       placeholder="Pseudo"
                       name="pseudo"
                       register={register}
-                      rules={{ required: "Champ requis" }}
+                      rules={{ required: "Champ requis*" }}
                       error={errors.pseudo?.message}
                 />
 
 
                 <input
                     type="password"
-                    {...register("password", { required: "Champ requis" })}
+                    {...register("password", { required: "Champ requis*" })}
                     placeholder="Mot de passe"
                 />
 
-                <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
+                <InputSubmit value="Se connecter" />
+
             </form>
 
-            <p>Pas encore de compte ? <a href="/signup">Créer un compte</a></p>
+            <p className="text-neutral-200">Pas encore de compte ? <a href="/signup" className="!text-neutral-400">Créer un compte</a></p>
+        </div>
+            
         </>
     );
 }

@@ -1,6 +1,6 @@
 // A simple text input component with label and error handling
 import React from "react";
-import type { InputProps } from "../../models/inputsModel/input.model";
+import type { InputProps } from "../../models/inputsModel/Input.model";
 
 
 export const InputText: React.FC<InputProps> = ({
@@ -13,17 +13,17 @@ export const InputText: React.FC<InputProps> = ({
   rules
 }) => {
   return (
-    <div className="text-7xl">
+    <div className="w-full max-w-md min-w-[200px]">
       <label>
         {label}
         <input
           type={type}
           placeholder={placeholder}
           {...(register ? register(name, rules) : {})}
-          className={error ? "input-error" : ""}
+          className={error ? "input-error w-full bg-neutral-200 placeholder:text-neutral-600 text-neutral-800 text-sm rounded-md px-3 py-2" : "w-full bg-neutral-200 placeholder:text-neutral-600 text-neutral-800 text-sm rounded-md px-3 py-2"}
         />
       </label>
-      {error && <span className="error-message">{error}</span>}
+      {error && <span className="error-message text-red-500">{error}</span>}
     </div>
   );
 };
