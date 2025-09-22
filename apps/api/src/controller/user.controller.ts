@@ -35,12 +35,12 @@ export class UserController {
      * s'il n'y a pas de username, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
      */
     @Get('/{:username}')
-    async getUserByPseudo(@Res() response, @Param('username') username: string) {
+    async getUserByUsername(@Res() response, @Param('username') username: string) {
         if (username === undefined || username === null) {
             return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
         }
 
-        const user = await this.userService.getByPseudo(username);
+        const user = await this.userService.getByUsername(username);
         if (!user) return response.status(HttpStatus.NOT_FOUND).json({ message: 'L\'utilisateur n\'est pas trouvable' });
 
         return response.status(HttpStatus.OK).json(user);
@@ -86,12 +86,12 @@ export class UserController {
      * d'utilisateur.
      */
     @Put('/{:username}')
-    async updateUserByPseudo(@Res() response, @Param('username') username: string, @Body() user: User) {
+    async updateUserByUsername(@Res() response, @Param('username') username: string, @Body() user: User) {
         if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
         if (!user) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
 
         try{
-            const updatedUser = await this.userService.createOrUpdateByPseudo(username, user);
+            const updatedUser = await this.userService.createOrUpdateByUsername(username, user);
             return response.status(HttpStatus.OK).json(updatedUser);
         }
         catch (error) {
@@ -111,7 +111,7 @@ export class UserController {
         if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
 
         try{
-            const deletedUser = await this.userService.deleteByPseudo(username);
+            const deletedUser = await this.userService.deleteByUsername(username);
             return response.status(HttpStatus.OK).json(deletedUser);
         } catch (error) {
             return response.status(HttpStatus.NOT_FOUND).json({ message : error.message });

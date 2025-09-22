@@ -35,20 +35,10 @@ export class UserService {
      * @param username - Le nom d\'utilisateur (nom d'utilisateur ou identifiant) de l'utilisateur à récupérer.
      * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond au username donné.
      */
-    async getByPseudo(username: any): Promise<User | undefined> {
+    async getByUsername(username: any): Promise<User | undefined> {
         return await this.userModel.findOne({ username }).exec() ?? undefined;
     }
 
-
-    /**
-     * Récupère un utilisateur unique basé sur l'identifiant fourni.
-     * 
-     * @param id - L'identifiant unique de l'utilisateur à récupérer.
-     * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond à l'identifiant donné.
-     */
-    async getById(id: string): Promise<User | undefined> {
-        return await this.userModel.findById(id).exec() ?? undefined;
-    }
     
     /**
      * Crée un nouvel utilisateur dans la base de données.
@@ -62,13 +52,12 @@ export class UserService {
      * `motDePasse`).
      * @returns Une promesse qui résout l'utilisateur nouvellement créé.
      * 
-     * @throws HttpException - Levée avec un statut HttpStatus.BAD_REQUEST si le nom d'utilisateur est déjà utilisé ou si les 
-     * champs requis sont manquants.
+     * @throws HttpException - Levée avec un statut HttpStatus.BAD_REQUEST si le nom d'utilisateur est déjà utilisé.
      */
     async createUser(user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ username: user.username }).exec();
         if (existingUser) {
-            throw new HttpException('Pseudo déjà utilisé.', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Username déjà utilisé.', HttpStatus.BAD_REQUEST);
         }
 
         const hash = await bcrypt.hash(user.motDePasse, 10);
@@ -95,8 +84,7 @@ export class UserService {
 
         if (foundUser) {
             const { motDePasse } = foundUser;
-            const hash = await bcrypt.hash(password, 10);
-            if (bcrypt.compare(hash, motDePasse)) {
+            if (await bcrypt.compare(password, motDePasse)) {
                 const payload = { username: username };
                 return {
                     token: jwt.sign(payload),
@@ -108,42 +96,12 @@ export class UserService {
     }
 
     /**
-     * Crée un nouvel utilisateur ou met à jour un utilisateur existant par son identifiant.
-     * 
-     * Si un utilisateur avec l'identifiant spécifié existe, ses informations sont mises à jour.
-     * Si aucun utilisateur n'existe avec l'identifiant donné, un nouvel utilisateur est créé.
-     * 
-     * @param id - L'identifiant unique de l'utilisateur.
-     * @param user - Les données de l'utilisateur à créer ou mettre à jour. Doit inclure `username` et `motDePasse` pour les nouveaux utilisateurs.
+     * Crée ou met à jour un utilisateur par son nom d'utilisateur.
+     * @param username - Le nom d'utilisateur de l'utilisateur à créer ou mettre à jour.
+     * @param user - Les données de l'utilisateur à créer ou mettre à jour.
      * @returns Une promesse qui résout l'utilisateur créé ou mis à jour.
-     * 
-     * @throws {HttpException} Si `motDePasse` ou `username` est manquant lors de la création d'un nouvel utilisateur.
      */
-    async createOrUpdateById(id: string, user: User): Promise<User> {
-        const existingUser = await this.userModel.findById(id).exec();
-        
-        if (existingUser) {     // Met à jour l'utilisateur existant
-            existingUser.username = user.username ?? existingUser.username;
-            if (user.motDePasse){
-                existingUser.motDePasse = await bcrypt.hash(user.motDePasse, 10)
-            }
-            existingUser.points = user.points ?? existingUser.points;
-            existingUser.pointsQuotidiensRecuperes = user.pointsQuotidiensRecuperes ?? existingUser.pointsQuotidiensRecuperes;
-            
-            return await existingUser.save();
-        } else {                // Crée un nouvel utilisateur
-            
-            const hash = await bcrypt.hash(user.motDePasse, 10);
-            const reqBody = {
-                username: user.username,
-                motDePasse: hash
-            }
-            const newUser = new this.userModel(reqBody);
-            return await newUser.save();
-        }
-    }
-
-    async createOrUpdateByPseudo(username: string, user: User): Promise<User> {
+    async createOrUpdateByUsername(username: string, user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ username }).exec();
         
         if (existingUser) {     // Met à jour l'utilisateur existant
@@ -184,7 +142,7 @@ export class UserService {
         return deletedUser
     }
 
-    async deleteByPseudo(username: string){
+    async deleteByUsername(username: string){
         const deletedUser = await this.userModel.findOneAndDelete({ username }).exec();
 
         if (!deletedUser) {
