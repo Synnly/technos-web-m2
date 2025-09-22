@@ -7,11 +7,11 @@ export type UserDocument = User & Document;
 @Schema()
 export class User {
     /**
-     * Le pseudo (nom d'utilisateur) de l'utilisateur.
+     * Le nom d\'utilisateur (nom d'utilisateur) de l'utilisateur.
      * Ce champ est requis.
      */
     @Prop({ required: true })
-    pseudo: string;
+    username: string;
 
     /**
      * Le mot de passe de l'utilisateur.

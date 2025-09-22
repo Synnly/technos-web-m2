@@ -12,7 +12,7 @@ const moduleMocker = new ModuleMocker(global);
 
 const expectedUser1 = { 
     _id: '1', 
-    pseudo: 'testuser1', 
+    username: 'testuser1', 
     motDePasse: 'H@sh3dpassword', 
     points: 50, 
     pointsQuotidiensRecuperes: false
@@ -20,7 +20,7 @@ const expectedUser1 = {
 
 const expectedUser2 = { 
     _id: '2', 
-    pseudo: 'testuser2', 
+    username: 'testuser2', 
     motDePasse: 'H@sh3dpassword2', 
     points: 100, 
     pointsQuotidiensRecuperes: true
@@ -121,7 +121,7 @@ describe("UserController", () => {
 
     describe('getUserByPseudo', () => {
         it('should return a user when found', async () => {
-            const pseudo = 'testuser';
+            const username = 'testuser';
 
             // Configuration du mock pour retourner l'utilisateur attendu
             mockUserService.getByPseudo.mockResolvedValue(expectedUser1);
@@ -131,10 +131,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getUserByPseudo(mockResponse, pseudo);
+            await userController.getUserByPseudo(mockResponse, username);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.getByPseudo).toHaveBeenCalledWith(pseudo);
+            expect(userService.getByPseudo).toHaveBeenCalledWith(username);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -143,8 +143,8 @@ describe("UserController", () => {
     });
 
     describe('getUserByPseudo', () => {
-        it('should return 404 when user is not found by correct pseudo', async () => {
-            const pseudo = 'unknownuser';
+        it('should return 404 when user is not found by correct username', async () => {
+            const username = 'unknownuser';
             
             // Configuration du mock pour retourner null (utilisateur non trouvé)
             mockUserService.getByPseudo.mockResolvedValue(null);
@@ -154,10 +154,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getUserByPseudo(mockResponse, pseudo);
+            await userController.getUserByPseudo(mockResponse, username);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.getByPseudo).toHaveBeenCalledWith(pseudo);
+            expect(userService.getByPseudo).toHaveBeenCalledWith(username);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -166,8 +166,8 @@ describe("UserController", () => {
     });
 
     describe('getUserByPseudo', () => {
-        it('should return 404 when user is not found by empty pseudo', async () => {
-            const pseudo = '';
+        it('should return 404 when user is not found by empty username', async () => {
+            const username = '';
             
             // Configuration du mock pour retourner null (utilisateur non trouvé)
             mockUserService.getByPseudo.mockResolvedValue(null);
@@ -177,10 +177,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.getUserByPseudo(mockResponse, pseudo);
+            await userController.getUserByPseudo(mockResponse, username);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.getByPseudo).toHaveBeenCalledWith(pseudo);
+            expect(userService.getByPseudo).toHaveBeenCalledWith(username);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -239,8 +239,8 @@ describe("UserController", () => {
 
     describe('createUser', () => {
         it('should return a 400 if the user doesn\'t have a password', async () => {
-            const pseudo = 'testuser';
-            const newUser = {pseudo: pseudo} as User;
+            const username = 'testuser';
+            const newUser = {username: username} as User;
         
 
             const mockResponse = {
@@ -257,7 +257,7 @@ describe("UserController", () => {
     });
 
     describe('createUser', () => {
-        it('should return a 400 if the user doesn\'t have a pseudo', async () => {
+        it('should return a 400 if the user doesn\'t have a username', async () => {
             const motDePasse = 'testpassword';
             const newUser = {motDePasse: motDePasse} as User;
 
@@ -270,14 +270,14 @@ describe("UserController", () => {
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le pseudo est requis.'});
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le nom d\'utilisateur est requis.'});
         });
     });
 
     describe('createUser', () => {
         it('should return a 400 if the password is too short', async () => {
             const newUser = {
-                pseudo: 'testuser',
+                username: 'testuser',
                 motDePasse: 'Short1!'
             } as User;
 
@@ -297,7 +297,7 @@ describe("UserController", () => {
     describe('createUser', () => {
         it('should return a 400 if the password doesn\'t contain an uppercase letter', async () => {
             const newUser = {
-                pseudo: 'testuser',
+                username: 'testuser',
                 motDePasse: 'lowercase123!'
             } as User;
 
@@ -317,7 +317,7 @@ describe("UserController", () => {
     describe('createUser', () => {
         it('should return a 400 if the password doesn\'t contain a lowercase letter', async () => {
             const newUser = {
-                pseudo: 'testuser',
+                username: 'testuser',
                 motDePasse: 'UPPERCASE123!'
             } as User;
 
@@ -337,7 +337,7 @@ describe("UserController", () => {
     describe('createUser', () => {
         it('should return a 400 if the password doesn\'t contain a digit', async () => {
             const newUser = {
-                pseudo: 'testuser',
+                username: 'testuser',
                 motDePasse: 'NoDigits!'
             } as User;
 
@@ -357,7 +357,7 @@ describe("UserController", () => {
     describe('createUser', () => {
         it('should return a 400 if the password doesn\'t contain a special character', async () => {
             const newUser = {
-                pseudo: 'testuser',
+                username: 'testuser',
                 motDePasse: 'NoSpecial123'
             } as User;
 
@@ -400,8 +400,8 @@ describe("UserController", () => {
     });
 
     describe('updateUserByPseudo', () => {
-        it('should return a 200 when a user\'s pseudo is updated', async () => {
-            const updatedUser = {...expectedUser1, pseudo: 'updatedPseudo'} as User;
+        it('should return a 200 when a user\'s username is updated', async () => {
+            const updatedUser = {...expectedUser1, username: 'updatedPseudo'} as User;
             
             // Configuration du mock pour retourner l'utilisateur créé
             mockUserService.createOrUpdateByPseudo.mockResolvedValue(updatedUser);
@@ -411,10 +411,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -434,10 +434,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -457,10 +457,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -480,10 +480,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -502,10 +502,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, expectedUser1);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, expectedUser1);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, expectedUser1);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, expectedUser1);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -515,8 +515,8 @@ describe("UserController", () => {
 
     describe('updateUserByPseudo', () => {
         it('should return a 200 if the user doesn\'t have a password', async () => {
-            const pseudo = 'testuser';
-            const noPasswordUser = {pseudo: pseudo} as User;
+            const username = 'testuser';
+            const noPasswordUser = {username: username} as User;
             
 
             const mockResponse = {
@@ -524,10 +524,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, noPasswordUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, noPasswordUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, noPasswordUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, noPasswordUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -536,7 +536,7 @@ describe("UserController", () => {
     });
 
     describe('updateUserByPseudo', () => {
-        it('should return a 200 if the user doesn\'t have a pseudo', async () => {
+        it('should return a 200 if the user doesn\'t have a username', async () => {
             const motDePasse = 'testpassword';
             const noPseudoUser = {motDePasse: motDePasse} as User;
         
@@ -545,7 +545,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, noPseudoUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, noPseudoUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -565,10 +565,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByPseudo(mockResponse, expectedUser1.pseudo, updatedUser);
+            await userController.updateUserByPseudo(mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.pseudo, updatedUser);
+            expect(userService.createOrUpdateByPseudo).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -581,7 +581,7 @@ describe("UserController", () => {
 
     describe('deleteUser', () => {
         it('should delete the user when given a valid user', async () => {
-            const pseudo = expectedUser1.pseudo;
+            const username = expectedUser1.username;
             
             // Configuration du mock pour retourner l'utilisateur attendu
             mockUserService.deleteByPseudo.mockResolvedValue(expectedUser1);
@@ -591,10 +591,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.deleteUser(mockResponse, pseudo);
+            await userController.deleteUser(mockResponse, username);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.deleteByPseudo).toHaveBeenCalledWith(pseudo);
+            expect(userService.deleteByPseudo).toHaveBeenCalledWith(username);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -604,7 +604,7 @@ describe("UserController", () => {
 
     describe('deleteUser', () => {
         it('should return a 404 when the user doesn\'t exist', async () => {
-            const pseudo = 'wrongPseudo';
+            const username = 'wrongPseudo';
 
             // Configuration du mock pour lancer une exception
             mockUserService.deleteByPseudo.mockImplementation(() => {
@@ -616,10 +616,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.deleteUser(mockResponse, pseudo);
+            await userController.deleteUser(mockResponse, username);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.deleteByPseudo).toHaveBeenCalledWith(pseudo);
+            expect(userService.deleteByPseudo).toHaveBeenCalledWith(username);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -628,19 +628,19 @@ describe("UserController", () => {
     });
 
     describe('deleteUser', () => {
-        it('should return a 400 when no pseudo is given', async () => {
-            const pseudo = "";
+        it('should return a 400 when no username is given', async () => {
+            const username = "";
         
             const mockResponse = {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.deleteUser(mockResponse, pseudo);
+            await userController.deleteUser(mockResponse, username);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le pseudo est requis' });
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le nom d\'utilisateur est requis' });
         });
     });
 
@@ -659,10 +659,10 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.login(mockResponse, {pseudo : expectedUser1.pseudo, password: expectedUser1.motDePasse});
+            await userController.login(mockResponse, {username : expectedUser1.username, password: expectedUser1.motDePasse});
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.getJwtToken).toHaveBeenCalledWith(expectedUser1.pseudo,  expectedUser1.motDePasse, mockJwtService);
+            expect(userService.getJwtToken).toHaveBeenCalledWith(expectedUser1.username,  expectedUser1.motDePasse, mockJwtService);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -671,12 +671,12 @@ describe("UserController", () => {
     });
 
     describe('getJwtToken', () => {
-        it('should return  a 400 when no pseudo is given', async () => {
+        it('should return  a 400 when no username is given', async () => {
             const token = "token";
 
             // Configuration du mock pour lancer une exception
             mockUserService.getJwtToken.mockImplementation(() => {
-                throw new HttpException('Le pseudo est requis', HttpStatus.BAD_REQUEST);
+                throw new HttpException('Le nom d\'utilisateur est requis', HttpStatus.BAD_REQUEST);
             });
 
             const mockResponse = {
@@ -684,11 +684,11 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.login(mockResponse, {pseudo: "", password: expectedUser1.motDePasse});
+            await userController.login(mockResponse, {username: "", password: expectedUser1.motDePasse});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le pseudo est requis'});
+            expect(mockResponse.json).toHaveBeenCalledWith({message : 'Le nom d\'utilisateur est requis'});
         });
     });
 
@@ -707,7 +707,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.login(mockResponse, {pseudo: expectedUser1.pseudo, password: ""});
+            await userController.login(mockResponse, {username: expectedUser1.username, password: ""});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -716,7 +716,7 @@ describe("UserController", () => {
     });
 
     describe('getJwtToken', () => {
-        it('should return  a 403 when a unknown pseudo is given', async () => {
+        it('should return  a 403 when a unknown username is given', async () => {
             const token = "token";
 
             // Configuration du mock pour lancer une exception
@@ -729,7 +729,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.login(mockResponse, { pseudo: "unkonwnUser", password: expectedUser1.motDePasse});
+            await userController.login(mockResponse, { username: "unkonwnUser", password: expectedUser1.motDePasse});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(401);
@@ -751,7 +751,7 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.login(mockResponse, {pseudo: expectedUser1.pseudo, password: "wrongPassword"});
+            await userController.login(mockResponse, {username: expectedUser1.username, password: "wrongPassword"});
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(401);

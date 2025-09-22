@@ -8,7 +8,7 @@ import PasswordWithConfirmationInput from "./PasswordWithConfirmationInput";
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface FormData {
-    pseudo: string;
+    username: string;
     password: string;
     passwordConfirmation: string;
 }
@@ -34,7 +34,7 @@ function Register() {
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         try {
             await axios.post(`${API_URL}/user`, { 
-                pseudo: data.pseudo, 
+                username: data.username, 
                 motDePasse: data.password 
             });
 
@@ -51,11 +51,11 @@ function Register() {
             <form className="App" onSubmit={handleSubmit(onSubmit)}>
                 <input
                     type="text"
-                    {...register("pseudo", { 
+                    {...register("username", { 
                         required: "Champ requis",
                         minLength: {
                             value: 3,
-                            message: "Le pseudo doit contenir au moins 3 caractères"
+                            message: "Le nom d\'utilisateur doit contenir au moins 3 caractères"
                         }
                     })}
                     placeholder="Pseudo"
@@ -66,7 +66,7 @@ function Register() {
                 <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
             </form>
 
-            <p>Déjà inscrit ? <a href="/login">Se connecter</a></p>
+            <p>Déjà inscrit ? <a href="/signin">Se connecter</a></p>
         </>
     );
 }

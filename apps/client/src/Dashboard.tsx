@@ -3,103 +3,128 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "./hooks/useAuth";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 import PasswordWithConfirmationInput from "./PasswordWithConfirmationInput";
+import { useNavigate } from "react-router-dom";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface TokenJwtPayload extends JwtPayload {
-    pseudo: string;
+  username: string;
 }
 
 type FormData = {
-    pseudo: string;
-    password: string;
+  username: string;
+  password: string;
 };
 
 /**
- * Handler pour la confirmation de la suppression du compte utilisateur.
- * Affiche une boîte de dialogue de confirmation et, si l'utilisateur confirme,
- * envoie une requête DELETE à l'API pour supprimer le compte utilisateur.
- * Après la suppression, déconnecte l'utilisateur en appelant la fonction logout du hook useAuth.
- */
-function confirmAccountDeletionHandler() {
-    const decodedToken: TokenJwtPayload = jwtDecode(localStorage.getItem("token")!);
-    const pseudo = decodedToken.pseudo;
-
-    if(confirm("Êtes vous sur de vouloir supprimer votre compte ? Cette action est irréversible !")) {
-        axios.delete(`${API_URL}/user/${pseudo}`)
-        .then((_) => useAuth().logout());
-    }
-}
-
-/**
- * Composant Dashboard permettant à l'utilisateur de modifier son pseudo et son mot de passe.
- * Récupère le pseudo actuel de l'utilisateur à partir du token JWT stocké dans le localStorage.
- * Utilise react-hook-form pour gérer le formulaire de modification.
- * En cas de soumission du formulaire, envoie une requête PUT à l'API pour mettre à jour les informations de l'utilisateur.
- * Après la mise à jour, reconnecte l'utilisateur avec les nouvelles informations en envoyant une requête POST pour 
- * obtenir un nouveau token JWT.
- * Stocke le nouveau token dans le localStorage et recharge la page.
- * @returns Le composant Dashboard.
+ * Composant Dashboard pour la gestion du profil utilisateur.
+ *
+ * Ce composant permet à l'utilisateur authentifié de :
+ * - Consulter et modifier son nom d'utilisateur et son mot de passe.
+ * - Supprimer son compte avec confirmation.
+ *
+ * Fonctionnalités :
+ * - Récupère le nom d'utilisateur depuis le token JWT stocké dans le localStorage.
+ * - Gère la soumission du formulaire pour mettre à jour les informations via l'API.
+ * - Rafraîchit le token d'authentification après une mise à jour réussie.
+ * - Propose un bouton pour supprimer le compte utilisateur, avec une confirmation.
+ * - Gère les tokens invalides ou expirés en déconnectant l'utilisateur.
+ *
+ * @component
+ * @returns {JSX.Element} L'interface du dashboard.
  */
 function Dashboard() {
-    const pseudo = (jwtDecode(localStorage.getItem("token")!) as TokenJwtPayload).pseudo;
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
-    const {
-        register,
-        handleSubmit,
-        watch,
-    } = useForm<FormData>();
+  // récupération du username depuis le token et vérification de sa validité
+  const token = localStorage.getItem("token");
+  let username = "";
+  if (token) {
+    try {
+      username = jwtDecode<TokenJwtPayload>(token).username;
+    } catch (err) {
+      console.error("Token invalide :", err);
+      logout();
+    }
+  }
 
-    const onSubmit = (data: FormData) => {
-        const updatedUser = {
-            pseudo: data.pseudo,
-            motDePasse: data.password
-        };
+  const { register, handleSubmit, watch } = useForm<FormData>();
 
-        // Envoi d'une requête PUT à l'API pour modifier l'utilisateur
-        axios.put(`${API_URL}/user/${pseudo}`, updatedUser)
-        .then((_) => {
-            // Reconnexion de l'utilisateur avec les nouvelles informations 
-            axios.post(`${API_URL}/user/login`, {
-                pseudo: data.pseudo,
-                password: data.password
-            })
-            .then((response) => {
-                // Stockage du token dans le stockage local
-                localStorage.setItem("token", response.data.token.token);
-                window.location.reload();
-            });
-        });
+  const onSubmit = (data: FormData) => {
+    const updatedUser = {
+      username: data.username,
+      motDePasse: data.password,
     };
 
-    return (
-        <>
-            <div>
-                <h1>Dashboard</h1>
+    // update de l'utilisateur
+    axios.put(`${API_URL}/user/${username}`, updatedUser).then(() => {
+      // reconnexion pour rafraîchir le token
+      axios
+        .post(`${API_URL}/user/login`, {
+          username: data.username,
+          password: data.password,
+        })
+        .then((response) => {
+          localStorage.setItem("token", response.data.token.token);
+          window.location.reload();
+        });
+    });
+  };
 
-                <form className="App" onSubmit={handleSubmit(onSubmit)}>
-                    <input
-                        type="text"
-                        {...register("pseudo", { 
-                            required: "Champ requis",
-                            minLength: {
-                                value: 3,
-                                message: "Le pseudo doit contenir au moins 3 caractères"
-                            }
-                        })}
-                        placeholder="Pseudo"
-                        defaultValue={pseudo}
-                    />
+  const confirmAccountDeletionHandler = () => {
+    if (!token) return;
 
-                    <PasswordWithConfirmationInput register={register} watch={watch} />
+    let decodedToken: TokenJwtPayload;
+    try {
+      decodedToken = jwtDecode<TokenJwtPayload>(token);
+    } catch (err) {
+      console.error("Token invalide :", err);
+      logout();
+      return;
+    }
 
-                    <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
-                </form>
-                
-                <button onClick={confirmAccountDeletionHandler}>Supprimer le compte</button>
-            </div>
-        </>
-    );
+    if (
+      confirm(
+        "Êtes vous sur de vouloir supprimer votre compte ? Cette action est irréversible !"
+      )
+    ) {
+      axios.delete(`${API_URL}/user/${decodedToken.username}`).then(() => {
+        logout();
+        navigate("/signup", { replace: true });
+      });
+    }
+  };
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+
+      <form className="App" onSubmit={handleSubmit(onSubmit)}>
+        <input
+          type="text"
+          {...register("username", {
+            required: "Champ requis",
+            minLength: {
+              value: 3,
+              message:
+                "Le nom d'utilisateur doit contenir au moins 3 caractères",
+            },
+          })}
+          placeholder="Pseudo"
+          defaultValue={username}
+        />
+
+        <PasswordWithConfirmationInput register={register} watch={watch} />
+
+        <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
+      </form>
+
+      <button onClick={confirmAccountDeletionHandler}>
+        Supprimer le compte
+      </button>
+    </div>
+  );
 }
-
 
 export default Dashboard;

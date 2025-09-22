@@ -10,7 +10,7 @@ import { InputSubmit } from "./components/inputs/InputSubmit.component";
 const API_URL = import.meta.env.VITE_API_URL;
 
 type LoginFormInputs = {
-    pseudo: string;
+    username: string;
     password: string;
 };
 
@@ -38,7 +38,7 @@ function Login() {
     const onSubmit = (data: LoginFormInputs) => {
         // Envoi d'une requête POST à l'API pour authentifier l'utilisateur
         axios.post(`${API_URL}/user/login`, {
-            pseudo: data.pseudo,
+            username: data.username,
             password: data.password
         })
         .then((response) => {
@@ -68,10 +68,10 @@ function Login() {
                 
                       type="text"
                       placeholder="Pseudo"
-                      name="pseudo"
+                      name="username"
                       register={register}
                       rules={{ required: "Champ requis*" }}
-                      error={errors.pseudo?.message}
+                      error={errors.username?.message}
                 />
 
 
