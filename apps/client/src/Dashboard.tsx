@@ -111,7 +111,7 @@ function Dashboard() {
                 "Le nom d'utilisateur doit contenir au moins 3 caractères",
             },
           })}
-          placeholder="Pseudo"
+          placeholder="Nom d'utilisateur"
           defaultValue={username}
         />
 

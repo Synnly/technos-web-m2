@@ -67,7 +67,7 @@ function Login() {
                 <InputText
                 
                       type="text"
-                      placeholder="Pseudo"
+                      placeholder="Nom d'utilisateur"
                       name="username"
                       register={register}
                       rules={{ required: "Champ requis*" }}

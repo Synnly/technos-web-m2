@@ -58,7 +58,7 @@ function Register() {
                             message: "Le nom d\'utilisateur doit contenir au moins 3 caractères"
                         }
                     })}
-                    placeholder="Pseudo"
+                    placeholder="Nom d'utilisateur"
                 />
 
                 <PasswordWithConfirmationInput register={register} watch={watch} />
