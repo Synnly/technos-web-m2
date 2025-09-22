@@ -142,6 +142,12 @@ export class UserService {
         return deletedUser
     }
 
+    /**
+     * Supprime un utilisateur de la base de données à partir de son nom d'utilisateur.
+     * @param username - Le nom d'utilisateur de l'utilisateur à supprimer.
+     * @returns Une promesse qui résout l'utilisateur supprimé si trouvé, ou lève une exception si aucun utilisateur n'est trouvé avec ce nom d'utilisateur.
+     * @throws HttpException - Levée avec un statut HttpStatus.NOT_FOUND si l'utilisateur n'existe pas.`
+     */
     async deleteByUsername(username: string){
         const deletedUser = await this.userModel.findOneAndDelete({ username }).exec();
 

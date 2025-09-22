@@ -51,7 +51,8 @@ export class UserController {
      * @param Response - L'objet de réponse HTTP.
      * @param user - Les données de l'utilisateur à créer.
      * @returns Les données du nouvel utilisateur avec le statut HTTP 201 (Created) si l'utilisateur est créé avec 
-     * succès, sinon une erreur HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur.
+     * succès, sinon une erreur HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur, si les champs requis sont manquants, 
+     * si les contraintes du mot de passe ne sont pas respectées, ou si le nom d'utilisateur est déjà utilisé.
      */
     @Post('')
     async createUser(@Res() Response, @Body() user: User) {
