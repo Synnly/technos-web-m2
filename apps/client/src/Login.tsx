@@ -61,9 +61,9 @@ function Login() {
         <div className="flex flex-col gap-8 items-center justify-center bg-neutral-800 rounded-2xl p-8">
             <h2 className="text-5xl font-semibold">Connexion</h2>
 
-            <form className="App flex flex-col w-full" onSubmit={handleSubmit(onSubmit)}>
+            <form className="App flex flex-col w-full gap-y-8" onSubmit={handleSubmit(onSubmit)}>
 
-                {errors.root && <span style={{ color: "red" }}>{errors.root.message}</span>}
+                {errors.root && <span className="text-red-500">{errors.root.message}</span>}
                 <InputText
                 
                       type="text"
@@ -74,11 +74,14 @@ function Login() {
                       error={errors.username?.message}
                 />
 
+                <InputText
 
-                <input
                     type="password"
-                    {...register("password", { required: "Champ requis*" })}
+                    name="password"
                     placeholder="Mot de passe"
+                    register={register}
+                    rules={{ required: "Champ requis*" }}
+                    error={errors.password?.message}
                 />
 
                 <InputSubmit value="Se connecter" />

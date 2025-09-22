@@ -1,5 +1,6 @@
 import { type UseFormRegister, type UseFormWatch } from "react-hook-form";
 import "./App.css";
+import { InputText } from "./components/inputs/InputText.component";
 
 
 interface PasswordWithConfirmationInputProps {
@@ -37,24 +38,28 @@ const PasswordWithConfirmationInput: React.FC<PasswordWithConfirmationInputProps
 
     return (
         <>
-            <input
+            <InputText
                 type="password"
-                {...register("password", { 
+                name="password"
+                register={register}
+                rules={{ 
                     required: "Champ requis",
                     validate: validatePassword
-                })}
+                }}
                 placeholder="Mot de passe"
             />
 
-            <input
+            <InputText
                 type="password"
-                {...register("passwordConfirmation", { 
+                name="passwordConfirmation"
+                register={register}
+                rules={{ 
                     required: "Champ requis",
-                    validate: (value) => {
+                    validate: (value : any) => {
                         const password = watch("password");
                         return value === password || "Les mots de passe ne correspondent pas";
                     }
-                })}
+                }}
                 placeholder="Confirmation du mot de passe"
             />
         </>

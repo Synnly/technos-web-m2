@@ -4,6 +4,8 @@ import "./App.css";
 import axios from "axios";
 import { useAuth } from "./hooks/useAuth";
 import PasswordWithConfirmationInput from "./PasswordWithConfirmationInput";
+import { InputText } from "./components/inputs/InputText.component";
+import { InputSubmit } from "./components/inputs/InputSubmit.component";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,6 +31,8 @@ function Register() {
         register,
         handleSubmit,
         watch,
+        setError,
+        formState: { errors },
     } = useForm<FormData>();
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -39,34 +43,47 @@ function Register() {
             });
 
             navigate("/signin", {replace: true});
-        } catch (error) {
+        } catch (error : any) {
+            setError("root", {
+                type: "manual",
+                message: error.response?.data?.message ?? "Erreur lors de l'inscription"
+            })
             console.error("Error registering user:", error);
         }
     };
 
     return (
         <>
-            <h2>Registration Form</h2>
+         <div className="flex flex-col gap-8 items-center justify-center bg-neutral-800 rounded-2xl p-8">
+            <h2 className="text-5xl font-semibold">Inscription</h2>
 
-            <form className="App" onSubmit={handleSubmit(onSubmit)}>
-                <input
+            <form className="App flex flex-col w-full gap-y-8" onSubmit={handleSubmit(onSubmit)}>
+
+                {errors.root && <span className="text-red-500">{errors.root.message}</span>}
+                <InputText
                     type="text"
-                    {...register("username", { 
+                    name="username"
+                    placeholder="Nom d'utilisateur"
+                    register={register}
+                    rules={{ 
                         required: "Champ requis",
                         minLength: {
                             value: 3,
                             message: "Le nom d\'utilisateur doit contenir au moins 3 caractères"
                         }
-                    })}
-                    placeholder="Nom d'utilisateur"
+                    }}
                 />
 
                 <PasswordWithConfirmationInput register={register} watch={watch} />
 
-                <input type="submit" style={{ backgroundColor: "#a1eafb" }} />
+                <InputSubmit
+                    value="S'inscrire"
+                />
             </form>
 
             <p>Déjà inscrit ? <a href="/signin">Se connecter</a></p>
+
+        </div>
         </>
     );
 }

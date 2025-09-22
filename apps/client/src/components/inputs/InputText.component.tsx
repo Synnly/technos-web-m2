@@ -13,7 +13,7 @@ export const InputText: React.FC<InputProps> = ({
   rules
 }) => {
   return (
-    <div className="w-full max-w-md min-w-[200px]">
+    <div className="min-w-0 w-full">
       <label>
         {label}
         <input
