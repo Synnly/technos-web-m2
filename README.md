@@ -164,11 +164,11 @@ npm run client
 
 <!-- ROADMAP -->
 ## Feuille de route
-- [ ] Création de compte
-- [ ] Connexion
-- [ ] Déconnexion
-- [ ] Suppression de compte
-- [ ] Modification de compte
+- [x] Création de compte
+- [x] Connexion
+- [x] Déconnexion
+- [x] Suppression de compte
+- [x] Modification de compte
 - [ ] Création de prédiction
 - [ ] Vote de prédiction
 - [ ] Confirmer le résultat d’une prédiction
