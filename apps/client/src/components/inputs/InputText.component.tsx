@@ -10,7 +10,9 @@ export const InputText: React.FC<InputProps> = ({
   error,
   register,
   name,
-  rules
+  rules,
+  value,
+  onChange
 }) => {
   return (
     <div className="min-w-0 w-full">
@@ -20,6 +22,8 @@ export const InputText: React.FC<InputProps> = ({
           type={type}
           placeholder={placeholder}
           {...(register ? register(name, rules) : {})}
+          value={value}
+          onChange={onChange}
           className={error ? "input-error w-full bg-neutral-200 placeholder:text-neutral-600 text-neutral-800 text-sm rounded-md px-3 py-2" : "w-full bg-neutral-200 placeholder:text-neutral-600 text-neutral-800 text-sm rounded-md px-3 py-2"}
         />
       </label>

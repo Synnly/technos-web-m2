@@ -8,6 +8,9 @@ import { isAuthenticated } from './app.middleware';
 import { UserService } from './service/user.service';
 import { User, UserSchema } from './model/user.schema';
 import { UserController } from './controller/user.controller';
+import { PredictionController } from './controller/prediction.controller';
+import { PredictionService } from './service/prediction.service';
+import { Prediction, PredictionSchema } from './model/prediction.schema';
 
 /**
  * Module principal de l'application API.
@@ -38,14 +41,17 @@ import { UserController } from './controller/user.controller';
 			isGlobal: true, // Permet d'utiliser ConfigModule dans toute l'application sans le réimporter
 		}),
 		MongooseModule.forRoot(process.env.DATABASE_URL!),
-		MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+		MongooseModule.forFeature([
+			{ name: User.name, schema: UserSchema },
+			{ name: Prediction.name, schema: PredictionSchema },
+		]),
 		JwtModule.register({
 			secret: process.env.JWT_SECRET!,
 			signOptions: { expiresIn: '2h' },
 		}),
 	],
-	controllers: [AppController, UserController],
-	providers: [AppService, UserService],
+	controllers: [AppController, UserController, PredictionController],
+	providers: [AppService, UserService, PredictionService],
 })
 
 export class AppModule {
