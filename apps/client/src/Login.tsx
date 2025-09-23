@@ -1,4 +1,3 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
@@ -48,7 +47,7 @@ function Login() {
             // Redirection vers la page initialement demandée
             navigate(from, {replace: true});
         })
-        .catch((error) => {
+        .catch((_) => {
             setError("root", {
                 type: "manual",
                 message: "Identifiants invalides"
