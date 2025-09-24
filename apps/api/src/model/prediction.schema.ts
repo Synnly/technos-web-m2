@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 
 export type PredictionDocument = Prediction & Document;
 
@@ -8,8 +8,8 @@ export type PredictionDocument = Prediction & Document;
  */
 export enum PredictionStatus {
     Valid = 'Valid',
-    Invalide = 'Invalide',
-    EnAttente = 'en attente',
+    Invalid = 'Invalid',
+    Waiting = 'waiting',
 }
 
 @Schema()
@@ -27,16 +27,20 @@ export class Prediction {
     description?: string;
 
     /** Statut de la prédiction */
-    @Prop({ required: true, enum: Object.values(PredictionStatus), default: PredictionStatus.EnAttente })
+    @Prop({ required: true, enum: Object.values(PredictionStatus), default: PredictionStatus.Waiting })
     status: PredictionStatus;
 
     /** Date de fin (deadline) - obligatoire */
     @Prop({ type: Date, required: true })
     dateFin: Date;
 
-    /** Options associées: map de clef(string) -> valeur(number) */
-    @Prop({ type: Map, of: Number, default: {} })
+    /** Options objet de type clé : valeur */
+    @Prop({ type: Object, of: Number, default: {}, required: true })
     options: Record<string, number>;
+
+    /** Référence à l'utilisateur qui a créé la prédiction */
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+    user_id: Types.ObjectId;
 }
 
 export const PredictionSchema = SchemaFactory.createForClass(Prediction);

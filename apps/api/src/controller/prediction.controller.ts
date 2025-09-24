@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res, Req } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "../model/prediction.schema";
 import { PredictionService } from "../service/prediction.service";
 
@@ -29,12 +29,24 @@ export class PredictionController {
 
     /** Crée une nouvelle prédiction */
     @Post('')
-    async createPrediction(@Res() response, @Body() pred: Prediction) {
-        if (!pred) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'La prédiction est requise' });
-    if (!pred.title) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le titre est requis' });
-    if (!pred.dateFin) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'La date de fin est requise' });
-        // Ensure we don't use a client-provided _id; MongoDB will assign one
+    async createPrediction(@Req() req: any, @Res() response, @Body() pred: Prediction) {
+        // Validation simple
+        const missing = [
+            !pred && 'La prédiction est requise',
+            !pred?.title && 'Le titre est requis',
+            !pred?.dateFin && 'La date de fin est requise',
+            !pred?.options || Object.keys(pred.options).length < 2 && 'Au moins deux options sont requises',
+            pred?.status === undefined || pred?.status.toString() === '' ? 'Le statut est requis' : !Object.values(PredictionStatus).includes(pred.status) && 'Le statut est invalide',
+            (!req.user?._id && !pred?.user_id) && 'L\'utilisateur authentifié est requis'
+        ].filter(Boolean)[0];
+    
+        if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
+    
+        // Préparer payload
         const { _id, ...payload } = pred as any;
+        payload.options = payload.options ?? {};
+        if (req.user?._id) payload.user_id = req.user._id;
+    
         try {
             const created = await this.predictionService.createPrediction(payload as Prediction);
             return response.status(HttpStatus.CREATED).json(created);
@@ -43,18 +55,36 @@ export class PredictionController {
         }
     }
 
+
     /** Met à jour ou crée une prédiction par id */
     @Put('/:id')
-    async updatePredictionById(@Res() response, @Param('id') id: string, @Body() pred: Prediction) {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'identifiant est requis' });
-    if (!pred) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'La prédiction est requise' });
-    if (!pred.dateFin) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'La date de fin est requise' });
+    async updatePredictionById(@Req() req: any, @Res() response, @Param('id') id: string, @Body() pred: Prediction) {
+
+        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: "L'identifiant est requis" });
+
+        // Validation simple (identique à create)
+        const missing = [
+            !pred && 'La prédiction est requise',
+            !pred?.title && 'Le titre est requis',
+            !pred?.dateFin && 'La date de fin est requise',
+            (!pred?.options || Object.keys(pred.options).length < 2) && 'Au moins deux options sont requises',
+            pred?.status === undefined || pred?.status.toString() === '' ? 'Le statut est requis' : !Object.values(PredictionStatus).includes(pred.status) && 'Le statut est invalide',
+            (!req.user?._id && !pred?.user_id) && "L'utilisateur authentifié est requis",
+        ].filter(Boolean)[0];
+
+        if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
 
         try {
-            // Ignore any _id present in the body to avoid conflicts with the path id
+            // Préparer payload
             const { _id, ...payload } = pred as any;
-            const updated = await this.predictionService.createOrUpdateById(id, payload as Prediction);
+            payload.options = payload.options ?? {};
+            if (req.user?._id) payload.user_id = req.user._id;
+
+            // update or create
+            const updated = await this.predictionService.createOrUpdateById(id, payload as Prediction,);
+
             return response.status(HttpStatus.OK).json(updated);
+            
         } catch (error) {
             return response.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
         }
