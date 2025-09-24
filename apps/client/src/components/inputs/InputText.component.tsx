@@ -13,6 +13,7 @@ export const InputText: React.FC<InputProps> = ({
   rules,
   value,
   onChange
+  ,min
 }) => {
   return (
     <div className="min-w-0 w-full">
@@ -21,6 +22,7 @@ export const InputText: React.FC<InputProps> = ({
         <input
           type={type}
           placeholder={placeholder}
+          min={min}
           {...(register ? register(name, rules) : {})}
           value={value}
           onChange={onChange}

@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { InputText } from "./components/inputs/InputText.component";
-import { InputSubmit } from "./components/inputs/InputSubmit.component";
+import CreatePredictionForm from "./components/predictions/CreatePredictionForm";
+import PredictionsList from "./components/predictions/PredictionsList";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,13 +23,8 @@ function Index() {
     const [showOnlyMine, setShowOnlyMine] = useState(false);
     const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 
-    // form state
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [dateFin, setDateFin] = useState("");
-            const [optionKey, setOptionKey] = useState("");
-            const [options, setOptions] = useState<Record<string, number>>({});
-    const [error, setError] = useState<string | null>(null);
+    // form state used by child
+    const [, setError] = useState<string | null>(null);
 
     const fetchPredictions = async () => {
         setLoading(true);
@@ -102,51 +97,7 @@ function Index() {
         return () => clearTimeout(t);
     }, [toast]);
 
-    const submitPrediction = async (e?: React.FormEvent) => {
-        e?.preventDefault();
-        setError(null);
-        
-        if (!title) return setError("Le titre est requis");
-        if (!dateFin) return setError("La date de fin est requise");
-        if (Object.keys(options).length < 2) return setError("Au moins deux options sont requises");
-        
-        const token = localStorage.getItem("token");
-        if (!token) return setError("Utilisateur non authentifié");
-        
-        try {
-            // Récupérer user_id si possible
-            let user_id: string | undefined;
-            if (username) {
-                try {
-                    const userRes = await axios.get(`${API_URL}/user/${username}`);
-                    user_id = userRes.data?._id;
-                } catch {}
-            }
-        
-            const payload: any = {
-                title,
-                description,
-                dateFin: new Date(dateFin).toISOString(),
-                status: "waiting",
-                options
-            };
-            if (user_id) payload.user_id = user_id;
-            await axios.post(`${API_URL}/prediction`, payload, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        
-            // Refresh
-            await fetchPredictions();
-            setShowForm(false);
-            setTitle("");
-            setDescription("");
-            setDateFin("");
-            setOptions({});
-        } catch (err: any) {
-            console.error(err);
-            setError(err?.response?.data?.message || "Erreur lors de la création");
-        }
-    };
+    // submit logic moved to CreatePredictionForm
 
 
         if (!isAuthenticated) {
@@ -187,79 +138,9 @@ function Index() {
                 )}
             </header>
 
-            {showForm && isAuthenticated && (
-            <form className="mb-6 space-y-3" onSubmit={submitPrediction}>
-                    <InputText
-                        label="Titre"
-                        name="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Titre de la prédiction"
-                    />
-
-                    <InputText
-                        label="Description"
-                        name="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Courte description"
-                    />
-
-                    <InputText
-                        label="Date de fin"
-                        name="dateFin"
-                        type="date"
-                        value={dateFin}
-                        onChange={(e) => setDateFin(e.target.value)}
-                    />
-
-                                {/* Options map inputs */}
-                                <div className="grid grid-cols-3 gap-2 items-end">
-                                                    <InputText
-                                                        label="Option clef"
-                                                        name="optionKey"
-                                                        value={optionKey}
-                                                        onChange={(e) => setOptionKey(e.target.value)}
-                                                        placeholder="ex: yes"
-                                                    />
-
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                if (!optionKey) return setError("La clé de l'option est requise");
-                                                                setOptions((prev) => ({ ...prev, [optionKey]: 0 }));
-                                                                setOptionKey("");
-                                                                setError(null);
-                                                            }}
-                                                        >
-                                                            Ajouter option
-                                                        </button>
-
-                                                    </div>
-                                </div>
-
-                                {Object.keys(options).length > 0 && (
-                                    <div className="mt-2">
-                                        <div className="text-sm font-medium">Options ajoutées :</div>
-                                        <ul className="text-sm space-y-1">
-                                            {Object.entries(options).map(([k, _]) => (
-                                                <li key={k} className="flex items-center justify-between">
-                                                    <span>{k}</span>
-                                                    <button type="button" onClick={() => {
-                                                        setOptions((prev) => { const next = { ...prev }; delete next[k]; return next; });
-                                                    }} className="text-red-500">Supprimer</button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                    {error && <div className="text-red-500">{error}</div>}
-
-                    <InputSubmit value="Créer" onClick={submitPrediction} />
-                </form>
-            )}
+                {showForm && isAuthenticated && (
+                    <CreatePredictionForm username={username} fetchPredictions={fetchPredictions} onClose={() => setShowForm(false)} setToast={setToast as any} setError={setError as any} />
+                )}
 
             <section>
                 {loading ? (
@@ -267,55 +148,7 @@ function Index() {
                 ) : predictions.length === 0 ? (
                     <div>Aucune publication pour le moment.</div>
                 ) : (
-                    <ul className="space-y-4">
-                        {(
-                            showOnlyMine ? predictions.filter((p) => {
-                                const currentId = getCurrentUserId();
-                                if (!currentId) return false;
-                                if (!p?.user_id) return false;
-                                if (typeof p.user_id === 'string') return p.user_id === currentId;
-                                if (typeof p.user_id === 'object' && p.user_id._id) return String(p.user_id._id) === currentId;
-                                return false;
-                            }) : predictions
-                        ).map((p) => (
-                            <li key={p._id} className="p-3 border rounded bg-white text-black">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-semibold">{p.title}</h3>
-                                        {p.description && <p className="text-sm">{p.description}</p>}
-                                        {(() => {
-                                            // display username when possible
-                                            let author: string | undefined;
-                                            if (p.user_id && typeof p.user_id === 'string') {
-                                                author = usersMap[p.user_id];
-                                            }
-                                            return author ? <p className="text-xs text-gray-500">Par: {author}</p> : null;
-                                        })()}
-                                        <p className="text-xs">Fin: {new Date(p.dateFin).toLocaleString()}</p>
-                                    </div>
-                                    <div className="text-sm">{p.status}</div>
-                                </div>
-                                {p.options && (
-                                    <div className="mt-2 text-xs text-gray-600">
-                                        Options: {Object.entries(p.options).map(([k, v]) => `${k}: ${v}`).join(', ')}
-                                    </div>
-                                )}
-                                {/* Delete button shown only for predictions owned by current user */}
-                                {(() => {
-                                    const currentId = getCurrentUserId();
-                                    const isMine = Boolean(currentId && p?.user_id && (
-                                        (typeof p.user_id === 'string' && p.user_id === currentId) ||
-                                        (typeof p.user_id === 'object' && p.user_id._id && String(p.user_id._id) === currentId)
-                                    ));
-                                    return isMine ? (
-                                        <div className="mt-2">
-                                            <button className="text-red-600 text-sm" onClick={() => deletePrediction(p._id)} disabled={deletingId === p._id}>{deletingId === p._id ? 'Suppression...' : 'Supprimer'}</button>
-                                        </div>
-                                    ) : null;
-                                })()}
-                            </li>
-                        ))}
-                    </ul>
+                    <PredictionsList predictions={predictions} usersMap={usersMap} currentId={getCurrentUserId()} onDelete={deletePrediction} deletingId={deletingId} showOnlyMine={showOnlyMine} />
                 )}
             </section>
 

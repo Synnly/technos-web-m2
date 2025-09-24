@@ -9,4 +9,5 @@ export interface InputProps {
   	rules?: any;
   	value?: string;
 	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	min?: string;
 }
