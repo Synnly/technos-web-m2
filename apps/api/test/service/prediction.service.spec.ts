@@ -4,14 +4,25 @@ import { PredictionService } from "../../src/service/prediction.service";
 import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
 import { HttpException } from "@nestjs/common/exceptions/http.exception";
+import { User } from "src/model/user.schema";
+
+const expectedUser1 = { 
+	_id: '1', 
+	username: 'testuser1', 
+	motDePasse: 'H@sh3dpassword', 
+	points: 50, 
+	pointsQuotidiensRecuperes: false,
+	predictions : []
+} as User;
 
 const expectedPred1 = {
 	_id: 'p1',
 	title: 'Will it rain tomorrow?',
 	description: 'Simple weather prediction',
-	status: PredictionStatus.EnAttente,
+	status: PredictionStatus.Waiting,
 	dateFin: new Date('2025-12-31'),
-	options: { yes: 10, no: 5 }
+	options: { yes: 10, no: 5 },
+	user_id: (expectedUser1 as any)._id
 } as Prediction;
 
 const expectedPred2 = {
@@ -20,7 +31,8 @@ const expectedPred2 = {
 	description: 'Match outcome',
 	status: PredictionStatus.Valid,
 	dateFin: new Date('2025-11-30'),
-	options: { teamA: 3, teamB: 7 }
+	options: { teamA: 3, teamB: 7 },
+	user_id: (expectedUser1 as any)._id
 } as Prediction;
 
 const expectedPredictions = [expectedPred1, expectedPred2];
@@ -35,12 +47,17 @@ interface MockPredModel {
 
 const mockPredModel = jest.fn().mockImplementation((data) => ({
 	...data,
-	save: jest.fn().mockResolvedValue({ _id: 'created', ...data })
+	// return the constructed data so provided _id is preserved in tests
+	save: jest.fn().mockResolvedValue(data)
 })) as unknown as MockPredModel;
 
 mockPredModel.find = jest.fn();
 mockPredModel.findById = jest.fn();
 mockPredModel.findByIdAndDelete = jest.fn();
+
+const mockUserModel = {
+	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
+} as any;
 
 describe('PredictionService', () => {
 	let predictionService: PredictionService;
@@ -51,7 +68,8 @@ describe('PredictionService', () => {
 		const moduleRef = await Test.createTestingModule({
 			providers: [
 				PredictionService,
-				{ provide: getModelToken(Prediction.name), useValue: mockPredModel }
+				{ provide: getModelToken(Prediction.name), useValue: mockPredModel },
+				{ provide: getModelToken('User'), useValue: mockUserModel },
 			],
 		}).compile();
 
@@ -60,7 +78,7 @@ describe('PredictionService', () => {
 
 	describe('getAll', () => {
 		it('should return predictions when found', async () => {
-			mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPredictions) });
+			mockPredModel.find.mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(expectedPredictions) });
 
 			const result = await predictionService.getAll();
 
@@ -69,7 +87,7 @@ describe('PredictionService', () => {
 		});
 
 		it('should return empty array when none found', async () => {
-			mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+			mockPredModel.find.mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue([]) });
 
 			const result = await predictionService.getAll();
 
@@ -80,7 +98,7 @@ describe('PredictionService', () => {
 
 	describe('getById', () => {
 		it('should return a prediction when found', async () => {
-			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
+			mockPredModel.findById.mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(expectedPred1) });
 
 			const result = await predictionService.getById('p1');
 
@@ -89,7 +107,7 @@ describe('PredictionService', () => {
 		});
 
 		it('should return undefined when not found', async () => {
-			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+			mockPredModel.findById.mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(null) });
 
 			const result = await predictionService.getById('unknown');
 
@@ -99,14 +117,31 @@ describe('PredictionService', () => {
 	});
 
 	describe('createPrediction', () => {
-		it('should create and return prediction', async () => {
-			const newPred = { title: 'New pred', status: PredictionStatus.EnAttente } as Prediction;
+			it('should create and return prediction', async () => {
+				const newPred = { title: 'New pred', status: PredictionStatus.Waiting, dateFin: new Date('2025-01-01'), options: { a: 0, b: 0 } } as unknown as Prediction;
 
-			const result = await predictionService.createPrediction(newPred);
+				const result = await predictionService.createPrediction(newPred);
 
-			expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ title: newPred.title }));
-			expect(result).toEqual(expect.objectContaining({ _id: 'created', title: newPred.title }));
-		});
+				expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ title: newPred.title }));
+				expect(result).toEqual(expect.objectContaining({ title: newPred.title, options: newPred.options }));
+			});
+
+			it('should default options to empty object when not provided', async () => {
+				const newPredNoOptions = { title: 'No options', status: PredictionStatus.Waiting, dateFin: new Date('2025-01-02') } as unknown as Prediction;
+
+				const result = await predictionService.createPrediction(newPredNoOptions);
+
+				expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ options: {} }));
+				expect(result).toEqual(expect.objectContaining({ options: {} }));
+			});
+
+			it('should push prediction id to user when created with user_id', async () => {
+				const newPredWithUser = { title: 'With user', status: PredictionStatus.Waiting, dateFin: new Date('2025-01-03'), options: { a: 0, b: 0 }, user_id: (expectedUser1 as any)._id, _id: 'pnew' } as unknown as Prediction;
+
+				const result = await predictionService.createPrediction(newPredWithUser);
+
+				expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, { $push: { predictions: result._id } });
+			});
 	});
 
 	describe('createOrUpdateById', () => {
@@ -131,6 +166,15 @@ describe('PredictionService', () => {
 			// saving a model that was constructed with a provided _id will keep that _id
 			expect(created).toEqual(expect.objectContaining({ _id: 'newid', title: 'Created' }));
 		});
+
+		it('should push prediction id to user when creating new with user_id', async () => {
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+
+			const created = await predictionService.createOrUpdateById('newid', { title: 'Created', user_id: (expectedUser1 as any)._id } as Prediction);
+
+			expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ _id: 'newid', title: 'Created', user_id: (expectedUser1 as any)._id }));
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, { $push: { predictions: 'newid' } });
+		});
 	});
 
 	describe('deleteById', () => {
@@ -151,6 +195,16 @@ describe('PredictionService', () => {
 			);
 
 			expect(mockPredModel.findByIdAndDelete).toHaveBeenCalledWith('unknown');
+		});
+
+		it('should remove prediction id from user when deleted and user_id present', async () => {
+			const deletedWithUser = { ...expectedPred1 };
+			mockPredModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(deletedWithUser) });
+
+			const result = await predictionService.deleteById('p1');
+
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, { $pull: { predictions: deletedWithUser._id } });
+			expect(result).toEqual(expectedPred1);
 		});
 	});
 });
