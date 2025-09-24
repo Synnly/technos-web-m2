@@ -22,6 +22,11 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install PM2
+        run: |
+          npm install -g pm2
+          pm2 -v
       
       - name: Redémarrer services
-        run: pm2 restart loozamax-api
+        run: pm2 start /home/deploy/technos-web-m2/apps/api/dist/main.js
