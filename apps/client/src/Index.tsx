@@ -14,12 +14,14 @@ const API_URL = import.meta.env.VITE_API_URL;
  *   (utilise `InputText` et `InputSubmit`) afin de créer une nouvelle prédiction.
  */
 function Index() {
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, username } = useAuth();
     const navigate = useNavigate();
 
     const [predictions, setPredictions] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [showOnlyMine, setShowOnlyMine] = useState(false);
+    const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 
     // form state
     const [title, setTitle] = useState("");
@@ -41,9 +43,22 @@ function Index() {
         }
     };
 
+    const fetchUsers = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/user`);
+            const map: Record<string, string> = {};
+            (res.data || []).forEach((u: any) => { if (u && u._id) map[u._id] = u.username; });
+            setUsersMap(map);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
         useEffect(() => {
             if (isAuthenticated) {
                 fetchPredictions();
+                // fetch users once to map ids -> usernames for display
+                fetchUsers();
             }
         }, [isAuthenticated]);
 
@@ -52,23 +67,75 @@ function Index() {
         navigate("/signin");
     };
 
+    const getCurrentUserId = () => {
+        if (!username) return undefined;
+        const entry = Object.entries(usersMap).find(([, u]) => u === username);
+        return entry ? entry[0] : undefined;
+    };
+
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
+
+    const deletePrediction = async (id: string) => {
+        if (!confirm('Supprimer cette prédiction ?')) return;
+        const token = localStorage.getItem('token');
+        if (!token) return setError('Utilisateur non authentifié');
+        setDeletingId(id);
+        try {
+            await axios.delete(`${API_URL}/prediction/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            setToast('Prédiction supprimée');
+            await fetchPredictions();
+        } catch (err: any) {
+            console.error(err);
+            const msg = err?.response?.data?.message || 'Erreur lors de la suppression';
+            setError(msg);
+            setToast(msg);
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    // auto-hide toast
+    useEffect(() => {
+        if (!toast) return;
+        const t = setTimeout(() => setToast(null), 3000);
+        return () => clearTimeout(t);
+    }, [toast]);
+
     const submitPrediction = async (e?: React.FormEvent) => {
         e?.preventDefault();
         setError(null);
-
+        
         if (!title) return setError("Le titre est requis");
         if (!dateFin) return setError("La date de fin est requise");
-
+        if (Object.keys(options).length < 2) return setError("Au moins deux options sont requises");
+        
         const token = localStorage.getItem("token");
         if (!token) return setError("Utilisateur non authentifié");
-
+        
         try {
-            const payload = { title, description, dateFin: new Date(dateFin).toISOString(), options };
+            // Récupérer user_id si possible
+            let user_id: string | undefined;
+            if (username) {
+                try {
+                    const userRes = await axios.get(`${API_URL}/user/${username}`);
+                    user_id = userRes.data?._id;
+                } catch {}
+            }
+        
+            const payload: any = {
+                title,
+                description,
+                dateFin: new Date(dateFin).toISOString(),
+                status: "waiting",
+                options
+            };
+            if (user_id) payload.user_id = user_id;
             await axios.post(`${API_URL}/prediction`, payload, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
-            // refresh list and hide form
+        
+            // Refresh
             await fetchPredictions();
             setShowForm(false);
             setTitle("");
@@ -80,6 +147,7 @@ function Index() {
             setError(err?.response?.data?.message || "Erreur lors de la création");
         }
     };
+
 
         if (!isAuthenticated) {
             return (
@@ -96,6 +164,12 @@ function Index() {
                 <h1 className="text-2xl font-bold">Publications</h1>
                 {isAuthenticated ? (
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowOnlyMine((s) => !s)}
+                            className={`px-3 py-1 ${showOnlyMine ? 'bg-green-500 text-white' : 'bg-white border'} rounded`}
+                        >
+                            {showOnlyMine ? 'Toutes les prédictions' : 'Mes prédictions'}
+                        </button>
                         <button
                             onClick={() => setShowForm((s) => !s)}
                             className="px-3 py-1 bg-blue-500 text-white rounded"
@@ -154,15 +228,14 @@ function Index() {
                                                             type="button"
                                                             onClick={() => {
                                                                 if (!optionKey) return setError("La clé de l'option est requise");
-                                                                // initial votes count is 0
                                                                 setOptions((prev) => ({ ...prev, [optionKey]: 0 }));
                                                                 setOptionKey("");
                                                                 setError(null);
                                                             }}
-                                                            className="px-3 py-2 bg-green-500 text-white rounded"
                                                         >
                                                             Ajouter option
                                                         </button>
+
                                                     </div>
                                 </div>
 
@@ -195,26 +268,63 @@ function Index() {
                     <div>Aucune publication pour le moment.</div>
                 ) : (
                     <ul className="space-y-4">
-                        {predictions.map((p) => (
-                            <li key={p._id} className="p-3 border rounded">
+                        {(
+                            showOnlyMine ? predictions.filter((p) => {
+                                const currentId = getCurrentUserId();
+                                if (!currentId) return false;
+                                if (!p?.user_id) return false;
+                                if (typeof p.user_id === 'string') return p.user_id === currentId;
+                                if (typeof p.user_id === 'object' && p.user_id._id) return String(p.user_id._id) === currentId;
+                                return false;
+                            }) : predictions
+                        ).map((p) => (
+                            <li key={p._id} className="p-3 border rounded bg-white text-black">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="font-semibold">{p.title}</h3>
-                                        {p.description && <p className="text-sm text-gray-600">{p.description}</p>}
-                                        <p className="text-xs text-gray-500">Fin: {new Date(p.dateFin).toLocaleString()}</p>
+                                        {p.description && <p className="text-sm">{p.description}</p>}
+                                        {(() => {
+                                            // display username when possible
+                                            let author: string | undefined;
+                                            if (p.user_id && typeof p.user_id === 'string') {
+                                                author = usersMap[p.user_id];
+                                            }
+                                            return author ? <p className="text-xs text-gray-500">Par: {author}</p> : null;
+                                        })()}
+                                        <p className="text-xs">Fin: {new Date(p.dateFin).toLocaleString()}</p>
                                     </div>
-                                    <div className="text-sm text-neutral-700">{p.status}</div>
+                                    <div className="text-sm">{p.status}</div>
                                 </div>
                                 {p.options && (
                                     <div className="mt-2 text-xs text-gray-600">
                                         Options: {Object.entries(p.options).map(([k, v]) => `${k}: ${v}`).join(', ')}
                                     </div>
                                 )}
+                                {/* Delete button shown only for predictions owned by current user */}
+                                {(() => {
+                                    const currentId = getCurrentUserId();
+                                    const isMine = Boolean(currentId && p?.user_id && (
+                                        (typeof p.user_id === 'string' && p.user_id === currentId) ||
+                                        (typeof p.user_id === 'object' && p.user_id._id && String(p.user_id._id) === currentId)
+                                    ));
+                                    return isMine ? (
+                                        <div className="mt-2">
+                                            <button className="text-red-600 text-sm" onClick={() => deletePrediction(p._id)} disabled={deletingId === p._id}>{deletingId === p._id ? 'Suppression...' : 'Supprimer'}</button>
+                                        </div>
+                                    ) : null;
+                                })()}
                             </li>
                         ))}
                     </ul>
                 )}
             </section>
+
+            {/* confirmation uses native confirm() */}
+
+            {/* Toast */}
+            {toast && (
+                <div className="fixed bottom-4 right-4 bg-black text-white px-3 py-2 rounded">{toast}</div>
+            )}
         </div>
     );
 }
