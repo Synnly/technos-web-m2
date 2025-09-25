@@ -16,9 +16,9 @@ export class Publication {
     message : string;
 
     /** Date de publication 
-     *  Ce champ est requis et par défaut la date courante
+     *  Ce champ est requis
     */
-    @Prop({ type: Date, default: Date.now, required: true })
+    @Prop({ type: Date, required: true })
     datePublication : Date;
 
     /** Id de la prediction attenante  
