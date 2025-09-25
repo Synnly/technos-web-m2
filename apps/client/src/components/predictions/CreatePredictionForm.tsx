@@ -10,10 +10,9 @@ interface Props {
     fetchPredictions: () => Promise<void>;
     onClose: () => void;
     setToast: (s: string | null) => void;
-    setError: (s: string | null) => void;
 }
 
-export default function CreatePredictionForm({ username, fetchPredictions, onClose, setToast, setError }: Props) {
+export default function CreatePredictionForm({ username, fetchPredictions, onClose, setToast }: Props) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [dateFin, setDateFin] = useState('');
@@ -26,22 +25,22 @@ export default function CreatePredictionForm({ username, fetchPredictions, onClo
     const submitPrediction = async (e?: React.FormEvent) => {
         e?.preventDefault();
         setLocalError(null);
-        setError(null);
+    
 
-        if (!title) { const m = 'Le titre est requis'; setLocalError(m); setError(m); return; }
-        if (!dateFin) { const m = 'La date de fin est requise'; setLocalError(m); setError(m); return; }
+        if (!title) { const m = 'Le titre est requis'; setLocalError(m); return; }
+        if (!dateFin) { const m = 'La date de fin est requise'; setLocalError(m); return; }
 
-        // enforce date >= today (compare YYYY-MM-DD)
+        // Vérifier que la date est supérieure ou égale à aujourd'hui (comparaison YYYY-MM-DD)
         const todayStr = new Date().toISOString().slice(0,10);
-        if (dateFin < todayStr) { const m = "La date de fin ne peut pas être antérieure à aujourd'hui"; setLocalError(m); setError(m); return; }
+        if (dateFin < todayStr) { const m = "La date de fin ne peut pas être antérieure à aujourd'hui"; setLocalError(m); return; }
 
-        if (Object.keys(options).length < 2) { const m = 'Au moins deux options sont requises'; setLocalError(m); setError(m); return; }
+        if (Object.keys(options).length < 2) { const m = 'Au moins deux options sont requises'; setLocalError(m); return; }
 
         const token = localStorage.getItem('token');
-        if (!token) { const m = 'Utilisateur non authentifié'; setLocalError(m); setError(m); return; }
+        if (!token) { const m = 'Utilisateur non authentifié'; setLocalError(m);return; }
 
         try {
-            // Récupérer user_id si possible
+            // Récupérer user_id
             let user_id: string | undefined;
             if (username) {
                 try {
@@ -72,9 +71,9 @@ export default function CreatePredictionForm({ username, fetchPredictions, onClo
             console.error(err);
             const msg = err?.response?.data?.message || 'Erreur lors de la création';
             setLocalError(msg);
-            setError(msg);
-        }
-    };
+          
+        };
+    }
 
     return (
         <form className="mb-6 space-y-3" onSubmit={submitPrediction}>
@@ -88,9 +87,9 @@ export default function CreatePredictionForm({ username, fetchPredictions, onClo
                 <InputText label="Option clef" name="optionKey" value={optionKey} onChange={(e) => setOptionKey(e.target.value)} placeholder="ex: yes" />
                 <div className="flex items-center gap-2">
                     <button type="button" onClick={() => {
-                        if (!optionKey) { const m = "La clé de l'option est requise"; setLocalError(m); setError(m); return; }
+                        if (!optionKey) { const m = "La clé de l'option est requise"; setLocalError(m); return; }
                         setOptions((prev) => ({ ...prev, [optionKey]: 0 }));
-                        setOptionKey(''); setLocalError(null); setError(null);
+                        setOptionKey(''); setLocalError(null); 
                     }}>Ajouter option</button>
                 </div>
             </div>
@@ -116,4 +115,5 @@ export default function CreatePredictionForm({ username, fetchPredictions, onClo
             {localError && <div className="text-red-500">{localError}</div>}
         </form>
     );
+
 }

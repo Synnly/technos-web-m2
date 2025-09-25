@@ -2,14 +2,14 @@ import type { FC } from 'react';
 
 interface Props {
     p: any;
-    usersMap: Record<string,string>;
+    usersMap: Record<string,string>; // user_id to username
     currentId?: string;
     onDelete: (id: string) => void;
     deletingId?: string | null;
 }
 
 const PredictionItem: FC<Props> = ({ p, usersMap, currentId, onDelete, deletingId }) => {
-    const author = (p.user_id && typeof p.user_id === 'string') ? usersMap[p.user_id] : (p.user && p.user.username) || undefined;
+    const author = (p.user_id && typeof p.user_id === 'string') ? usersMap[p.user_id] : "inconnu";
     const isMine = Boolean(currentId && p?.user_id && ((typeof p.user_id === 'string' && p.user_id === currentId) || (typeof p.user_id === 'object' && p.user_id._id && String(p.user_id._id) === currentId)));
 
     return (

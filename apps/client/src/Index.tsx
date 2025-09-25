@@ -139,7 +139,7 @@ function Index() {
             </header>
 
                 {showForm && isAuthenticated && (
-                    <CreatePredictionForm username={username} fetchPredictions={fetchPredictions} onClose={() => setShowForm(false)} setToast={setToast as any} setError={setError as any} />
+                    <CreatePredictionForm username={username} fetchPredictions={fetchPredictions} onClose={() => setShowForm(false)} setToast={setToast as any} />
                 )}
 
             <section>
