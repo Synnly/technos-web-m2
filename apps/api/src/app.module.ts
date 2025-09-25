@@ -10,6 +10,8 @@ import { PredictionController } from './controller/prediction.controller';
 import { PredictionService } from './service/prediction.service';
 import { Prediction, PredictionSchema } from './model/prediction.schema';
 import { TokenController } from './controller/token.controller';
+import { VoteService } from './service/vote.service';
+import { Vote, VoteSchema } from './model/vote.schema';
 
 /**
  * Module principal de l'application API.
@@ -43,6 +45,7 @@ import { TokenController } from './controller/token.controller';
 		MongooseModule.forFeature([
 			{ name: User.name, schema: UserSchema },
 			{ name: Prediction.name, schema: PredictionSchema },
+			{ name: Vote.name, schema: VoteSchema },
 		]),
 		JwtModule.register({
 			secret: process.env.JWT_SECRET!,
@@ -50,7 +53,7 @@ import { TokenController } from './controller/token.controller';
 		}),
 	],
 	controllers: [UserController, PredictionController, TokenController],
-	providers: [UserService, PredictionService],
+	providers: [UserService, PredictionService, VoteService],
 })
 
 export class AppModule {

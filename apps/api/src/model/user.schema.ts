@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Prediction } from './prediction.schema';
+import { Vote } from './vote.schema';
 export type UserDocument = User & Document;
 
 /**
@@ -8,6 +9,9 @@ export type UserDocument = User & Document;
  */
 @Schema()
 export class User {
+
+    _id: string;
+
     /**
      * Le nom d'utilisateur.
      * Ce champ est requis.
@@ -38,6 +42,10 @@ export class User {
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Prediction' }] })
     predictions: Prediction[];
+
+
+    @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vote', default: [] }] })
+    votes: Vote[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

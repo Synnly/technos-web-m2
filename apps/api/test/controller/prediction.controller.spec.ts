@@ -12,7 +12,8 @@ const expectedUser1 = {
 	motDePasse: 'H@sh3dpassword', 
 	points: 50, 
 	pointsQuotidiensRecuperes: false,
-	predictions : []
+	predictions : [],
+    votes : []
 } as User;
 
 const expectedPred1 = {

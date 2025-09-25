@@ -12,7 +12,8 @@ const expectedUser1 = {
     motDePasse: 'H@sh3dpassword', 
     points: 50, 
     pointsQuotidiensRecuperes: false,
-    predictions : []
+    predictions : [],
+    votes : []
 } as User;
 
 const expectedUser2 = { 
@@ -21,7 +22,8 @@ const expectedUser2 = {
     motDePasse: 'H@sh3dpassword2', 
     points: 100, 
     pointsQuotidiensRecuperes: true,
-    predictions : []
+    predictions : [],
+    votes : []
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];
