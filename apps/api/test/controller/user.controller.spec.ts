@@ -11,7 +11,8 @@ const expectedUser1 = {
     username: 'testuser1', 
     motDePasse: 'H@sh3dpassword', 
     points: 50, 
-    pointsQuotidiensRecuperes: false
+    pointsQuotidiensRecuperes: false,
+    predictions : []
 } as User;
 
 const expectedUser2 = { 
@@ -19,7 +20,8 @@ const expectedUser2 = {
     username: 'testuser2', 
     motDePasse: 'H@sh3dpassword2', 
     points: 100, 
-    pointsQuotidiensRecuperes: true
+    pointsQuotidiensRecuperes: true,
+    predictions : []
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];

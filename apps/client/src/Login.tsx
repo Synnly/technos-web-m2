@@ -23,7 +23,7 @@ type LoginFormInputs = {
 function Login() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
-    if(isAuthenticated) navigate("", {replace: true})
+    if(isAuthenticated) navigate("/", {replace: true})
         
     const from = useLocation().state?.from ?? "/";
 

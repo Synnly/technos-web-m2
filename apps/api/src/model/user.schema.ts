@@ -1,4 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
+import { Prediction } from './prediction.schema';
 export type UserDocument = User & Document;
 
 /**
@@ -7,7 +9,7 @@ export type UserDocument = User & Document;
 @Schema()
 export class User {
     /**
-     * Le nom d\'utilisateur (nom d'utilisateur) de l'utilisateur.
+     * Le nom d'utilisateur.
      * Ce champ est requis.
      */
     @Prop({ required: true })
@@ -33,6 +35,9 @@ export class User {
      */
     @Prop({ required: true, default: false })
     pointsQuotidiensRecuperes: boolean;
+
+    @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Prediction' }] })
+    predictions: Prediction[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
