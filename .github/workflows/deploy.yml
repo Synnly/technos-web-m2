@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install root deps
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Install PM2
+        run: |
+          npm install -g pm2
+          pm2 -v
+      
+      - name: Redémarrer services
+        run: pm2 start /home/deploy/technos-web-m2/apps/api/dist/main.js
