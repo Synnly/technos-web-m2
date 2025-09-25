@@ -107,7 +107,7 @@ export class PredictionController {
             if (req.user?._id) payload.user_id = req.user._id;
 
             // Creer ou mettre à jour
-            const updated = await this.predictionService.createOrUpdateById(id, payload as Prediction,);
+            const updated = await this.predictionService.createOrUpdateById(id, payload as Prediction);
 
             return response.status(HttpStatus.OK).json(updated);
             
