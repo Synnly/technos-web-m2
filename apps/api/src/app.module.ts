@@ -1,6 +1,4 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
@@ -11,6 +9,7 @@ import { UserController } from './controller/user.controller';
 import { PredictionController } from './controller/prediction.controller';
 import { PredictionService } from './service/prediction.service';
 import { Prediction, PredictionSchema } from './model/prediction.schema';
+import { TokenController } from './controller/token.controller';
 
 /**
  * Module principal de l'application API.
@@ -50,8 +49,8 @@ import { Prediction, PredictionSchema } from './model/prediction.schema';
 			signOptions: { expiresIn: '2h' },
 		}),
 	],
-	controllers: [AppController, UserController, PredictionController],
-	providers: [AppService, UserService, PredictionService],
+	controllers: [UserController, PredictionController, TokenController],
+	providers: [UserService, PredictionService],
 })
 
 export class AppModule {

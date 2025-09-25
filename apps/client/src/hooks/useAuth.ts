@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
+
+const API_URL = import.meta.env.VITE_API_URL
+
+interface TokenJwtPayload extends JwtPayload {
+    username: string;
+}
 
 export const useAuth = () => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -8,35 +15,24 @@ export const useAuth = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        
-        if (token) {
-            try {
-                const decodedToken: JwtPayload = jwtDecode(token);
-                
-                // Vérifier si le token est expiré
-                if (Date.now() < decodedToken.exp! * 1000) {
-                    setIsAuthenticated(true);
-                    // token was signed with payload { username }
-                    setUsername((decodedToken as any).username ?? null);
-                } else {
-                    localStorage.removeItem('token');
-                    setIsAuthenticated(false);
-                }
-            } catch (error) {
-                localStorage.removeItem('token');
-                setIsAuthenticated(false);
-            }
-        } else {
-            setIsAuthenticated(false);
+
+        if (!token) {
+            setIsLoading(false);
+            localStorage.removeItem('token');
+            return;
         }
-        
+        axios.post(`${API_URL}/token/check`, { token })
+            .then(() => {
+                setIsAuthenticated(true);
+                setUsername(jwtDecode<TokenJwtPayload>(token).username);
+            })
+            .catch(() => localStorage.removeItem('token'));
         setIsLoading(false);
     }, []);
 
     const logout = () => {
         localStorage.removeItem('token');
         setIsAuthenticated(false);
-        setUsername(null);
     };
 
     return { isAuthenticated, isLoading, logout, username };

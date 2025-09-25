@@ -24,7 +24,7 @@ type LoginFormInputs = {
 function Login() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
-    if(isAuthenticated) navigate("", {replace: true})
+    if(isAuthenticated) navigate("/", {replace: true})
         
     const from = useLocation().state?.from ?? "/";
 
@@ -48,7 +48,7 @@ function Login() {
             // Redirection vers la page initialement demandée
             navigate(from, {replace: true});
         })
-        .catch((error) => {
+        .catch((_) => {
             setError("root", {
                 type: "manual",
                 message: "Identifiants invalides"
