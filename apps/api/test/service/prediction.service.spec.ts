@@ -3,7 +3,6 @@ import { getModelToken } from '@nestjs/mongoose';
 import { PredictionService } from "../../src/service/prediction.service";
 import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
-import { HttpException } from "@nestjs/common/exceptions/http.exception";
 import { User } from "src/model/user.schema";
 
 const expectedUser1 = { 
@@ -47,7 +46,7 @@ interface MockPredModel {
 
 const mockPredModel = jest.fn().mockImplementation((data) => ({
 	...data,
-	// return the constructed data so provided _id is preserved in tests
+	// retourne les données construites afin que l'_id fourni soit préservé dans les tests
 	save: jest.fn().mockResolvedValue(data)
 })) as unknown as MockPredModel;
 
@@ -126,15 +125,6 @@ describe('PredictionService', () => {
 				expect(result).toEqual(expect.objectContaining({ title: newPred.title, options: newPred.options }));
 			});
 
-			it('should default options to empty object when not provided', async () => {
-				const newPredNoOptions = { title: 'No options', status: PredictionStatus.Waiting, dateFin: new Date('2025-01-02') } as unknown as Prediction;
-
-				const result = await predictionService.createPrediction(newPredNoOptions);
-
-				expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ options: {} }));
-				expect(result).toEqual(expect.objectContaining({ options: {} }));
-			});
-
 			it('should push prediction id to user when created with user_id', async () => {
 				const newPredWithUser = { title: 'With user', status: PredictionStatus.Waiting, dateFin: new Date('2025-01-03'), options: { a: 0, b: 0 }, user_id: (expectedUser1 as any)._id, _id: 'pnew' } as unknown as Prediction;
 
@@ -161,9 +151,9 @@ describe('PredictionService', () => {
 
 			const created = await predictionService.createOrUpdateById('newid', { title: 'Created' } as Prediction);
 
-			// model constructor should be called with provided data including _id
+			// Le constructeur du modèle doit être appelé avec les données fournies, y compris _id
 			expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ _id: 'newid', title: 'Created' }));
-			// saving a model that was constructed with a provided _id will keep that _id
+			// En sauvegardant un modèle construit avec un _id fourni, cet _id sera conservé
 			expect(created).toEqual(expect.objectContaining({ _id: 'newid', title: 'Created' }));
 		});
 

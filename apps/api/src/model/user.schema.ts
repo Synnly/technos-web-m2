@@ -9,7 +9,7 @@ export type UserDocument = User & Document;
 @Schema()
 export class User {
     /**
-     * Le nom d\'utilisateur (nom d'utilisateur) de l'utilisateur.
+     * Le nom d'utilisateur.
      * Ce champ est requis.
      */
     @Prop({ required: true })

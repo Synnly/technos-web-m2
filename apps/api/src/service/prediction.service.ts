@@ -16,17 +16,19 @@ export class PredictionService {
 
 	/**
 	 * Crée une instance de PredictionService.
-	 * @param predictionModel - Modèle Mongoose injecté pour interagir avec la collection des prédictions.
+	 * @param predictionModel Modèle Mongoose injecté pour interagir avec la collection des prédictions.
+	 * @param userModel Modèle Mongoose injecté pour interagir avec la collection des utilisateurs.
 	 */
 	constructor(
 		@InjectModel(Prediction.name) private predictionModel: Model<PredictionDocument>,
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
 	) {}
 
+	
 	/**
-	 * Récupère toutes les prédictions disponibles.
-	 *
-	 * @returns Une promesse qui résout un tableau de prédictions.
+	 * Normalise un objet prédiction en s'assurant que les références d'utilisateur sont des chaînes.
+	 * @param pred L'objet prédiction à normaliser.
+	 * @returns L'objet normalisé.
 	 */
 	private normalizePred(pred: any) {
 		const obj = typeof pred.toObject === 'function' ? pred.toObject() : { ...pred };
@@ -34,9 +36,14 @@ export class PredictionService {
 		if (obj.user && typeof obj.user === 'object' && obj.user._id) obj.user_id = String(obj.user._id);
 		return obj;
 	}
-
+	
+	/**
+	 * Récupère toutes les prédictions disponibles.
+	 *
+	 * @returns Une promesse qui résout un tableau de prédictions.
+	 */
 	async getAll(): Promise<Prediction[]> {
-		// populate user_id so we can normalize to plain id
+		// Peupler le champ user_id avec uniquement le username
 		const preds = await this.predictionModel.find().populate('user_id', 'username').exec();
 		return (preds as any[]).map((p) => this.normalizePred(p));
 	}
@@ -44,7 +51,7 @@ export class PredictionService {
 	/**
 	 * Récupère une prédiction par son identifiant.
 	 *
-	 * @param id - Identifiant MongoDB de la prédiction à récupérer.
+	 * @param id Identifiant MongoDB de la prédiction à récupérer.
 	 * @returns Une promesse qui résout la prédiction si elle est trouvée, ou `undefined` sinon.
 	 */
 	async getById(id: string): Promise<Prediction | undefined> {
@@ -55,21 +62,18 @@ export class PredictionService {
 
 	/**
 	 * Crée une nouvelle prédiction dans la base de données.
-	 *
 	 * Le schéma impose que `title` soit présent ; cette méthode se contente de créer
 	 * l'enregistrement via le constructeur du modèle et d'appeler `save()`.
 	 *
-	 * @param pred - Objet prédiction à créer.
-	 * @returns La prédiction créée.
+	 * @param pred Objet prédiction à créer.
+	 * @returns La promesse qui résout la prédiction créée.
 	 */
 	async createPrediction(pred: Prediction): Promise<Prediction> {
-		// Ensure options is at least an empty object so the schema receives it
-		const safePred = { ...pred, options: (pred as any).options ?? {} } as any;
-		// Simple create - title is required by schema
-		const newPred = new this.predictionModel(safePred);
+		const newPred = new this.predictionModel(pred);
 		const created = await newPred.save();
 
-		// If prediction has a user_id reference, push this prediction id into user's predictions array
+		// Si la prédiction a une référence user_id, ajouter cet identifiant de prédiction dans le tableau des 
+		// prédictions de l'utilisateur
 		if (created && (created as any).user_id) {
 			try {
 				await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { predictions: created._id } }).exec();
@@ -103,7 +107,7 @@ export class PredictionService {
 
 			return await existing.save();
 		} else {
-			// create new with provided id if given
+			// créer une nouvelle prédiction avec l'identifiant fourni si donné
 			const toCreate = { ...pred, options: (pred as any).options ?? {} } as any;
 			if (id) toCreate._id = id;
 			const newPred = new this.predictionModel(toCreate);
@@ -132,14 +136,12 @@ export class PredictionService {
 			throw new HttpException('Prediction not found', HttpStatus.NOT_FOUND);
 		}
 
-		// Remove reference from user.predictions if present
+		// Supprime la référence de la liste des prédictions de l'utilisateur si elle est présente
 		try {
 			if ((deleted as any).user_id) {
 				await this.userModel.findByIdAndUpdate((deleted as any).user_id, { $pull: { predictions: deleted._id } }).exec();
 			}
-		} catch (e) {
-			// ignore
-		}
+		} catch (_){}
 
 		return this.normalizePred(deleted) as Prediction;
 	}

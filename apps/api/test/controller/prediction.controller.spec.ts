@@ -84,7 +84,7 @@ describe('PredictionController', () => {
 	});
 
 	describe('getPredictions', () => {
-		it('should return empty array when none', async () => {
+		it('should return empty array when none exists', async () => {
 			mockPredictionService.getAll.mockResolvedValue([]);
 
 			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
@@ -102,7 +102,6 @@ describe('PredictionController', () => {
 			mockPredictionService.getById.mockResolvedValue(expectedPred1);
 
 			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
-			const mockReq = {} as any;
 
 			await predictionController.getPredictionById(mockResponse, expectedPred1._id!);
 
@@ -142,16 +141,21 @@ describe('PredictionController', () => {
 
 			await predictionController.createPrediction(mockReq, mockResponse, expectedPred1);
 
-			// service should be called without client-provided _id and include user_id and options
-			expect(predictionService.createPrediction).toHaveBeenCalledWith(expect.objectContaining({ title: expectedPred1.title, dateFin: expectedPred1.dateFin, user_id: (expectedUser1 as any)._id, options: expectedPred1.options }));
+			// le service doit être appelé sans l'_id fourni par le client et inclure user_id et options
+			expect(predictionService.createPrediction).toHaveBeenCalledWith(expect.objectContaining({ 
+				title: expectedPred1.title, 
+				dateFin: expectedPred1.dateFin, 
+				user_id: (expectedUser1 as any)._id, 
+				options: expectedPred1.options 
+			}));
 			expect(mockResponse.status).toHaveBeenCalledWith(201);
 			expect(mockResponse.json).toHaveBeenCalledWith(expectedPred1);
 		});
 
-		it('should return 400 when missing title', async () => {
+		it('should return 400 when missing the title', async () => {
 			const badPred = { ...expectedPred1, title: undefined } as unknown as Prediction;
 			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
-			const mockReq = {} as any;
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
 
 			await predictionController.createPrediction(mockReq, mockResponse, badPred);
 
@@ -193,6 +197,18 @@ describe('PredictionController', () => {
 			expect(mockResponse.status).toHaveBeenCalledWith(400);
 			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Au moins deux options sont requises' });
 		});
+
+		it('should return 400 when dateFin is before today', async () => {
+			const badPred = { ...expectedPred1, dateFin: new Date("2025-01-01") } as unknown as Prediction;
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.createPrediction(mockReq, mockResponse, badPred);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'La date de fin doit être supérieure ou égale à aujourd\'hui' });
+		});
+
 
 		it('should return 400 when status is missing', async () => {
 			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
@@ -287,7 +303,7 @@ describe('PredictionController', () => {
 			expect(mockResponse.json).toHaveBeenCalledWith(expectedPred1);
 		});
 
-		it('should return 404 when deletion fails', async () => {
+		it('should return 404 when prediction is not found', async () => {
 			mockPredictionService.deleteById.mockImplementation(() => { throw new HttpException('Not found', HttpStatus.NOT_FOUND); });
 
 			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
