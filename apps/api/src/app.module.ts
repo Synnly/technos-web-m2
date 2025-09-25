@@ -10,6 +10,9 @@ import { PredictionController } from './controller/prediction.controller';
 import { PredictionService } from './service/prediction.service';
 import { Prediction, PredictionSchema } from './model/prediction.schema';
 import { TokenController } from './controller/token.controller';
+import { Publication, PublicationSchema } from './model/publication.schema';
+import { PublicationService } from './service/publication.service';
+import { PublicationController } from './controller/publication.controller';
 
 /**
  * Module principal de l'application API.
@@ -43,14 +46,15 @@ import { TokenController } from './controller/token.controller';
 		MongooseModule.forFeature([
 			{ name: User.name, schema: UserSchema },
 			{ name: Prediction.name, schema: PredictionSchema },
+			{ name: Publication.name, schema: PublicationSchema },
 		]),
 		JwtModule.register({
 			secret: process.env.JWT_SECRET!,
 			signOptions: { expiresIn: '2h' },
 		}),
 	],
-	controllers: [UserController, PredictionController, TokenController],
-	providers: [UserService, PredictionService],
+	controllers: [UserController, PredictionController, TokenController, PublicationController],
+	providers: [UserService, PredictionService, PublicationService],
 })
 
 export class AppModule {

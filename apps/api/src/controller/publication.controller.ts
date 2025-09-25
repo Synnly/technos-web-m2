@@ -50,13 +50,14 @@ export class PublicationController {
      */
     @Post('')
     async createPublication(@Res() response, @Body() pub: Publication): Promise<Publication> {
-
+        console.log(pub.datePublication);
+        const toleranceMs = 10 * 1000;
         // Validation des champs requis
         const missing = [
             !pub && 'La publication est requise',
             !pub?.message && 'Le message est requis',
             !pub?.datePublication && 'La date est requise',
-            pub?.datePublication && new Date(pub.datePublication) < new Date() && "La date de publication doit être supérieure ou égale à aujourd'hui",
+            pub?.datePublication && new Date(pub.datePublication).getTime() + toleranceMs < new Date().getTime() && "La date de publication doit être supérieure ou égale à aujourd'hui",
             !pub?.user_id && 'L\'utilisateur est requis',
             !pub?.prediction_id && 'La prédiction est requise',
         ].filter(Boolean)[0];
@@ -78,14 +79,14 @@ export class PublicationController {
      */
     @Put('/:id')
     async createOrUpdatePublicationById(@Res() response, @Param('id') id: string, @Body() pub: Publication ): Promise<Publication> {
-
+        const toleranceMs = 10 * 1000;
         // Validation des champs requis
         const missing = [
             !pub && 'La publication est requise',
             !id && 'L\'identifiant est requis',
             !pub?.message && 'Le message est requis',
             !pub?.datePublication && 'La date est requise',
-            pub?.datePublication && new Date(pub.datePublication) < new Date() && "La date de publication doit être supérieure ou égale à aujourd'hui",
+            pub?.datePublication && new Date(pub.datePublication).getTime() + toleranceMs < new Date().getTime() && "La date de publication doit être supérieure ou égale à aujourd'hui",
             !pub?.user_id && 'L\'utilisateur est requis',
             !pub?.prediction_id && 'La prédiction est requise',
         ].filter(Boolean)[0];

@@ -39,4 +39,4 @@ export class Publication {
 
 }
 
-export const PredictionSchema = SchemaFactory.createForClass(Publication);
+export const PublicationSchema = SchemaFactory.createForClass(Publication);

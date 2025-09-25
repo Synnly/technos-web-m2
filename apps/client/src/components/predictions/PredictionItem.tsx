@@ -1,4 +1,6 @@
 import type { FC } from 'react';
+// ...existing imports
+import PublicationsList from './PublicationsList';
 
 interface Props {
     p: any;
@@ -8,9 +10,12 @@ interface Props {
     deletingId?: string | null;
 }
 
+
 const PredictionItem: FC<Props> = ({ p, usersMap, currentId, onDelete, deletingId }) => {
     const author = (p.user_id && typeof p.user_id === 'string') ? usersMap[p.user_id] : "inconnu";
     const isMine = Boolean(currentId && p?.user_id && ((typeof p.user_id === 'string' && p.user_id === currentId) || (typeof p.user_id === 'object' && p.user_id._id && String(p.user_id._id) === currentId)));
+
+    // publications UI moved to PublicationsList
 
     return (
         <li key={p._id} className="p-3 border rounded bg-white text-black">
@@ -31,6 +36,9 @@ const PredictionItem: FC<Props> = ({ p, usersMap, currentId, onDelete, deletingI
                     <button className="text-red-600 text-sm" onClick={() => onDelete(p._id)} disabled={deletingId === p._id}>{deletingId === p._id ? 'Suppression...' : 'Supprimer'}</button>
                 </div>
             ) : null}
+            <div>
+                <PublicationsList predictionId={p._id} usersMap={usersMap} currentId={currentId} />
+            </div>
         </li>
     );
 }
