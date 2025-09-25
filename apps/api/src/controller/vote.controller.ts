@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
-import { VoteService } from "src/service/vote.service";
+import { VoteService } from "../../src/service/vote.service";
 
 @Controller('/api/vote')
 export class VoteController {
@@ -40,9 +40,9 @@ export class VoteController {
      */
     @Post('')
     async createVote(@Req() req: any, @Res() response, @Body() vote) {
+        if (!vote) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Les données du vote sont requises' });
         
         const missing = [
-            !vote && 'Les données du vote sont requises',
             !vote.user_id && "L'identifiant de l'utilisateur est requis",
             !vote.prediction_id && "L'identifiant de la prédiction est requis",
             !vote.choice && 'Le choix est requis',
