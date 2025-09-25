@@ -1,6 +1,7 @@
-import { Prop, Schema } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types } from "mongoose";
 
+export type PublicationDocument = Publication & Document;
 
 @Schema()
 export class Publication {
@@ -37,3 +38,5 @@ export class Publication {
     user_id: Types.ObjectId;
 
 }
+
+export const PredictionSchema = SchemaFactory.createForClass(Publication);
