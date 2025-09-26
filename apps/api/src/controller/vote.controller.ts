@@ -50,9 +50,7 @@ export class VoteController {
             !req.user?._id && 'L\'utilisateur authentifié est requis',
         ].filter(Boolean)[0];
 
-        if (missing) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
-        }
+        if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
 
         const {_id, ...payload } = vote as any;
         if (req.user?._id) payload.user_id = req.user._id;

@@ -252,6 +252,23 @@ describe('VoteController', () => {
             expect(status).toHaveBeenCalledWith(400);
             expect(json).toHaveBeenCalledWith({ message: 'Service error' });
         });
+
+        it('should return 400 if the user does not have enough points', async () => {
+            const newVote = { ...expectedVote1, _id: undefined };
+
+            mockVoteService.createVote.mockRejectedValue(new Error('Points insuffisants'));
+
+            const json = jest.fn();
+            const status = jest.fn(() => ({ json }));
+            const response = { status } as any;
+            const req = { user: { _id: '1' } } as any;
+
+            await voteController.createVote(req, response, newVote);
+
+            expect(voteService.createVote).toHaveBeenCalled();
+            expect(status).toHaveBeenCalledWith(400);
+            expect(json).toHaveBeenCalledWith({ message: 'Points insuffisants' });
+        });
     });
 
     describe('updateVote', () => {

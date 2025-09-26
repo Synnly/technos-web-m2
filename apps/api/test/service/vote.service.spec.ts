@@ -4,16 +4,15 @@ import { VoteService } from "../../src/service/vote.service";
 import { getModelToken } from '@nestjs/mongoose';
 import { User } from "../../src/model/user.schema";
 import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
-import { exec } from "child_process";
 
-const expectedUser1 = { 
-    _id: '1', 
-    username: 'testuser1', 
-    motDePasse: 'H@sh3dpassword', 
-    points: 5000, 
+const expectedUser1 = {
+    _id: '1',
+    username: 'testuser1',
+    motDePasse: 'H@sh3dpassword',
+    points: 5000,
     pointsQuotidiensRecuperes: false,
-    predictions : [],
-    votes : []
+    predictions: [],
+    votes: []
 } as User;
 
 const expectedPred1 = {
@@ -51,29 +50,30 @@ const mockVoteModel = jest.fn().mockImplementation((data) => ({
 
 mockVoteModel.find = jest.fn();
 mockVoteModel.findById = jest.fn();
-mockVoteModel.findByIdAndDelete = jest.fn();    
+mockVoteModel.findByIdAndDelete = jest.fn();
 
 const mockUserModel = {
-    findById: jest.fn().mockReturnValue({exec: jest.fn().mockResolvedValue({...expectedUser1,})}),
+    findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
     findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
 };
+
 const mockPredictionModel = {
-    findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({...expectedPred1,}) }),
+    findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) }),
 };
 
 describe('VoteService', () => {
     let voteService: VoteService;
-    
+
     beforeEach(async () => {
         jest.clearAllMocks();
-        
+
         const moduleRef = await Test.createTestingModule({
             providers: [
                 VoteService,
                 { provide: getModelToken(Vote.name), useValue: mockVoteModel },
                 { provide: getModelToken(User.name), useValue: mockUserModel },
                 { provide: getModelToken(Prediction.name), useValue: mockPredictionModel },
-                ],
+            ],
         }).compile();
 
         voteService = moduleRef.get(VoteService);
@@ -131,12 +131,13 @@ describe('VoteService', () => {
             });
             expect(mockVoteModel.findById).toHaveBeenCalledWith('1');
         });
-        
+
         it('should return undefined if vote not found', async () => {
             mockVoteModel.findById.mockReturnValue({
                 exec: jest.fn().mockResolvedValue(null)
             });
-            const vote = await voteService.getById('unknown');            
+
+            const vote = await voteService.getById('unknown');
             expect(vote).toBeUndefined();
             expect(mockVoteModel.findById).toHaveBeenCalledWith('unknown');
         });
@@ -144,7 +145,6 @@ describe('VoteService', () => {
 
     describe('createVote', () => {
         it('should create and return a new vote', async () => {
-
             const createdVote = await voteService.createVote(expectedVote1);
             expect(createdVote).toEqual(expect.objectContaining({
                 user_id: expectedVote1.user_id,
@@ -172,6 +172,32 @@ describe('VoteService', () => {
             expect(mockUserModel.findById).toHaveBeenCalledWith(expectedVote1.user_id);
             expect(mockPredictionModel.findById).toHaveBeenCalledWith(expectedVote1.prediction_id);
         });
+
+        it('should decrease user points when vote is created', async () => {
+            mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+            mockPredictionModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
+
+            const createdVote = await voteService.createVote(expectedVote1);
+            expect(createdVote).toEqual(expect.objectContaining({
+                user_id: expectedVote1.user_id,
+                prediction_id: expectedVote1.prediction_id,
+                amount: expectedVote1.amount,
+                option: expectedVote1.option,
+                date: expect.any(Date)
+            }));
+            expect(mockUserModel.findById).toHaveBeenCalledWith(expectedVote1.user_id);
+            expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                expectedUser1._id,
+                { $inc: { points: -(expectedVote1.amount) } }
+            );
+        });
+
+        it('should throw an error if user has insufficient points', async () => {
+            mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue({ ...expectedUser1, points: 50 }) });
+
+            await expect(voteService.createVote(expectedVote1)).rejects.toThrow("Points insuffisants");
+            expect(mockUserModel.findById).toHaveBeenCalledWith(expectedVote1.user_id);
+        });
     });
 
     describe('createOrUpdateVote', () => {
@@ -194,11 +220,11 @@ describe('VoteService', () => {
                 })
             });
 
-            const updatedVote = await voteService.createOrUpdateVote('1', { amount: 150, option: 'yes' });
+            const updatedVote = await voteService.createOrUpdateVote('1', { ...expectedVote1, amount: 150, option: 'yes' });
             expect(updatedVote).toEqual(expect.objectContaining({
                 _id: '1',
-                user_id: expectedUser1._id,
-                prediction_id: expectedPred1._id,
+                user_id: (expectedUser1 as any)._id,
+                prediction_id: (expectedPred1 as any)._id,
                 amount: 150,
                 option: 'yes'
             }));
@@ -209,29 +235,60 @@ describe('VoteService', () => {
             mockVoteModel.findById.mockReturnValue({
                 exec: jest.fn().mockResolvedValue(null)
             });
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedUser1)
+            });
+            mockPredictionModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedPred1)
+            });
 
-            const newVoteData = {
-                user_id: (expectedUser1 as any)._id,
-                prediction_id: (expectedPred1 as any)._id,
-                amount: 200,
-                option: 'no',
-                date: new Date()
-            } as Partial<Vote>;
-
-            const createdVote = await voteService.createOrUpdateVote('2', newVoteData);
+            const createdVote = await voteService.createOrUpdateVote('2', expectedVote1);
             expect(createdVote).toEqual(expect.objectContaining({
                 _id: '2',
                 user_id: (expectedUser1 as any)._id,
                 prediction_id: (expectedPred1 as any)._id,
-                amount: 200,
-                option: 'no',
+                amount: expectedVote1.amount,
+                option: expectedVote1.option,
                 date: expect.any(Date)
             }));
             expect(mockVoteModel.findById).toHaveBeenCalledWith('2');
             expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
-                expectedUser1._id, 
+                expectedUser1._id,
                 { $push: { votes: '2' } }
             );
+        });
+
+        it('should throw an error if user not found during creattion', async () => {
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(null)
+            });
+
+            await expect(voteService.createOrUpdateVote(expectedVote1._id, { ...expectedVote1, amount: 150 }))
+                .rejects.toThrow("Utilisateur non trouvé");
+        });
+
+        it('should throw an error if prediction not found during creattion', async () => {
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedUser1)
+            });
+            mockPredictionModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(null)
+            });
+
+            await expect(voteService.createOrUpdateVote('1', expectedVote1))
+                .rejects.toThrow("Prédiction non trouvée");
+        });
+
+        it('should throw an error if user has insufficient points during creation', async () => {
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue({ ...expectedUser1, points: 30 })
+            });
+            mockPredictionModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedPred1)
+            });
+
+            await expect(voteService.createOrUpdateVote('1', { ...expectedVote1, amount: 150 }))
+                .rejects.toThrow("Points insuffisants");
         });
     });
 
