@@ -56,7 +56,8 @@ export class VoteService {
     }
 
     /**
-     * Crée un nouveau vote. Si le vote est créé avec succès, il retire le montant voté de l'utilisateur.
+     * Crée un nouveau vote. Si le vote est créé avec succès, il retire le montant voté de l'utilisateur et met à jour 
+     * le montant total de l'option votée.
      * @param vote Les données du vote à créer.
      * @returns Une promesse qui résout le vote créé, ou rejette une erreur si l'utilisateur ou la prédiction n'existe pas.
      */
@@ -79,8 +80,9 @@ export class VoteService {
             try {
                 await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { votes: created._id } }).exec();
                 await this.userModel.findByIdAndUpdate((created as any).user_id, { $inc: { points: -(vote.amount) } }).exec();
+                await this.predictionModel.findByIdAndUpdate((created as any).prediction_id, { $inc: { options: { [vote.option]: vote.amount } } }).exec();
             } catch (e) {
-                console.log("Erreur update user:", e);
+                throw new Error("Erreur update user:", e);
             }
         }
 
@@ -88,47 +90,58 @@ export class VoteService {
     }
 
     /**
-     * Crée ou met à jour un vote. Si un nouveau vote est créé, il retire le montant voté de l'utilisateur.
+     * Crée ou met à jour un vote. Si un nouveau vote est créé, il retire le montant voté de l'utilisateur et met à jour
+     * le montant total de l'option votée.
      * @param id Identifiant MongoDB du vote à créer ou mettre à jour.
      * @param vote Les données du vote à créer ou mettre à jour.
      * @returns Une promesse qui résout le vote créé ou mis à jour
      */
     async createOrUpdateVote(id: string, vote: Vote): Promise<Vote | undefined> {
         const existingVote = await this.voteModel.findById(id).exec();
-        if (existingVote){
-            existingVote.amount = vote.amount ?? existingVote.amount;
-            existingVote.option = vote.option ?? existingVote.option;
-            existingVote.prediction_id = vote.prediction_id ?? existingVote.prediction_id;
-            existingVote.user_id = vote.user_id ?? existingVote.user_id;
 
-            const updated = await existingVote.save();
-            return this.normalizeVote(updated) as Vote;
-        }
-
-        // Vérifier que l'utilisateur et la prédiction existent
+        // Verifier que l'utilisateur et la prédiction existent
         const user = await this.userModel.findById(vote.user_id).exec();
         if (!user) throw new Error("Utilisateur non trouvé");
 
         const prediction = await this.predictionModel.findById(vote.prediction_id).exec();
         if (!prediction) throw new Error("Prédiction non trouvée");
 
-        if(user.points < (vote.amount)) throw new Error("Points insuffisants");
+        let newVote;
 
-        // Créer un nouveau vote si aucun n'existe avec cet ID
-        const toCreate = vote;
-        toCreate._id = id;
-        const newPred = new this.voteModel(toCreate);
-        const created = await newPred.save();
+        if (existingVote){  // Mettre à jour le vote existant
+            // Verifier que l'utilisateur a assez de points si le montant augmente
+            if (vote.amount > existingVote.amount && user.points < (vote.amount - existingVote.amount)) {
+                throw new Error("Points insuffisants");
+            }
 
-        if (created && (created as any).user_id) {
+            existingVote.amount = vote.amount ?? existingVote.amount;
+            existingVote.option = vote.option ?? existingVote.option;
+            existingVote.prediction_id = vote.prediction_id ?? existingVote.prediction_id;
+            existingVote.user_id = vote.user_id ?? existingVote.user_id;
+
+            newVote = await existingVote.save();
+        }
+        else{   // Créer un nouveau vote
+            // Verifier que l'utilisateur a assez de points
+            if(user.points < (vote.amount)) throw new Error("Points insuffisants");
+
+            const toCreate = vote;
+            toCreate._id = id;
+            const newPred = new this.voteModel(toCreate);
+            newVote = await newPred.save();
+        }
+
+        if (newVote && (newVote as any).user_id) {
             try {
-                await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { votes: created._id } }).exec();
+                await this.userModel.findByIdAndUpdate((newVote as any).user_id, { $push: { votes: newVote._id } }).exec();
+                await this.userModel.findByIdAndUpdate((newVote as any).user_id, { $inc: { points: -(vote.amount) } }).exec();
+                await this.predictionModel.findByIdAndUpdate((newVote as any).prediction_id, { $inc: { options: { [vote.option]: vote.amount } } }).exec();
             } catch (e) {
-                throw new Error("Erreur création du vote:", e);
+                throw new Error(`Erreur ${existingVote ? "mise à jour" : "création"} du vote:`, e);
             }
         }
 
-        return this.normalizeVote(created) as Vote;
+        return this.normalizeVote(newVote) as Vote;
     }
 
     /**

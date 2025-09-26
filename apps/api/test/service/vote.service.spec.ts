@@ -59,6 +59,7 @@ const mockUserModel = {
 
 const mockPredictionModel = {
     findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) }),
+    findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
 };
 
 describe('VoteService', () => {
@@ -145,12 +146,12 @@ describe('VoteService', () => {
 
     describe('createVote', () => {
         it('should create and return a new vote', async () => {
+            mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+            mockPredictionModel.findByIdAndUpdate.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
+
             const createdVote = await voteService.createVote(expectedVote1);
             expect(createdVote).toEqual(expect.objectContaining({
-                user_id: expectedVote1.user_id,
-                prediction_id: expectedVote1.prediction_id,
-                amount: expectedVote1.amount,
-                option: expectedVote1.option,
+                ...expectedVote1,
                 date: expect.any(Date)
             }));
             expect(mockUserModel.findById).toHaveBeenCalled();
@@ -202,22 +203,21 @@ describe('VoteService', () => {
 
     describe('createOrUpdateVote', () => {
         it('should update an existing vote', async () => {
-            // Mock existing vote
             mockVoteModel.findById.mockReturnValue({
                 exec: jest.fn().mockResolvedValue({
-                    _id: '1',
-                    user_id: expectedUser1._id,
-                    prediction_id: expectedPred1._id,
-                    amount: 50,
-                    option: 'no',
+                    ...expectedVote1,
                     save: jest.fn().mockResolvedValue({
-                        _id: '1',
-                        user_id: expectedUser1._id,
-                        prediction_id: expectedPred1._id,
+                        ...expectedVote1,
                         amount: 150,
                         option: 'yes'
                     })
                 })
+            });
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedUser1)
+            });
+            mockPredictionModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedPred1)
             });
 
             const updatedVote = await voteService.createOrUpdateVote('1', { ...expectedVote1, amount: 150, option: 'yes' });
