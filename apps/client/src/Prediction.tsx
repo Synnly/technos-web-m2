@@ -22,7 +22,8 @@ function Prediction() {
             await axios.post(`${API_URL}/vote`, {
                 prediction_id: id,
                 option: option,
-                amount: montant
+                amount: montant,
+                date: new Date().toISOString()
             }, { headers: { Authorization: `Bearer ${token}` } });
             window.location.reload();
         } catch (err) {
