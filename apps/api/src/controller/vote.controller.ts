@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
-import { VoteService } from "../../src/service/vote.service";
+import { VoteService } from "../service/vote.service";
 
 @Controller('/api/vote')
 export class VoteController {
@@ -43,14 +43,15 @@ export class VoteController {
         if (!vote) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Les données du vote sont requises' });
         
         const missing = [
-            !vote.user_id && "L'identifiant de l'utilisateur est requis",
             !vote.prediction_id && "L'identifiant de la prédiction est requis",
-            !vote.choice && 'Le choix est requis',
-            !vote.amount && 'Le montant est requis',
+            !vote.option && 'Le choix est requis',
+            vote.amount === undefined && 'Le montant est requis',
+            !vote.date && 'La date est requise',
             !req.user?._id && 'L\'utilisateur authentifié est requis',
         ].filter(Boolean)[0];
 
         if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
+        if(vote.amount < 1) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le montant doit être au moins de 1 point' });
 
         const {_id, ...payload } = vote as any;
         if (req.user?._id) payload.user_id = req.user._id;
@@ -80,17 +81,18 @@ export class VoteController {
             !vote && 'Les données du vote sont requises',
             !vote.user_id && "L'identifiant de l'utilisateur est requis",
             !vote.prediction_id && "L'identifiant de la prédiction est requis",
-            !vote.choice && 'Le choix est requis',
-            !vote.amount && 'Le montant est requis',
+            !vote.option && 'Le choix est requis',
+            vote.amount === undefined && 'Le montant est requis',
             !req.user?._id && 'L\'utilisateur authentifié est requis',
         ].filter(Boolean)[0];
 
         if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
+        if(vote.amount < 1) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le montant doit être au moins de 1 point' });
 
         try {
             // Préparer payload
-            const {_id, ...payload } = vote as any;
-            if (req.user?._id) payload.user_id = req.user._id;
+        const {_id, ...payload } = vote as any;
+        if (req.user?._id) payload.user_id = req.user._id;
 
             // Créer ou mettre à jour le vote
             const updated = await this.voteService.createOrUpdateVote(id, payload);

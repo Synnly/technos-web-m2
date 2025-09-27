@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
     p: any;
@@ -9,11 +10,13 @@ interface Props {
 }
 
 const PredictionItem: FC<Props> = ({ p, usersMap, currentId, onDelete, deletingId }) => {
+    const navigate = useNavigate();
+
     const author = (p.user_id && typeof p.user_id === 'string') ? usersMap[p.user_id] : "inconnu";
     const isMine = Boolean(currentId && p?.user_id && ((typeof p.user_id === 'string' && p.user_id === currentId) || (typeof p.user_id === 'object' && p.user_id._id && String(p.user_id._id) === currentId)));
 
     return (
-        <li key={p._id} className="p-3 border rounded bg-white text-black">
+        <li key={p._id} className="p-3 border rounded bg-white text-black" onClick={() => navigate(`/prediction/${p._id}`)}>
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="font-semibold">{p.title}</h3>

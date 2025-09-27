@@ -28,7 +28,7 @@ const expectedVote1 = {
     _id: '1',
     user_id: (expectedUser1 as any)._id,
     prediction_id: (expectedPred1 as any)._id,
-    choice: 'yes',
+    option: 'yes',
     amount: 10,
     date: new Date('2024-01-01')
 };
@@ -122,27 +122,22 @@ describe('VoteController', () => {
 
     describe('createVote', () => {
         it('should create and return a new vote', async () => {
-            const newVote = { ...expectedVote1, _id: undefined };
-            const createdVote = { ...expectedVote1 };
+            const newVote = { ...expectedVote1, _id: "1" };
 
-            mockVoteService.createVote.mockResolvedValue(createdVote);
+            mockVoteService.createVote.mockResolvedValue({ ...expectedVote1, _id: "1" });
 
-            const json = jest.fn();
-            const status = jest.fn(() => ({ json }));
-            const response = { status } as any;
-            const req = { user: { _id: '1' } } as any;
+            const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+            const mockRequest = { user: { _id: '1' } } as any;
+            await voteController.createVote(mockRequest, mockResponse, newVote);
 
-            await voteController.createVote(req, response, newVote);
-
-            expect(voteService.createVote).toHaveBeenCalledWith({
-                user_id: '1',
+            expect(voteService.createVote).toHaveBeenCalledWith(expect.objectContaining({
                 prediction_id: newVote.prediction_id,
-                choice: newVote.choice,
+                option: newVote.option,
                 amount: newVote.amount,
                 date: newVote.date
-            });
-            expect(status).toHaveBeenCalledWith(201);
-            expect(json).toHaveBeenCalledWith(createdVote);
+            }));
+            expect(mockResponse.status).toHaveBeenCalledWith(201);
+            expect(mockResponse.json).toHaveBeenCalledWith(expectedVote1);
         });
 
         it('should return 400 if the data is missing', async () => {
@@ -189,9 +184,9 @@ describe('VoteController', () => {
             expect(json).toHaveBeenCalledWith({ message: "L'identifiant de la prédiction est requis" });
         });
 
-        it('should return 400 if the choice is missing', async () => {
+        it('should return 400 if the option is missing', async () => {
             const newVote = { ...expectedVote1, _id: undefined };
-            delete (newVote as any).choice;
+            delete (newVote as any).option;
 
             const json = jest.fn();
             const status = jest.fn(() => ({ json }));
@@ -219,6 +214,37 @@ describe('VoteController', () => {
             expect(voteService.createVote).not.toHaveBeenCalled();
             expect(status).toHaveBeenCalledWith(400);
             expect(json).toHaveBeenCalledWith({ message: 'Le montant est requis' });
+        });
+
+        it('should return 400 if the amount is less than 1', async () => {
+            const newVote = { ...expectedVote1, _id: undefined, amount: 0 };
+
+            const json = jest.fn();
+            const status = jest.fn(() => ({ json }));
+            const response = { status } as any;
+            const req = { user: { _id: '1' } } as any;
+
+            await voteController.createVote(req, response, newVote);
+
+            expect(voteService.createVote).not.toHaveBeenCalled();
+            expect(status).toHaveBeenCalledWith(400);
+            expect(json).toHaveBeenCalledWith({ message: 'Le montant doit être au moins de 1 point' });
+        });
+
+        it('should return 400 if the date is missing', async () => {
+            const newVote = { ...expectedVote1, _id: undefined };
+            delete (newVote as any).date;
+
+            const json = jest.fn();
+            const status = jest.fn(() => ({ json }));
+            const response = { status } as any;
+            const req = { user: { _id: '1' } } as any;
+
+            await voteController.createVote(req, response, newVote);
+
+            expect(voteService.createVote).not.toHaveBeenCalled();
+            expect(status).toHaveBeenCalledWith(400);
+            expect(json).toHaveBeenCalledWith({ message: 'La date est requise' });
         });
 
         it('should return 400 if the user is not authenticated', async () => {
@@ -287,12 +313,28 @@ describe('VoteController', () => {
             expect(voteService.createOrUpdateVote).toHaveBeenCalledWith('1', {
                 user_id: '1',
                 prediction_id: updatedVote.prediction_id,
-                choice: updatedVote.choice,
+                option: updatedVote.option,
                 amount: updatedVote.amount,
                 date: updatedVote.date
             });
             expect(status).toHaveBeenCalledWith(200);
             expect(json).toHaveBeenCalledWith(updatedVote);
+        });
+
+        it('should return 400 if the user_id is missing from vote data', async () => {
+            const updatedVote = { ...expectedVote1, amount: 20 };
+            delete (updatedVote as any).user_id;
+
+            const json = jest.fn();
+            const status = jest.fn(() => ({ json }));
+            const response = { status } as any;
+            const req = { user: { _id: '1' } } as any;
+
+            await voteController.updateVote(req, response, '1', updatedVote);
+
+            expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
+            expect(status).toHaveBeenCalledWith(400);
+            expect(json).toHaveBeenCalledWith({ message: "L'identifiant de l'utilisateur est requis" });
         });
 
         it('should return 400 if the data is missing', async () => {
@@ -353,9 +395,9 @@ describe('VoteController', () => {
             expect(json).toHaveBeenCalledWith({ message: "L'identifiant de la prédiction est requis" });
         });
 
-        it('should return 400 if the choice is missing', async () => {
+        it('should return 400 if the option is missing', async () => {
             const updatedVote = { ...expectedVote1, amount: 20 };
-            delete (updatedVote as any).choice;
+            delete (updatedVote as any).option;
 
             const json = jest.fn();
             const status = jest.fn(() => ({ json }));
@@ -383,6 +425,21 @@ describe('VoteController', () => {
             expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
             expect(status).toHaveBeenCalledWith(400);
             expect(json).toHaveBeenCalledWith({ message: 'Le montant est requis' });
+        });
+
+        it('should return 400 if the amount is less than 1', async () => {
+            const updatedVote = { ...expectedVote1, amount: 0 };
+
+            const json = jest.fn();
+            const status = jest.fn(() => ({ json }));
+            const response = { status } as any;
+            const req = { user: { _id: '1' } } as any;
+
+            await voteController.updateVote(req, response, '1', updatedVote);
+
+            expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
+            expect(status).toHaveBeenCalledWith(400);
+            expect(json).toHaveBeenCalledWith({ message: 'Le montant doit être au moins de 1 point' });
         });
 
         it('should return 400 if the service throws an error', async () => {

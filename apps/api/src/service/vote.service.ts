@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Prediction, PredictionDocument } from "../../src/model/prediction.schema";
-import { User, UserDocument } from "../../src/model/user.schema";
-import { Vote, VoteDocument } from "../../src/model/vote.schema";
+import { Prediction, PredictionDocument } from "../model/prediction.schema";
+import { User, UserDocument } from "../model/user.schema";
+import { Vote, VoteDocument } from "../model/vote.schema";
 
 @Injectable()
 export class VoteService {
@@ -80,9 +80,13 @@ export class VoteService {
             try {
                 await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { votes: created._id } }).exec();
                 await this.userModel.findByIdAndUpdate((created as any).user_id, { $inc: { points: -(vote.amount) } }).exec();
-                await this.predictionModel.findByIdAndUpdate((created as any).prediction_id, { $inc: { options: { [vote.option]: vote.amount } } }).exec();
+                
+                // Correction de la mise à jour des options de prédiction
+                const updateOptions = {};
+                updateOptions[`options.${vote.option}`] = vote.amount;
+                await this.predictionModel.findByIdAndUpdate((created as any).prediction_id, { $inc: updateOptions }).exec();
             } catch (e) {
-                throw new Error("Erreur update user:", e);
+                throw new Error(`Erreur update user: ${e.message}`);
             }
         }
 
@@ -135,9 +139,13 @@ export class VoteService {
             try {
                 await this.userModel.findByIdAndUpdate((newVote as any).user_id, { $push: { votes: newVote._id } }).exec();
                 await this.userModel.findByIdAndUpdate((newVote as any).user_id, { $inc: { points: -(vote.amount) } }).exec();
-                await this.predictionModel.findByIdAndUpdate((newVote as any).prediction_id, { $inc: { options: { [vote.option]: vote.amount } } }).exec();
+                
+                // Correction de la mise à jour des options de prédiction
+                const updateOptions = {};
+                updateOptions[`options.${vote.option}`] = vote.amount;
+                await this.predictionModel.findByIdAndUpdate((newVote as any).prediction_id, { $inc: updateOptions }).exec();
             } catch (e) {
-                throw new Error(`Erreur ${existingVote ? "mise à jour" : "création"} du vote:`, e);
+                throw new Error(`Erreur ${existingVote ? "mise à jour" : "création"} du vote: ${e.message}`);
             }
         }
 

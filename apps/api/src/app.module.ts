@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
@@ -12,6 +12,7 @@ import { Prediction, PredictionSchema } from './model/prediction.schema';
 import { TokenController } from './controller/token.controller';
 import { VoteService } from './service/vote.service';
 import { Vote, VoteSchema } from './model/vote.schema';
+import { VoteController } from './controller/vote.controller';
 
 /**
  * Module principal de l'application API.
@@ -52,14 +53,14 @@ import { Vote, VoteSchema } from './model/vote.schema';
 			signOptions: { expiresIn: '2h' },
 		}),
 	],
-	controllers: [UserController, PredictionController, TokenController],
+	controllers: [UserController, PredictionController, TokenController, VoteController],
 	providers: [UserService, PredictionService, VoteService],
 })
 
-export class AppModule {
+export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer){
 		consumer
 			.apply(isAuthenticated)
-			.forRoutes('/main')
+			.forRoutes('/api/vote');
 	}
 }
