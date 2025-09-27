@@ -1,14 +1,18 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
 import { VoteService } from "../service/vote.service";
 
+/**
+ * Contrôleur pour la gestion des votes sur les prédictions.
+ * Fournit les endpoints CRUD pour les votes.
+ */
 @Controller('/api/vote')
 export class VoteController {
     constructor(private readonly voteService: VoteService) {}
 
     /**
-     * Récupère tous les votes.
-     * @param response Objet de réponse HTTP.
-     * @returns Liste des votes.
+     * Récupère tous les votes du système.
+     * @param response Objet de réponse HTTP
+     * @returns {Promise<void>} Liste complète des votes avec statut HTTP 200 (OK)
      */
     @Get('')
     async getVotes(@Res() response) {
@@ -17,10 +21,10 @@ export class VoteController {
     }
 
     /**
-     * Récupère un vote par son id.
-     * @param response Objet de réponse HTTP.
-     * @param id Identifiant du vote.
-     * @returns Le vote correspondant à l'id, ou une erreur HTTP 404 (Not Found) si le vote n'existe pas.
+     * Récupère un vote spécifique par son identifiant.
+     * @param response Objet de réponse HTTP
+     * @param id Identifiant unique du vote à récupérer
+     * @returns {Promise<void>} Le vote correspondant avec statut HTTP 200 (OK) ou 404 (Not Found) si le vote est introuvable
      */
     @Get('/:id')
     async getVoteById(@Res() response, @Param('id') id: string) {
@@ -32,11 +36,13 @@ export class VoteController {
     }
 
     /**
-     * Crée un nouveau vote.
-     * @param req Objet de requête HTTP.
-     * @param response Objet de réponse HTTP.
-     * @param vote Les données du vote à créer.
-     * @returns Le vote créé, ou une erreur HTTP 400 (Bad Request) si la validation échoue.
+     * Crée un nouveau vote sur une prédiction.
+     * L'utilisateur doit être authentifié et le vote doit respecter les contraintes métier.
+     * 
+     * @param req Objet de requête HTTP contenant les informations d'authentification
+     * @param response Objet de réponse HTTP
+     * @param vote Données du vote à créer (prediction_id, option, amount, date)
+     * @returns {Promise<void>} Le vote créé avec statut HTTP 201 (Created) ou 400 (Bad Request) si les données sont invalides ou manquantes
      */
     @Post('')
     async createVote(@Req() req: any, @Res() response, @Body() vote) {
@@ -65,12 +71,13 @@ export class VoteController {
     }
 
     /**
-     * Met à jour un vote existant.
-     * @param req Objet de requête HTTP.
-     * @param response Objet de réponse HTTP.
-     * @param id Identifiant du vote à mettre à jour.
-     * @param vote Les données du vote à mettre à jour.
-     * @returns Le vote mis à jour, ou une erreur HTTP 400 (Bad Request) si la validation échoue.
+     * Met à jour un vote existant ou le crée s'il n'existe pas.
+     * 
+     * @param req Objet de requête HTTP contenant les informations d'authentification
+     * @param response Objet de réponse HTTP
+     * @param id Identifiant du vote à mettre à jour
+     * @param vote Nouvelles données du vote (user_id, prediction_id, option, amount)
+     * @returns {Promise<void>} Le vote mis à jour avec statut HTTP 200 (OK) ou 400 (Bad Request) si les données sont invalides ou manquantes
      */
     @Put('/:id')
     async updateVote(@Req() req: any, @Res() response, @Param('id') id: string, @Body() vote) {
@@ -103,10 +110,12 @@ export class VoteController {
     }
 
     /**
-     * Supprime un vote par son id.
-     * @param response Objet de réponse HTTP.
-     * @param id Identifiant du vote à supprimer.
-     * @returns Le vote supprimé, ou une erreur HTTP 404 (Not Found) si le vote n'existe pas.
+     * Supprime définitivement un vote du système.
+     * Cette action est irréversible.
+     * 
+     * @param response Objet de réponse HTTP
+     * @param id Identifiant du vote à supprimer
+     * @returns {Promise<void>} Le vote supprimé avec statut HTTP 200 (OK) ou 404 (Not Found) si le vote est introuvable
      */
     @Delete('/:id')
     async deleteVote(@Res() response, @Param('id') id: string) {
