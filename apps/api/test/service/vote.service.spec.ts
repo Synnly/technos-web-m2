@@ -199,6 +199,17 @@ describe('VoteService', () => {
             await expect(voteService.createVote(expectedVote1)).rejects.toThrow("Points insuffisants");
             expect(mockUserModel.findById).toHaveBeenCalledWith(expectedVote1.user_id);
         });
+
+        it('should handle errors during user update in create', async () => {
+            mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+            mockPredictionModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
+            mockUserModel.findByIdAndUpdate.mockReturnValueOnce({
+                exec: jest.fn().mockRejectedValue(new Error("Database error"))
+            });
+
+            await expect(voteService.createVote(expectedVote1))
+                .rejects.toThrow("Erreur update user: Database error");
+        });
     });
 
     describe('createOrUpdateVote', () => {
@@ -290,6 +301,43 @@ describe('VoteService', () => {
             await expect(voteService.createOrUpdateVote('1', { ...expectedVote1, amount: 150 }))
                 .rejects.toThrow("Points insuffisants");
         });
+
+        it('should throw an error if user has insufficient points during update', async () => {
+            mockVoteModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue({
+                    ...expectedVote1,
+                    amount: 50, // montant existant
+                    save: jest.fn()
+                })
+            });
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue({ ...expectedUser1, points: 30 }) // pas assez de points
+            });
+            mockPredictionModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedPred1)
+            });
+
+            await expect(voteService.createOrUpdateVote('1', { ...expectedVote1, amount: 150 })) // augmentation de 100
+                .rejects.toThrow("Points insuffisants");
+        });
+
+        it('should handle errors during user update in createOrUpdate', async () => {
+            mockVoteModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(null)
+            });
+            mockUserModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedUser1)
+            });
+            mockPredictionModel.findById.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(expectedPred1)
+            });
+            mockUserModel.findByIdAndUpdate.mockReturnValueOnce({
+                exec: jest.fn().mockRejectedValue(new Error("Database error"))
+            });
+
+            await expect(voteService.createOrUpdateVote('2', expectedVote1))
+                .rejects.toThrow("Erreur création du vote: Database error");
+        });
     });
 
     describe('deleteVote', () => {
@@ -321,6 +369,62 @@ describe('VoteService', () => {
             const deletedVote = await voteService.deleteVote('unknown');
             expect(deletedVote).toBeUndefined();
             expect(mockVoteModel.findByIdAndDelete).toHaveBeenCalledWith('unknown');
+        });
+
+        it('should return user points and update prediction options when deleting vote', async () => {
+            const voteToDelete = {
+                _id: '1',
+                user_id: (expectedUser1 as any)._id,
+                prediction_id: (expectedPred1 as any)._id,
+                amount: 100,
+                option: 'yes'
+            };
+
+            mockVoteModel.findByIdAndDelete.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(voteToDelete)
+            });
+            mockUserModel.findByIdAndUpdate.mockReturnValue({
+                exec: jest.fn().mockResolvedValue({})
+            });
+            mockPredictionModel.findByIdAndUpdate.mockReturnValue({
+                exec: jest.fn().mockResolvedValue({})
+            });
+
+            const deletedVote = await voteService.deleteVote('1');
+            expect(deletedVote).toEqual(voteToDelete);
+            expect(mockVoteModel.findByIdAndDelete).toHaveBeenCalledWith('1');
+            expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                (expectedUser1 as any)._id,
+                { $pull: { votes: voteToDelete._id } }
+            );
+            expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                (expectedUser1 as any)._id,
+                { $inc: { points: voteToDelete.amount } }
+            );
+            expect(mockPredictionModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                (expectedPred1 as any)._id,
+                { $inc: { [`options.${voteToDelete.option}`]: -voteToDelete.amount } }
+            );  
+        });
+
+        it('should handle errors during vote deletion', async () => {
+            const voteToDelete = {
+                _id: '1',
+                user_id: (expectedUser1 as any)._id,
+                prediction_id: (expectedPred1 as any)._id,
+                amount: 100,
+                option: 'yes'
+            };
+
+            mockVoteModel.findByIdAndDelete.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(voteToDelete)
+            });
+            mockUserModel.findByIdAndUpdate.mockReturnValue({
+                exec: jest.fn().mockRejectedValue(new Error("Database error"))
+            });
+
+            await expect(voteService.deleteVote('1'))
+                .rejects.toThrow("Erreur suppression du vote:");
         });
     });
 });

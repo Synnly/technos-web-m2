@@ -162,8 +162,14 @@ export class VoteService {
         if (!deleted) return undefined;
 
         try {
-            // Retirer le vote de la liste des votes de l'utilisateur
+            // Retirer le vote de la liste des votes de l'utilisateur et rembourser les points
             await this.userModel.findByIdAndUpdate(deleted.user_id, { $pull: { votes: deleted._id } }).exec();
+            await this.userModel.findByIdAndUpdate(deleted.user_id, { $inc: { points: deleted.amount } }).exec();
+            
+            // Mettre à jour le montant total de l'option votée
+            const updateOptions = {};
+            updateOptions[`options.${deleted.option}`] = -deleted.amount;
+            await this.predictionModel.findByIdAndUpdate(deleted.prediction_id, { $inc: updateOptions }).exec();
         } catch (e) {
             throw new Error("Erreur suppression du vote:");
         }
