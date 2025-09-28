@@ -91,7 +91,8 @@ export class PublicationService {
     /**
      * Supprime une publication par son identifiant.
      * @param id Identifiant de la publication à supprimer
-     * @returns Une promesse avec la publication supprimée
+     * @returns Une promesse avec la publication supprimée.
+     * @throws HttpException si la publication n'est pas trouvée
      */
     async deleteById(id: string): Promise<Publication> {
         const deleted = await this.publicationModel.findByIdAndDelete(id).exec();
