@@ -51,7 +51,7 @@ export class PublicationController {
      */
     @Post('')
     async createPublication(@Res() response, @Body() pub: Publication): Promise<Publication> {
-        console.log(pub.datePublication);
+
         const toleranceMs = 10 * 1000;
         // Validation des champs requis
         const missing = [
