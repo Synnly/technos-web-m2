@@ -32,8 +32,8 @@ export default function PublicationsList({ predictionId, usersMap, currentId }: 
     setLoadingPubs(true);
     try {
       const res = await axios.get(`${API_URL}/publication`);
-      const docs: any[] = res.data || [];
-      const filtered = docs.filter(d => {
+      const pubs: any[] = res.data || [];
+      const filtered = pubs.filter(d => {
         if (!d?.prediction_id) return false;
         if (typeof d.prediction_id === 'string') return d.prediction_id === predictionId;
         if (typeof d.prediction_id === 'object' && d.prediction_id._id) return String(d.prediction_id._id) === predictionId;

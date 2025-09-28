@@ -38,8 +38,8 @@ export class PublicationService {
      * @returns Une promesse avec un tableau de publications
      */
     async getAll(): Promise<Publication[]> {
-        const docs = await this.publicationModel.find().populate('user_id', 'username').populate('prediction_id', 'title').exec();
-        return (docs as any[]).map((d) => this.normalizePub(d));
+        const pubs = await this.publicationModel.find().populate('user_id', 'username').populate('prediction_id', 'title').exec();
+        return (pubs as any[]).map((d) => this.normalizePub(d));
     }
 
     /**
@@ -48,9 +48,9 @@ export class PublicationService {
      * @returns Une promesse avec la publication ou undefined si elle n'existe pas.
      */
     async getById(id: string): Promise<Publication | undefined> {
-        const doc = await this.publicationModel.findById(id).populate('user_id', 'username').populate('prediction_id', 'title').exec() ?? undefined;
-        if (!doc) return undefined;
-        return this.normalizePub(doc) as Publication;
+        const pub = await this.publicationModel.findById(id).populate('user_id', 'username').populate('prediction_id', 'title').exec() ?? undefined;
+        if (!pub) return undefined;
+        return this.normalizePub(pub) as Publication;
     }
 
     /**
@@ -60,8 +60,8 @@ export class PublicationService {
      */
     async createPublication(pub: Publication): Promise<Publication> {
         const safePub = { ...pub } as any;
-        const newDoc = new this.publicationModel(safePub);
-        const created = await newDoc.save();
+        const newPub = new this.publicationModel(safePub);
+        const created = await newPub.save();
         return this.normalizePub(created) as Publication;
     }
 
@@ -82,8 +82,8 @@ export class PublicationService {
             return await existing.save();
         } else {
             const toCreate = { ...pub } as any;
-            const newDoc = new this.publicationModel(toCreate);
-            const created = await newDoc.save();
+            const newPub = new this.publicationModel(toCreate);
+            const created = await newPub.save();
             return this.normalizePub(created) as Publication;
         }
     }
