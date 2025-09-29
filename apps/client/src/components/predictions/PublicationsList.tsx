@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 interface Props {
+  p: any;
   predictionId: string;
   usersMap: Record<string, string>;
   currentId?: string | null;
@@ -9,7 +11,7 @@ interface Props {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function PublicationsList({ predictionId, usersMap, currentId }: Props) {
+export default function PublicationsList({p, predictionId, usersMap, currentId }: Props) {
   const [showPublications, setShowPublications] = useState(false);
   const [publications, setPublications] = useState<any[]>([]);
   const [loadingPubs, setLoadingPubs] = useState(false);
@@ -20,6 +22,7 @@ export default function PublicationsList({ predictionId, usersMap, currentId }: 
   const [postingNew, setPostingNew] = useState(false);
   const [newError, setNewError] = useState<string | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const toggleCollapsed = (id: string) => {
     setCollapsedIds((prev) => {
@@ -76,6 +79,11 @@ export default function PublicationsList({ predictionId, usersMap, currentId }: 
             setShowPublications(true);
             await fetchPubs();
           }}>{showPublications ? 'Cacher' : 'Voir'}</button>
+        </div>
+        <div>
+          <button onClick={() => navigate(`/prediction/${p._id}`)} className='text-sm text-white'>
+            Voter
+          </button>
         </div>
       </div>
 
