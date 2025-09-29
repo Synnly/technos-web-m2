@@ -60,27 +60,10 @@
 Pour obtenir une copie locale et la faire fonctionner, suivez ces étapes simples.
 
 ### Prérequis
-
-* Node.js version 18+ (recommandé Node.js 20.x LTS)
-* npm version 7+ (recommandé npm 9+)
-* MongoDB version 4.4+ 
-
-```sh
-wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-
-# Ubuntu 20.04
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/multiverse amd64 mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-# Debian 11 
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/debian bullseye/multiverse amd64 mongodb-org/6.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-sudo apt-get update
-sudo apt-get install -y mongodb-org nodejs npm
-sudo systemctl start mongod
-
-# Facultatif
-sudo systemctl enable mongod
-```
-
+* [npm](https://nodejs.org/en/download/current) version 7+ (recommandé npm 11+)
+* [Node.js](https://nodejs.org/en/download/current) version 20+ (recommandé Node.js 24.x LTS)
+* [MongoDB](https://www.mongodb.com/docs/manual/installation/) version 4.4+ 
+* (Production) Serveur HTTP (NGINX, Apache, ...)
 ### Installation
 
 1. Cloner le repo
@@ -139,9 +122,13 @@ Modifiez `JWT_SECRET` pour modifier le secret JWT. Un secret de moins de 256 bit
 JWT_SECRET=<secret JWT>
 ```
 
-<!-- USAGE EXAMPLES -->
+> [!IMPORTANT]
+> Il est impératif de changer le secret JWT <ins>**AVANT**</ins> de lancer le projet
+
+
 ## Utilisation
 
+## Développement
 ```sh
 npm run dev
 ```
@@ -158,6 +145,17 @@ Pour lancer seulement le client
 npm run client
 ```
 
+## Production
+D'abord compilez le projet
+```sh
+npm run build
+```
+
+Puis démarrez l'API
+```sh
+npm run start
+```
+
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
 
@@ -169,12 +167,12 @@ npm run client
 - [x] Déconnexion
 - [x] Suppression de compte
 - [x] Modification de compte
-- [ ] Création de prédiction
-- [ ] Vote de prédiction
+- [x] Création de prédiction
+- [x] Vote de prédiction
 - [ ] Confirmer le résultat d’une prédiction
-- [ ] Créer une publication sous une prédiction
+- [x] Créer une publication sous une prédiction
 - [ ] Récupérer les points quotidiens
-- [ ] Répondre à une publication
+- [x] Répondre à une publication
 - [ ] Liker une publication
 - [ ] Changer de cosmétique
 - [ ] Acheter un cosmétique pour son profil
