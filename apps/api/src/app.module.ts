@@ -13,6 +13,9 @@ import { TokenController } from './controller/token.controller';
 import { VoteService } from './service/vote.service';
 import { Vote, VoteSchema } from './model/vote.schema';
 import { VoteController } from './controller/vote.controller';
+import { Publication, PublicationSchema } from './model/publication.schema';
+import { PublicationService } from './service/publication.service';
+import { PublicationController } from './controller/publication.controller';
 
 /**
  * Module principal de l'application API.
@@ -47,14 +50,15 @@ import { VoteController } from './controller/vote.controller';
 			{ name: User.name, schema: UserSchema },
 			{ name: Prediction.name, schema: PredictionSchema },
 			{ name: Vote.name, schema: VoteSchema },
+			{ name: Publication.name, schema: PublicationSchema },
 		]),
 		JwtModule.register({
 			secret: process.env.JWT_SECRET!,
 			signOptions: { expiresIn: '2h' },
 		}),
 	],
-	controllers: [UserController, PredictionController, TokenController, VoteController],
-	providers: [UserService, PredictionService, VoteService],
+	controllers: [UserController, PredictionController, TokenController, VoteController, PublicationController],
+	providers: [UserService, PredictionService, VoteService, PublicationService],
 })
 
 export class AppModule implements NestModule {
