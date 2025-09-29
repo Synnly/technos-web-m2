@@ -118,4 +118,25 @@ export class PublicationController {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: e.message });
         }
     }
+
+    /**
+     * Permet à un utilisateur de liker ou unliker une publication.
+     * @param response Objet de réponse HTTP.
+     * @param id Identifiant de la publication à liker ou unliker.
+     * @param userId Identifiant de l'utilisateur qui like ou unlike la publication.
+     * @returns Les données de la publication mise à jour avec un statut HTTP 200 (OK), ou une erreur HTTP 400 
+     * (Bad Request) si l'id ou userId est manquant, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de mise à jour
+     *  impossible.
+     */
+    @Put('/:id/toggle-like/:userId')
+    async toggleLikePublication(@Res() response, @Param('id') id: string, @Param('userId') userId: string): Promise<Publication> {
+        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: "L'identifiant de la publication est requis" });
+        if (!userId) return response.status(HttpStatus.BAD_REQUEST).json({ message: "L'identifiant de l'utilisateur est requis" });
+        try {
+            const updated = await this.publicationService.toggleLikePublication(id, userId);
+            return response.status(HttpStatus.OK).json(updated);
+        } catch (e) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: e.message });
+        }
+    }
 }       

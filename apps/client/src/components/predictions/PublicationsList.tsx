@@ -22,6 +22,8 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
   const [postingNew, setPostingNew] = useState(false);
   const [newError, setNewError] = useState<string | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<string[]>([]);
+  const [likes, setLikes] = useState<Record<string, { isLiked: boolean; count: number }>>({});
+  const [likingIds, setLikingIds] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const toggleCollapsed = (id: string) => {
@@ -31,10 +33,43 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
     });
   };
 
+  const toggleLike = async (publicationId: string) => {
+    if (!currentId || likingIds.includes(publicationId)) return;
+    
+    setLikingIds(prev => [...prev, publicationId]);
+    const currentLike = likes[publicationId] || { isLiked: false, count: 0 };
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${API_URL}/publication/${publicationId}/toggle-like/${currentId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      
+      // Mettre à jour l'état local avec la réponse de l'API
+      setLikes(prev => ({
+        ...prev,
+        [publicationId]: {
+          isLiked: !currentLike.isLiked,
+          count: response.data.likeCount || (currentLike.count + (currentLike.isLiked ? -1 : 1))
+        }
+      }));
+    } catch (error) {
+      console.error('Erreur lors du like:', error);
+    } finally {
+      setLikingIds(prev => prev.filter(id => id !== publicationId));
+    }
+  };
+
   const fetchPubs = async () => {
     setLoadingPubs(true);
     try {
-      const res = await axios.get(`${API_URL}/publication`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/publication`, { 
+        headers: token ? { Authorization: `Bearer ${token}` } : {} 
+      });
       const pubs: any[] = res.data || [];
       const filtered = pubs.filter(d => {
         if (!d?.prediction_id) return false;
@@ -45,8 +80,34 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
       // normalize _id to string for ease
       const normalized = filtered.map((d) => ({ ...d, _id: String(d._id), parentPublication_id: d.parentPublication_id ? String(d.parentPublication_id) : undefined }));
       setPublications(normalized);
+      
+      // Récupérer les likes pour chaque publication
+      const initialLikes: Record<string, { isLiked: boolean; count: number }> = {};
+      
+      for (const pub of normalized) {
+        try {
+          // Récupérer les likes spécifiques pour cette publication
+          const likeRes = await axios.get(`${API_URL}/publication/${pub._id}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          });
+          
+          initialLikes[pub._id] = {
+            isLiked: likeRes.data.likes.includes(currentId) || false,
+            count: likeRes.data.likes.length || 0
+          };
+        } catch (error) {
+          // En cas d'erreur, utiliser les valeurs par défaut
+          initialLikes[pub._id] = {
+            isLiked: false,
+            count: 0
+          };
+        }
+      }
+      
+      setLikes(initialLikes);
     } catch (e) {
       setPublications([]);
+      setLikes({});
     } finally {
       setLoadingPubs(false);
     }
@@ -132,6 +193,9 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
                     const pubAuthor = (node.user_id && typeof node.user_id === 'string') ? usersMap[node.user_id] : (node.user && node.user.username) || 'inconnu';
                     const hasChildren = node.children && node.children.length > 0;
                     const isCollapsed = collapsedIds.includes(node._id);
+                    const likeInfo = likes[node._id] || { isLiked: false, count: 0 };
+                    const isLiking = likingIds.includes(node._id);
+                    
                     return (
                       <li key={node._id} className="p-2 bg-gray-50 rounded" style={{ marginLeft: level * 12 }}>
                         <div className="flex items-center justify-between">
@@ -147,6 +211,15 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
                             <div className="text-xs text-gray-500">Par: {pubAuthor} • {new Date(node.datePublication).toLocaleString()}</div>
                           </div>
                           <div className="ml-2 flex items-center gap-2">
+                            {currentId && (
+                              <button 
+                                className={`text-xs px-2 py-1 rounded ${likeInfo.isLiked ? 'bg-red-500 text-white' : 'bg-gray-300 text-gray-700'} ${isLiking ? 'opacity-50' : ''}`}
+                                onClick={() => toggleLike(node._id)}
+                                disabled={isLiking}
+                              >
+                                {isLiking ? '...' : (likeInfo.isLiked ? `❤️ ${likeInfo.count}` : `🤍 ${likeInfo.count}`)}
+                              </button>
+                            )}
                             {hasChildren ? (
                               <button className="text-xs text-white" onClick={() => toggleCollapsed(node._id)}>{isCollapsed ? 'Afficher' : 'Réduire'}</button>
                             ) : null}

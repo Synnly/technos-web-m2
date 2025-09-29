@@ -3,23 +3,24 @@ import { getModelToken } from '@nestjs/mongoose';
 import { PublicationService } from '../../src/service/publication.service';
 import { Publication } from '../../src/model/publication.schema';
 import { HttpStatus } from '@nestjs/common/enums/http-status.enum';
+import { Types } from 'mongoose';
 
 const expectedPub1 = {
-    _id: 'pub1',
+    _id: '507f1f77bcf86cd799439011',
     message: 'Hello world',
     datePublication: new Date('2025-10-01'),
-    prediction_id: 'p1',
+    prediction_id: '507f1f77bcf86cd799439012',
     parentPublication_id: undefined,
-    user_id: 'u1'
+    user_id: '507f1f77bcf86cd799439013'
 } as unknown as Publication;
 
 const expectedPub2 = {
-    _id: 'pub2',
+    _id: '507f1f77bcf86cd799439014',
     message: 'Reply',
     datePublication: new Date('2025-10-02'),
-    prediction_id: 'p1',
-    parentPublication_id: 'pub1',
-    user_id: 'u2'
+    prediction_id: '507f1f77bcf86cd799439012',
+    parentPublication_id: '507f1f77bcf86cd799439011',
+    user_id: '507f1f77bcf86cd799439015'
 } as unknown as Publication;
 
 const expectedPublications = [expectedPub1, expectedPub2];
@@ -86,25 +87,25 @@ describe('PublicationService', () => {
         it('should return a publication when found', async () => {
             mockPubModel.findById.mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(expectedPub1) });
 
-            const result = await publicationService.getById('pub1');
+            const result = await publicationService.getById('507f1f77bcf86cd799439011');
 
-            expect(mockPubModel.findById).toHaveBeenCalledWith('pub1');
+            expect(mockPubModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
             expect(result).toEqual(expectedPub1);
         });
 
         it('should return undefined when not found', async () => {
             mockPubModel.findById.mockReturnValue({ populate: jest.fn().mockReturnThis(), exec: jest.fn().mockResolvedValue(null) });
 
-            const result = await publicationService.getById('unknown');
+            const result = await publicationService.getById('507f1f77bcf86cd799439999');
 
-            expect(mockPubModel.findById).toHaveBeenCalledWith('unknown');
+            expect(mockPubModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439999');
             expect(result).toBeUndefined();
         });
     });
 
     describe('createPublication', () => {
         it('should create and return publication', async () => {
-            const newPub = { message: 'New', datePublication: new Date('2025-12-01'), prediction_id: 'p1', user_id: 'u1' } as unknown as Publication;
+            const newPub = { message: 'New', datePublication: new Date('2025-12-01'), prediction_id: '507f1f77bcf86cd799439012', user_id: '507f1f77bcf86cd799439013' } as unknown as Publication;
 
             const result = await publicationService.createPublication(newPub);
 
@@ -118,9 +119,9 @@ describe('PublicationService', () => {
             const existing: any = { ...expectedPub1, save: jest.fn().mockResolvedValue({ ...expectedPub1, message: 'Updated' }) };
             mockPubModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(existing) });
 
-            const updated = await publicationService.createOrUpdateById('pub1', { message: 'Updated' } as Publication);
+            const updated = await publicationService.createOrUpdateById('507f1f77bcf86cd799439011', { message: 'Updated' } as Publication);
 
-            expect(mockPubModel.findById).toHaveBeenCalledWith('pub1');
+            expect(mockPubModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
             expect(existing.save).toHaveBeenCalled();
             expect(updated).toEqual(expect.objectContaining({ message: 'Updated' }));
         });
@@ -128,18 +129,17 @@ describe('PublicationService', () => {
         it('should create new publication when not existing', async () => {
             mockPubModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
 
-            const created = await publicationService.createOrUpdateById('newid', { message: 'Created', user_id: 'u1' } as unknown as Publication);
+            const created = await publicationService.createOrUpdateById('507f1f77bcf86cd799439016', { message: 'Created', user_id: '507f1f77bcf86cd799439013' } as unknown as Publication);
 
-            expect(mockPubModel).toHaveBeenCalledWith(expect.objectContaining({message: 'Created', user_id: 'u1'}));
-            expect(created).toEqual(expect.objectContaining({message: 'Created', user_id: 'u1'}));
-
+            expect(mockPubModel).toHaveBeenCalledWith(expect.objectContaining({message: 'Created', user_id: '507f1f77bcf86cd799439013'}));
+            expect(created).toEqual(expect.objectContaining({message: 'Created', user_id: '507f1f77bcf86cd799439013'}));
         });
 
         it('should not fail when updating fields partly', async () => {
             const existing: any = { ...expectedPub1, save: jest.fn().mockResolvedValue({ ...expectedPub1, message: 'Part' }) };
             mockPubModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(existing) });
 
-            const updated = await publicationService.createOrUpdateById('pub1', { message: 'Part' } as Publication);
+            const updated = await publicationService.createOrUpdateById('507f1f77bcf86cd799439011', { message: 'Part' } as Publication);
 
             expect(existing.save).toHaveBeenCalled();
             expect(updated).toEqual(expect.objectContaining({ message: 'Part' }));
@@ -150,30 +150,82 @@ describe('PublicationService', () => {
         it('should delete and return document when found', async () => {
             mockPubModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPub1) });
 
-            const result = await publicationService.deleteById('pub1');
+            const result = await publicationService.deleteById('507f1f77bcf86cd799439011');
 
-            expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('pub1');
+            expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
             expect(result).toEqual(expectedPub1);
         });
 
         it('should throw when not found', async () => {
             mockPubModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
 
-            await expect(publicationService.deleteById('unknown')).rejects.toEqual(
+            await expect(publicationService.deleteById('507f1f77bcf86cd799439999')).rejects.toEqual(
                 expect.objectContaining({ message: 'Publication not found', status: HttpStatus.NOT_FOUND })
             );
 
-            expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('unknown');
+            expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439999');
         });
 
         it('should return normalized result and call user update if user present', async () => {
             const deletedWithUser: any = { ...expectedPub1 };
             mockPubModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(deletedWithUser) });
 
-            const result = await publicationService.deleteById('pub1');
+            const result = await publicationService.deleteById('507f1f77bcf86cd799439011');
 
-            expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('pub1');
+            expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
             expect(result).toEqual(expectedPub1);
+        });
+    });
+
+    describe('toggleLikePublication', () => {
+        it('should add like when user has not liked yet', async () => {
+            const mockLikesArray = [];
+            mockLikesArray.filter = jest.fn().mockReturnValue([]);
+            mockLikesArray.push = jest.fn();
+            
+            const pubWithoutLike = { 
+                ...expectedPub1, 
+                likes: mockLikesArray,
+                save: jest.fn().mockResolvedValue({ ...expectedPub1, likes: [new Types.ObjectId('507f1f77bcf86cd799439015')] }) 
+            };
+            mockPubModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(pubWithoutLike) });
+
+            const result = await publicationService.toggleLikePublication('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439015');
+
+            expect(mockPubModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+            expect(mockLikesArray.filter).toHaveBeenCalled();
+            expect(mockLikesArray.push).toHaveBeenCalledWith(expect.any(Types.ObjectId));
+            expect(pubWithoutLike.save).toHaveBeenCalled();
+        });
+
+        it('should remove like when user has already liked', async () => {
+            const userObjectId = { equals: jest.fn().mockReturnValue(true) };
+            const mockLikesArray = [userObjectId];
+            mockLikesArray.filter = jest.fn()
+                .mockReturnValueOnce([userObjectId]) // Premier appel: trouve le like existant
+                .mockReturnValueOnce([]); // Deuxième appel: retourne la liste filtrée
+            
+            const pubWithLike = { 
+                ...expectedPub1, 
+                likes: mockLikesArray,
+                save: jest.fn().mockResolvedValue({ ...expectedPub1, likes: [] }) 
+            };
+            mockPubModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(pubWithLike) });
+
+            const result = await publicationService.toggleLikePublication('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439015');
+
+            expect(mockPubModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+            expect(mockLikesArray.filter).toHaveBeenCalledTimes(2);
+            expect(pubWithLike.save).toHaveBeenCalled();
+            expect(pubWithLike.likes).toEqual([]);
+        });
+
+        it('should throw error when publication not found', async () => {
+            mockPubModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+
+            await expect(publicationService.toggleLikePublication('507f1f77bcf86cd799439999', '507f1f77bcf86cd799439013')).rejects.toThrow('Publication introuvable');
+
+            expect(mockPubModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439999');
         });
     });
 });
