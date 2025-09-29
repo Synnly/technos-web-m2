@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
@@ -65,6 +65,8 @@ export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer){
 		consumer
 			.apply(isAuthenticated)
-			.forRoutes('/api/vote');
+			.exclude({ path: '/api/user/login', method: RequestMethod.POST })	// Login
+			.exclude({ path: '/api/user', method: RequestMethod.POST })			// Create user
+			.forRoutes('/api/user', '/api/vote', '/api/prediction', '/api/publication');
 	}
 }
