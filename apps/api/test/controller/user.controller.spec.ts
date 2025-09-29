@@ -13,7 +13,8 @@ const expectedUser1 = {
     points: 50, 
     pointsQuotidiensRecuperes: false,
     predictions : [],
-    votes : []
+    votes : [],
+    role: 'user'
 } as User;
 
 const expectedUser2 = { 
@@ -23,7 +24,8 @@ const expectedUser2 = {
     points: 100, 
     pointsQuotidiensRecuperes: true,
     predictions : [],
-    votes : []
+    votes : [],
+    role: 'user'
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];

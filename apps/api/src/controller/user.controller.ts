@@ -14,7 +14,8 @@ export class UserController {
      * @param userService - Service pour la logique métier liée aux utilisateurs.
      * @param jwtService - Service pour gérer les opérations JWT.
      */
-    constructor(private readonly userService: UserService, private jwtService: JwtService) {}
+    constructor(private readonly userService: UserService, private jwtService: JwtService) {
+    }
 
     /**
      * Récupère tous les utilisateurs
@@ -140,4 +141,5 @@ export class UserController {
             });
         }
     }
+
 }

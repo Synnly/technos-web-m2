@@ -7,6 +7,15 @@ import PredictionsList from "./components/predictions/PredictionsList";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+export interface Prediction {
+  _id: string;
+  title: string;
+  description?: string;
+  dateFin: string;
+  status: string;
+  options: Record<string, number>;
+  results: string;
+}
 /**
  * Composant principal de l'application.
  * - Affiche la liste des prédictions (publications).
@@ -30,7 +39,11 @@ function Index() {
         setLoading(true);
         try {
             const res = await axios.get(`${API_URL}/prediction`);
-            setPredictions(res.data || []);
+            const predictions: Prediction[] = res.data;
+            const pred = predictions.filter((p) => p.results?.trim() === '' && p.status === 'Valid');
+            console.log(pred);
+            setPredictions(pred);
+
         } catch (err) {
             console.error(err);
         } finally {

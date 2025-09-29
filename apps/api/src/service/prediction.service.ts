@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Prediction, PredictionDocument, PredictionStatus } from "../model/prediction.schema";
 import { User, UserDocument } from "../model/user.schema";
+import { Vote } from "src/model/vote.schema";
 
 
 @Injectable()
@@ -22,6 +23,7 @@ export class PredictionService {
 	constructor(
 		@InjectModel(Prediction.name) private predictionModel: Model<PredictionDocument>,
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
+		@InjectModel(Vote.name) private voteModel: Model<Vote>,
 	) {}
 
 	
@@ -145,4 +147,56 @@ export class PredictionService {
 
 		return this.normalizePred(deleted) as Prediction;
 	}
+
+	async validatePrediction(predictionId: string, winningOption: string) {
+	  // Récupérer la prédiction
+	  const prediction = await this.predictionModel.findById(predictionId).exec();
+	  if (!prediction) throw new Error('Prédiction introuvable');
+
+	  if (!prediction.options[winningOption]) {
+	    throw new Error('Option gagnante invalide');
+	  }
+
+	  // Récupérer tous les votes liés
+	  const votes = await this.voteModel.find({ prediction_id: predictionId }).exec();
+
+	  // Somme totale et somme sur l’option gagnante
+	  const totalPoints = Object.values(prediction.options).reduce((a, b) => a + b, 0);
+	  const winningPoints = prediction.options[winningOption];
+
+	  if (winningPoints === 0) throw new Error('Aucun point sur l’option gagnante');
+
+	  const ratio = totalPoints / winningPoints;
+
+	  // Récompenses des utilisateurs
+	  const rewards: { user_id: string; gain: number }[] = [];
+
+	  for (const vote of votes) {
+	    if (vote.option === winningOption) {
+	      const gain = Math.floor(vote.amount * ratio);
+
+	      // Crédite le user en base
+	      await this.userModel.findByIdAndUpdate(
+	        vote.user_id,
+	        { $inc: { points: gain } },
+	        { new: true }
+	      );
+
+	      rewards.push({ user_id: vote.user_id.toString(), gain });
+	    }
+	  }
+
+	  // Mettre à jour la prédiction comme validée
+	  prediction.status = PredictionStatus.Valid;
+	  prediction.results = winningOption;
+	  await prediction.save();
+
+	  return {
+	    predictionId,
+	    winningOption,
+	    ratio,
+	    rewards,
+	  };
+	}
+
 }

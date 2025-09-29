@@ -56,6 +56,7 @@ export class PredictionController {
             !pred?.options || Object.keys(pred.options).length < 2 && 'Au moins deux options sont requises',
             pred?.status === undefined || pred?.status.toString() === '' ? 'Le statut est requis' : !Object.values(PredictionStatus).includes(pred.status) && 'Le statut est invalide',
             (!req.user?._id && !pred?.user_id) && 'L\'utilisateur authentifié est requis',
+            pred?.results !== '' && 'On ne peut voter pour une prédiction déjà validée',
         ].filter(Boolean)[0];
     
         if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
@@ -97,6 +98,7 @@ export class PredictionController {
             (!pred?.options || Object.keys(pred.options).length < 2) && 'Au moins deux options sont requises',
             pred?.status === undefined || pred?.status.toString() === '' ? 'Le statut est requis' : !Object.values(PredictionStatus).includes(pred.status) && 'Le statut est invalide',
             (!req.user?._id && !pred?.user_id) && "L'utilisateur authentifié est requis",
+            pred?.results !== '' && 'On ne peut voter pour une prédiction déjà validée',
         ].filter(Boolean)[0];
 
         if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
@@ -133,4 +135,19 @@ export class PredictionController {
             return response.status(error.status || HttpStatus.NOT_FOUND).json({ message: error.message });
         }
     }
+
+    @Put('/:id/validate')
+    async validatePrediction(@Param('id') id: string, @Body() body: { winningOption: string }, @Res() res) {
+        const { winningOption } = body;
+        if (!winningOption) {
+            return res.status(HttpStatus.BAD_REQUEST).json({ message: 'L’option gagnante est requise' });
+        }
+        try {
+            const result = await this.predictionService.validatePrediction(id, winningOption);
+            return res.status(HttpStatus.OK).json(result);
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+        }
+    }
 }
+

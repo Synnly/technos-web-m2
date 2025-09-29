@@ -17,7 +17,7 @@ export class UserService {
      * Crée une instance de UserService.
      * @param userModel - Le modèle utilisateur injecté pour interagir avec la base de données.
      */
-    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
     
     /**
@@ -63,6 +63,7 @@ export class UserService {
         const hash = await bcrypt.hash(user.motDePasse, 10);
         const reqBody = {
             username: user.username,
+            role: user.role ?? 'user',
             motDePasse: hash
         }
         const newUser = new this.userModel(reqBody);
@@ -83,9 +84,9 @@ export class UserService {
         if (!foundUser) throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
 
         if (foundUser) {
-            const { motDePasse } = foundUser;
+            const { motDePasse, role } = foundUser;
             if (await bcrypt.compare(password, motDePasse)) {
-                const payload = { username: username };
+                const payload = { username: username, role: role};
                 return {
                     token: jwt.sign(payload),
                 };

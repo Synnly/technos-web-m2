@@ -13,7 +13,8 @@ const expectedUser1 = {
 	points: 50, 
 	pointsQuotidiensRecuperes: false,
 	predictions : [],
-    votes : []
+    votes : [],
+	role: 'user'
 } as User;
 
 const expectedPred1 = {
@@ -23,7 +24,8 @@ const expectedPred1 = {
 	status: PredictionStatus.Waiting,
 	dateFin: new Date('2025-12-31'),
 	options: { yes: 10, no: 5 },
-	user_id: (expectedUser1 as any)._id
+	user_id: (expectedUser1 as any)._id,
+	results: ''
 } as Prediction;
 
 const expectedPred2 = {
@@ -33,7 +35,8 @@ const expectedPred2 = {
 	status: PredictionStatus.Valid,
 	dateFin: new Date('2025-11-30'),
 	options: { teamA: 3, teamB: 7 },
-	user_id: (expectedUser1 as any)._id
+	user_id: (expectedUser1 as any)._id,
+	results: ''
 } as Prediction;
 
 const expectedPredictions = [expectedPred1, expectedPred2];

@@ -12,7 +12,8 @@ const expectedUser1 = {
     points: 5000,
     pointsQuotidiensRecuperes: false,
     predictions: [],
-    votes: []
+    votes: [],
+    role: 'user'
 } as User;
 
 const expectedPred1 = {
@@ -22,7 +23,8 @@ const expectedPred1 = {
     status: PredictionStatus.Waiting,
     dateFin: new Date('2025-12-31'),
     options: { yes: 10, no: 5 },
-    user_id: (expectedUser1 as any)._id
+    user_id: (expectedUser1 as any)._id,
+    results: ''
 } as Prediction;
 
 const expectedVote1 = {

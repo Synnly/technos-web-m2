@@ -65,6 +65,10 @@ export class Prediction {
      */
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
     user_id: Types.ObjectId;
+
+
+    @Prop({ type: String, default: '' })
+    results: string;
 }
 
 export const PredictionSchema = SchemaFactory.createForClass(Prediction);
