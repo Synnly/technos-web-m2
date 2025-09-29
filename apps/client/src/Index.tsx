@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CreatePredictionForm from "./components/predictions/CreatePredictionForm";
 import PredictionsList from "./components/predictions/PredictionsList";
+import { set } from "react-hook-form";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -16,12 +17,15 @@ const API_URL = import.meta.env.VITE_API_URL;
 function Index() {
     const { isAuthenticated, logout, username } = useAuth();
     const navigate = useNavigate();
+    const token = localStorage.getItem('token');
 
     const [predictions, setPredictions] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [showOnlyMine, setShowOnlyMine] = useState(false);
     const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+    const [points, setPoints] = useState<number>(0);
+    const [user, setUser] = useState<any>(null);
 
     // form state used by child
     const [, setError] = useState<string | null>(null);
@@ -29,7 +33,7 @@ function Index() {
     const fetchPredictions = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API_URL}/prediction`);
+            const res = await axios.get(`${API_URL}/prediction`, { headers: { Authorization: `Bearer ${token}` }});
             setPredictions(res.data || []);
         } catch (err) {
             console.error(err);
@@ -40,7 +44,7 @@ function Index() {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get(`${API_URL}/user`);
+            const res = await axios.get(`${API_URL}/user`, { headers: { Authorization: `Bearer ${token}` } });
             const map: Record<string, string> = {};
             (res.data || []).forEach((u: any) => { if (u && u._id) map[u._id] = u.username; });
             setUsersMap(map);
@@ -49,13 +53,13 @@ function Index() {
         }
     }
 
-        useEffect(() => {
-            if (isAuthenticated) {
-                fetchPredictions();
-                // fetch users once to map ids -> usernames for display
-                fetchUsers();
-            }
-        }, [isAuthenticated]);
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchPredictions();
+            // fetch users once to map ids -> usernames for display
+            fetchUsers();
+        }
+    }, [isAuthenticated]);
 
     const handleLogout = () => {
         logout();
@@ -96,6 +100,31 @@ function Index() {
         const t = setTimeout(() => setToast(null), 3000);
         return () => clearTimeout(t);
     }, [toast]);
+
+
+    const fetchUser = async (username: string) => setUser((await axios.get(`${API_URL}/user/${username}`, { headers: { Authorization: `Bearer ${token}` } })).data);
+    useEffect(() => {
+        if (username) {
+            fetchUser(username!);
+            setPoints(user?.points || 0);
+        }
+    }, [username]);
+
+    const claimDailyReward = async (user: any) => {
+        if (!username) return;
+        if (user.dateDerniereRecompenseQuotidienne && user.dateDerniereRecompenseQuotidienne.toDateString() === new Date().toDateString()) {
+            return;
+        }
+        try {
+            const updatedUser = await axios.get(`${API_URL}/user/${username}/daily-reward`, { headers: { Authorization: `Bearer ${token}` } });
+            setUser(updatedUser.data);
+            setPoints(updatedUser.data.points || 0);
+            setToast('Récompense quotidienne réclamée ! +10 points');
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || 'Erreur lors de la réclamation';
+            setToast(msg);
+        }
+    }
 
     // submit logic moved to CreatePredictionForm
 
@@ -141,6 +170,16 @@ function Index() {
                 {showForm && isAuthenticated && (
                     <CreatePredictionForm username={username} fetchPredictions={fetchPredictions} onClose={() => setShowForm(false)} setToast={setToast as any} />
                 )}
+
+            <section>
+                {user && <div className="mb-4">Vous avez {user.points} points.</div>}
+                {
+                    user && (!user.dateDerniereRecompenseQuotidienne || new Date(user.dateDerniereRecompenseQuotidienne).toDateString() !== new Date().toDateString()) ?
+                    (<button onClick={() => claimDailyReward(user)} className="mb-4 px-3 py-1 bg-yellow-500 text-white rounded">Réclamer la récompense quotidienne (+10 points)</button>) 
+                    : 
+                    null
+                }
+            </section>
 
             <section>
                 {loading ? (

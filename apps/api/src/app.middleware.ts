@@ -53,6 +53,6 @@ export class isAuthenticated implements NestMiddleware {
 			}
 		} catch {
 			throw new HttpException('Non autorisé', HttpStatus.UNAUTHORIZED)
-	   }
+	   	}
 	}
 }

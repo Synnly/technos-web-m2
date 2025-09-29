@@ -140,4 +140,25 @@ export class UserController {
             });
         }
     }
+
+    /**
+     * Récupère la récompense quotidienne pour un utilisateur donné.
+     * @param username Le nom d'utilisateur de l'utilisateur qui réclame la récompense quotidienne.
+     * @param response L'objet de réponse HTTP utilisé pour envoyer la réponse.
+     * @returns La réponse HTTP contenant la récompense quotidienne si l'utilisateur est trouvé, ou une erreur HTTP
+     * 400 (Bad Request) si le nom d'utilisateur est manquant ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
+     */
+    @Get('/{:username}/daily-reward')
+    async getDailyReward(@Param('username') username : string, @Res() response) {
+        if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
+
+        try {
+            const reward = await this.userService.claimDailyReward(username);
+            return response.status(HttpStatus.OK).json({ reward: reward });
+        } catch (error) {
+            return response.status(error.status || HttpStatus.BAD_REQUEST).json({ 
+                message: error.message || 'Échec de la récupération de la récompense quotidienne' 
+            });
+        }
+    }   
 }

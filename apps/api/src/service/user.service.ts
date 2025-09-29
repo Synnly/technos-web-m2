@@ -110,7 +110,7 @@ export class UserService {
                 existingUser.motDePasse = await bcrypt.hash(user.motDePasse, 10)
             }
             existingUser.points = user.points ?? existingUser.points;
-            existingUser.pointsQuotidiensRecuperes = user.pointsQuotidiensRecuperes ?? existingUser.pointsQuotidiensRecuperes;
+            existingUser.dateDerniereRecompenseQuotidienne = user.dateDerniereRecompenseQuotidienne ?? existingUser.dateDerniereRecompenseQuotidienne;
             
             return await existingUser.save();
         } else {                // Crée un nouvel utilisateur
@@ -157,4 +157,35 @@ export class UserService {
 
         return deletedUser;
     }
+
+    /**
+     * Permet à un utilisateur de réclamer une récompense quotidienne.
+     * Cette méthode vérifie si l'utilisateur a déjà réclamé la récompense aujourd'hui.
+     * @param username Le nom d'utilisateur de l'utilisateur réclamant la récompense.
+     * @returns Le nombre de points ajoutés à l'utilisateur.
+     * @throws HttpException Si l'utilisateur n'est pas trouvable ou si la récompense a déjà été réclamée aujourd'hui.
+     */
+    async claimDailyReward(username: string): Promise<number> {
+        const user = await this.userModel.findOne({ username }).exec();
+        if (!user) {
+            throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+        }
+
+        const today = new Date();
+        const lastClaimDate = user.dateDerniereRecompenseQuotidienne;
+
+        // Vérifie si la récompense a déjà été réclamée aujourd'hui
+        if (lastClaimDate && lastClaimDate.toDateString() === today.toDateString()) {
+            throw new HttpException('Récompense quotidienne déjà réclamée aujourd\'hui.', HttpStatus.BAD_REQUEST);
+        }
+
+        const pointsToAdd = 10;
+
+        // Met à jour la date de la dernière récompense et ajoute des points
+        user.dateDerniereRecompenseQuotidienne = today;
+        user.points += pointsToAdd;
+
+        await user.save();
+        return pointsToAdd; // Retourne le nombre de points ajoutés
+    }   
 }

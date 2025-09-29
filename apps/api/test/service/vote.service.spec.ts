@@ -10,7 +10,7 @@ const expectedUser1 = {
     username: 'testuser1',
     motDePasse: 'H@sh3dpassword',
     points: 5000,
-    pointsQuotidiensRecuperes: false,
+    dateDerniereRecompenseQuotidienne: null,
     predictions: [],
     votes: []
 } as User;

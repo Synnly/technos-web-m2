@@ -19,7 +19,7 @@ const expectedUser1 = {
     username: 'testuser1', 
     motDePasse: 'hashedpassword', 
     points: 50, 
-    pointsQuotidiensRecuperes: false,
+    dateDerniereRecompenseQuotidienne: null,
     predictions : [],
     votes : []
 } as User;
@@ -29,7 +29,7 @@ const expectedUser2 = {
     username: 'testuser2',
     motDePasse: 'hashedpassword2',
     points: 30,
-    pointsQuotidiensRecuperes: true,
+    dateDerniereRecompenseQuotidienne: new Date(),
     predictions : [],
     votes : []
 } as User;
@@ -56,7 +56,7 @@ const mockUserModel = jest.fn().mockImplementation((data) => ({
         _id: '3',
         ...data,
         points: 0,
-        pointsQuotidiensRecuperes: false
+        dateDerniereRecompenseQuotidienne: null
     })
 })) as unknown as MockUserModel;
 
@@ -181,7 +181,7 @@ describe("UserService", () => {
                 _id: '3',
                 username: newUser.username,
                 points: 0,
-                pointsQuotidiensRecuperes: false
+                dateDerniereRecompenseQuotidienne: null
             }));
         });
 
@@ -280,7 +280,7 @@ describe("UserService", () => {
                 username: 'updateduser', 
                 motDePasse: 'newpassword', 
                 points: 100,
-                pointsQuotidiensRecuperes: true
+                dateDerniereRecompenseQuotidienne: new Date()
             } as User;
 
             // Simuler la présence d'un utilisateur existant avec le même username
@@ -330,7 +330,7 @@ describe("UserService", () => {
                 _id: '3',
                 username: newUser.username,
                 points: 0,
-                pointsQuotidiensRecuperes: false
+                dateDerniereRecompenseQuotidienne: null
             }));
         });
     });
@@ -360,6 +360,102 @@ describe("UserService", () => {
             );
 
             expect(mockUserModel.findOneAndDelete).toHaveBeenCalledWith({ username });
+        });
+    });
+
+    describe('claimDailyReward', () => {
+        it('should add points and update date when claiming daily reward for the first time', async () => {
+            const username = expectedUser1.username;
+            const userWithoutReward = {
+                ...expectedUser1,
+                dateDerniereRecompenseQuotidienne: null,
+                points: 50,
+                save: jest.fn().mockResolvedValue({
+                    ...expectedUser1,
+                    points: 60,
+                    dateDerniereRecompenseQuotidienne: new Date()
+                })
+            };
+
+            mockUserModel.findOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(userWithoutReward)
+            });
+
+            const result = await userService.claimDailyReward(username);
+
+            expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
+            expect(userWithoutReward.save).toHaveBeenCalled();
+            expect(result).toEqual(10);
+        });
+
+        it('should add points and update date when claiming daily reward after one day', async () => {
+            const username = expectedUser1.username;
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const userWithOldReward = {
+                ...expectedUser1,
+                dateDerniereRecompenseQuotidienne: yesterday,
+                points: 50,
+                save: jest.fn().mockResolvedValue({
+                    ...expectedUser1,
+                    points: 60,
+                    dateDerniereRecompenseQuotidienne: new Date()
+                })
+            };
+
+            mockUserModel.findOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(userWithOldReward)
+            });
+
+            const result = await userService.claimDailyReward(username);
+
+            expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
+            expect(userWithOldReward.save).toHaveBeenCalled();
+            expect(result).toEqual(10);
+        });
+
+        it('should throw an error when user not found', async () => {
+            const username = 'nonexistentuser';
+
+            mockUserModel.findOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(null)
+            });
+
+            await expect(userService.claimDailyReward(username)).rejects.toEqual(
+                expect.objectContaining({
+                    message: 'L\'utilisateur n\'est pas trouvable',
+                    status: HttpStatus.NOT_FOUND
+                })
+            );
+
+            expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
+        });
+
+        it('should throw an error when daily reward already claimed today', async () => {
+            const username = expectedUser1.username;
+            const today = new Date();
+
+            const userWithTodayReward = {
+                ...expectedUser1,
+                dateDerniereRecompenseQuotidienne: today,
+                points: 60,
+                save: jest.fn()
+            };
+
+            mockUserModel.findOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(userWithTodayReward)
+            });
+
+            await expect(userService.claimDailyReward(username)).rejects.toEqual(
+                expect.objectContaining({
+                    message: 'Récompense quotidienne déjà réclamée aujourd\'hui.',
+                    status: HttpStatus.BAD_REQUEST
+                })
+            );
+
+            expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
+            expect(userWithTodayReward.save).not.toHaveBeenCalled();
         });
     });
 });
