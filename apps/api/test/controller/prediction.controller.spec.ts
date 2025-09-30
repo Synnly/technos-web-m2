@@ -267,6 +267,17 @@ describe('PredictionController', () => {
 			expect(mockResponse.status).toHaveBeenCalledWith(400);
 			expect(mockResponse.json).toHaveBeenCalledWith({ message: "L'utilisateur authentifié est requis" });
 		});
+
+		it('should return 400 when results is not empty', async () => {
+			const badPred = { ...expectedPred1, results: 'yes' } as unknown as Prediction;
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.createPrediction(mockReq, mockResponse, badPred);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'On ne peut voter pour une prédiction déjà validée' });
+		});
 	});
 
 	describe('updatePredictionById', () => {
@@ -283,6 +294,17 @@ describe('PredictionController', () => {
 			expect(mockResponse.json).toHaveBeenCalledWith(expectedPred1);
 		});
 
+		it('should return 400 when results is not empty', async () => {
+			const badPred = { ...expectedPred1, results: 'yes' } as unknown as Prediction;
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, badPred._id,badPred);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'On ne peut voter pour une prédiction déjà validée' });
+		});
+
 		it('should return 400 when missing id', async () => {
 			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 			const mockReq = {} as any;
@@ -291,6 +313,107 @@ describe('PredictionController', () => {
 
 			expect(mockResponse.status).toHaveBeenCalledWith(400);
 			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'L\'identifiant est requis' });
+		});
+
+		it('should return 400 when missing the title', async () => {
+			const badPred = { ...expectedPred1, title: undefined } as unknown as Prediction;
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, badPred._id, badPred);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le titre est requis' });
+		});
+
+		it('should return 400 on service error', async () => {
+			mockPredictionService.createOrUpdateById.mockImplementationOnce(() => { throw new HttpException('Error', HttpStatus.BAD_REQUEST); });
+
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, expectedPred1._id, expectedPred1);
+
+			expect(predictionService.createOrUpdateById).toHaveBeenCalledWith(expectedPred1._id, rest);
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Error' });
+		});
+
+		it('should return 400 when options count is 0', async () => {
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const predWithZeroOptions = { ...expectedPred1, options: {} } as unknown as Prediction;
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, predWithZeroOptions._id, predWithZeroOptions);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Au moins deux options sont requises' });
+		});
+
+		it('should return 400 when options count is 1', async () => {
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const predWithOneOption = { ...expectedPred1, options: { only: 0 } } as unknown as Prediction;
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, predWithOneOption._id, predWithOneOption);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Au moins deux options sont requises' });
+		});
+
+		it('should return 400 when dateFin is before today', async () => {
+			const badPred = { ...expectedPred1, dateFin: new Date("2025-01-01") } as unknown as Prediction;
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, badPred._id, badPred);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'La date de fin doit être supérieure ou égale à aujourd\'hui' });
+		});
+
+
+		it('should return 400 when status is missing', async () => {
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const predNoStatus = { ...expectedPred1, status: undefined } as unknown as Prediction;
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, predNoStatus._id, predNoStatus);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le statut est requis' });
+		});
+
+		it('should return 400 when status is invalid', async () => {
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const predBadStatus = { ...expectedPred1, status: 'NOT_VALID_STATUS' as any } as unknown as Prediction;
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, predBadStatus._id, predBadStatus);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le statut est invalide' });
+		});
+
+		it('should return 400 when prediction body is missing', async () => {
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, '1', undefined as any);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'La prédiction est requise' });
+		});
+
+		it('should return 400 when dateFin is missing', async () => {
+			const badPred = { ...expectedPred1, dateFin: undefined } as unknown as Prediction;
+			const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+
+			await predictionController.updatePredictionById(mockReq, mockResponse, badPred._id, badPred);
+
+			expect(mockResponse.status).toHaveBeenCalledWith(400);
+			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'La date de fin est requise' });
 		});
 	});
 

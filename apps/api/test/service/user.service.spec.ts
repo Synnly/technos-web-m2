@@ -214,6 +214,7 @@ describe("UserService", () => {
     describe('getJwtToken', () => {
         it('should return a JWT token for valid credentials', async () => {
             const username = expectedUser1.username;
+            const role = expectedUser1.role;
             const motDePasse = 'plaintextpassword';
             
             mockUserModel.findOne.mockReturnValue({ 
@@ -225,7 +226,7 @@ describe("UserService", () => {
             
             const result = await userService.getJwtToken(username, motDePasse, mockJwtService as unknown as JwtService);
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
-            expect(mockJwtService.sign).toHaveBeenCalledWith({ username });
+            expect(mockJwtService.sign).toHaveBeenCalledWith({  role, username });
             expect(result).toEqual({ token: 'mock-jwt-token' });
         });
 

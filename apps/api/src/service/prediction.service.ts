@@ -3,7 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Prediction, PredictionDocument, PredictionStatus } from "../model/prediction.schema";
 import { User, UserDocument } from "../model/user.schema";
-import { Vote } from "src/model/vote.schema";
+import { Vote, VoteDocument } from "../model/vote.schema";
 
 
 @Injectable()
@@ -23,7 +23,7 @@ export class PredictionService {
 	constructor(
 		@InjectModel(Prediction.name) private predictionModel: Model<PredictionDocument>,
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
-		@InjectModel(Vote.name) private voteModel: Model<Vote>,
+		@InjectModel(Vote.name) private voteModel: Model<VoteDocument>,
 	) {}
 
 	

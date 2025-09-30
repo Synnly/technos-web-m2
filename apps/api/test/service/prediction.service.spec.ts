@@ -3,7 +3,8 @@ import { getModelToken } from '@nestjs/mongoose';
 import { PredictionService } from "../../src/service/prediction.service";
 import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
-import { User } from "src/model/user.schema";
+import { User } from "../../src/model/user.schema";
+import { Vote } from "../../src/model/vote.schema";
 
 const expectedUser1 = { 
 	_id: '1', 
@@ -62,6 +63,13 @@ const mockUserModel = {
 	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
 } as any;
 
+
+const mockVoteModel = {
+  find: jest.fn(),
+  create: jest.fn(),
+} as any;
+
+
 describe('PredictionService', () => {
 	let predictionService: PredictionService;
 
@@ -73,6 +81,7 @@ describe('PredictionService', () => {
 				PredictionService,
 				{ provide: getModelToken(Prediction.name), useValue: mockPredModel },
 				{ provide: getModelToken('User'), useValue: mockUserModel },
+				{ provide: getModelToken(Vote.name), useValue: mockVoteModel }, 
 			],
 		}).compile();
 

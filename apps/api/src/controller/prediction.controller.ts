@@ -95,6 +95,7 @@ export class PredictionController {
             !pred && 'La prédiction est requise',
             !pred?.title && 'Le titre est requis',
             !pred?.dateFin && 'La date de fin est requise',
+            pred?.dateFin && new Date(pred.dateFin) < new Date() && "La date de fin doit être supérieure ou égale à aujourd'hui",
             (!pred?.options || Object.keys(pred.options).length < 2) && 'Au moins deux options sont requises',
             pred?.status === undefined || pred?.status.toString() === '' ? 'Le statut est requis' : !Object.values(PredictionStatus).includes(pred.status) && 'Le statut est invalide',
             (!req.user?._id && !pred?.user_id) && "L'utilisateur authentifié est requis",
