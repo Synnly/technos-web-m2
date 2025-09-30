@@ -15,8 +15,12 @@ function Prediction() {
     const { username } = useAuth();
     
 
-    const fetchPrediction = async (id: string) => setPrediction((await axios.get(`${API_URL}/prediction/${id}`)).data);
-    const fetchUser = async (username: string) => setUser((await axios.get(`${API_URL}/user/${username}`)).data);
+    const fetchPrediction = async (id: string) => setPrediction((await axios.get(`${API_URL}/prediction/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })).data);
+    const fetchUser = async (username: string) => setUser((await axios.get(`${API_URL}/user/${username}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })).data);
     const vote = async (id: string, option: string, montant: number) => {
         try {
             await axios.post(`${API_URL}/vote`, {

@@ -31,6 +31,8 @@ function Index() {
     const [showForm, setShowForm] = useState(false);
     const [showOnlyMine, setShowOnlyMine] = useState(false);
     const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+    const token = localStorage.getItem('token');
+
 
     // form state used by child
     const [, setError] = useState<string | null>(null);
@@ -38,7 +40,9 @@ function Index() {
     const fetchPredictions = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API_URL}/prediction`);
+            const res = await axios.get(`${API_URL}/prediction`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
             const predictions: Prediction[] = res.data;
             const pred = predictions.filter((p) => p.results?.trim() === '' && p.status === 'Valid');
             console.log(pred);
@@ -53,7 +57,9 @@ function Index() {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get(`${API_URL}/user`);
+            const res = await axios.get(`${API_URL}/user`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
             const map: Record<string, string> = {};
             (res.data || []).forEach((u: any) => { if (u && u._id) map[u._id] = u.username; });
             setUsersMap(map);

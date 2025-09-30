@@ -57,16 +57,22 @@ function Dashboard() {
     status: "Valid" | "Invalid"
   ) => {
     try {
-      await axios.put(`${API_URL}/prediction/${prediction._id}`, {  ...prediction, status });
-
+      await axios.put(
+  `${API_URL}/prediction/${prediction._id}`,
+  { ...prediction, status },
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
       // rafraîchir les listes après modification
-      const res = await axios.get<Prediction[]>(`${API_URL}/prediction`);
+      const res = await axios.get<Prediction[]>(`${API_URL}/prediction`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
       const now = new Date();
 
       setExpiredPrediction(
-        res.data.filter((p) => new Date(p.dateFin) <= now)
-      );
-      setWaitingPrediction(res.data.filter((p) => p.status === "waiting"));
+        res.data.filter((p) => new Date(p.dateFin) <= now && p.results?.trim() === '' && p.status === 'Valid'));
+      setWaitingPrediction(res.data.filter((p) => p.status === "waiting" && p.results === ''));
     } catch (err) {
       console.error("Erreur lors de la mise à jour de la prédiction :", err);
     }
@@ -91,7 +97,7 @@ function Dashboard() {
   useEffect(() => {
     if (role === "admin") {
       axios
-        .get<Prediction[]>(`${API_URL}/prediction`)
+        .get<Prediction[]>(`${API_URL}/prediction`, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => {
           const now = new Date();
           const expired = res.data.filter((p) => new Date(p.dateFin) <= now && p.results?.trim() === '' && p.status === 'Valid');

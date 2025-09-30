@@ -23,6 +23,8 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
   const [newError, setNewError] = useState<string | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<string[]>([]);
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
 
   const toggleCollapsed = (id: string) => {
     setCollapsedIds((prev) => {
@@ -34,7 +36,9 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
   const fetchPubs = async () => {
     setLoadingPubs(true);
     try {
-      const res = await axios.get(`${API_URL}/publication`);
+      const res = await axios.get(`${API_URL}/publication`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
       const pubs: any[] = res.data || [];
       const filtered = pubs.filter(d => {
         if (!d?.prediction_id) return false;

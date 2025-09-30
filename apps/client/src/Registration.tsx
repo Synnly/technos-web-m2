@@ -25,6 +25,7 @@ interface FormData {
 function Register() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
+    const token = localStorage.getItem('token');
     if(isAuthenticated) navigate("", {replace: true})
 
     const {
@@ -40,7 +41,9 @@ function Register() {
             await axios.post(`${API_URL}/user`, { 
                 username: data.username, 
                 motDePasse: data.password 
-            });
+            }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
             navigate("/signin", {replace: true});
         } catch (error : any) {
