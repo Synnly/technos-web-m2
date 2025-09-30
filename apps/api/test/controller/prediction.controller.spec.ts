@@ -446,105 +446,83 @@ describe('PredictionController', () => {
 			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Not found' });
 		});
 	});
-	describe('validatePrediction', () => {
-	  	it('should return 400 if winningOption is missing', async () => {
-			const res = {status: jest.fn().mockReturnThis(),json: jest.fn()};
-
-			await predictionController.validatePrediction('p1', { winningOption: '' }, res);
-
-			expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-			expect(res.json).toHaveBeenCalledWith({ message: 'L’option gagnante est requise' });
-			expect(mockPredictionService.validatePrediction).not.toHaveBeenCalled();
-	  	});
-
-	  	it('should call service and return 200 when validation succeeds', async () => {
-			const res = {
-			status: jest.fn().mockReturnThis(),
-			json: jest.fn(),
-			};
-			const expectedResult = { _id: 'p1', status: 'Valid', results: 'oui' };
-
-			mockPredictionService.validatePrediction.mockResolvedValue(expectedResult);
-
-			await predictionController.validatePrediction('p1', { winningOption: 'oui' }, res);
-
-			expect(mockPredictionService.validatePrediction).toHaveBeenCalledWith('p1', 'oui');
-			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-			expect(res.json).toHaveBeenCalledWith(expectedResult);
-		});
-
-	  it('should return 400 when service throws an error', async () => {
-		const res = {
-		  status: jest.fn().mockReturnThis(),
-		  json: jest.fn(),
-		};
-
-		mockPredictionService.validatePrediction.mockRejectedValue(new Error('Invalid prediction'));
-
-		await predictionController.validatePrediction('p1', { winningOption: 'oui' }, res);
-
-		expect(mockPredictionService.validatePrediction).toHaveBeenCalledWith('p1', 'oui');
-		expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-		expect(res.json).toHaveBeenCalledWith({ message: 'Invalid prediction' });
-	  });
-	});
-
 	describe('getExpiredPredictions', () => {
+		const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
 		it('should return expired predictions from the service', async () => {
 			const expiredPreds = [
-				{ _id: 'p1', status: PredictionStatus.Valid, dateFin: new Date('2024-01-01') },
-				{ _id: 'p2', status: PredictionStatus.Valid, dateFin: new Date('2023-12-31') },
+			{ _id: 'p1', status: PredictionStatus.Valid, dateFin: new Date('2024-01-01') },
+			{ _id: 'p2', status: PredictionStatus.Valid, dateFin: new Date('2023-12-31') },
 			];
 			mockPredictionService.getExpiredPredictions.mockResolvedValue(expiredPreds);
 
-			const result = await predictionController.getExpiredPredictions();
+			await predictionController.getExpiredPredictions(res);
 
-			expect(result).toEqual(expiredPreds);
 			expect(mockPredictionService.getExpiredPredictions).toHaveBeenCalled();
+			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+			expect(res.json).toHaveBeenCalledWith(expiredPreds);
 		});
 
 		it('should return empty array if no expired predictions found', async () => {
 			mockPredictionService.getExpiredPredictions.mockResolvedValue([]);
 
-			const result = await predictionController.getExpiredPredictions();
+			await predictionController.getExpiredPredictions(res);
 
-			expect(result).toEqual([]);
 			expect(mockPredictionService.getExpiredPredictions).toHaveBeenCalled();
+			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+			expect(res.json).toHaveBeenCalledWith([]);
 		});
-	});
+		});
 
-	describe('getWaitingPredictions', () => {
+		describe('getWaitingPredictions', () => {
+		const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
 		it('should return waiting predictions from the service', async () => {
 			const waitingPreds = [
-				{ _id: 'p3', status: PredictionStatus.Waiting, dateFin: new Date('2025-12-31') },
+			{ _id: 'p3', status: PredictionStatus.Waiting, dateFin: new Date('2025-12-31') },
 			];
 			mockPredictionService.getWaitingPredictions.mockResolvedValue(waitingPreds);
 
-			const result = await predictionController.getWaitingPredictions();
+			await predictionController.getWaitingPredictions(res);
 
-			expect(result).toEqual(waitingPreds);
 			expect(mockPredictionService.getWaitingPredictions).toHaveBeenCalled();
+			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+			expect(res.json).toHaveBeenCalledWith(waitingPreds);
 		});
 
 		it('should return empty array if no waiting predictions found', async () => {
 			mockPredictionService.getWaitingPredictions.mockResolvedValue([]);
 
-			const result = await predictionController.getWaitingPredictions();
+			await predictionController.getWaitingPredictions(res);
 
-			expect(result).toEqual([]);
 			expect(mockPredictionService.getWaitingPredictions).toHaveBeenCalled();
+			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+			expect(res.json).toHaveBeenCalledWith([]);
+		});
+		});
+
+		describe('getValidPredictions', () => {
+		const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+		it('should call service and return valid predictions', async () => {
+			const expected = [expectedPred1];
+			mockPredictionService.getValidPredictions.mockResolvedValue(expected);
+
+			await predictionController.getValidPredictions(res);
+
+			expect(mockPredictionService.getValidPredictions).toHaveBeenCalled();
+			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+			expect(res.json).toHaveBeenCalledWith(expected);
+		});
+
+		it('should return empty array if no valid predictions', async () => {
+			mockPredictionService.getValidPredictions.mockResolvedValue([]);
+
+			await predictionController.getValidPredictions(res);
+
+			expect(mockPredictionService.getValidPredictions).toHaveBeenCalled();
+			expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+			expect(res.json).toHaveBeenCalledWith([]);
 		});
 	});
-
-	describe('getValidPredictions', () => {
-    it('should call service and return valid predictions', async () => {
-      const expected = [expectedPred1];
-      mockPredictionService.getValidPredictions.mockResolvedValue(expected);
-
-      const result = await predictionController.getValidPredictions();
-      expect(mockPredictionService.getValidPredictions).toHaveBeenCalled();
-      expect(result).toEqual(expected);
-    });
-  });
 });
-

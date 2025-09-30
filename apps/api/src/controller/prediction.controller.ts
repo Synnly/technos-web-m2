@@ -26,17 +26,19 @@ export class PredictionController {
      * @returns La liste des prédictions expirées
      */
     @Get('/expired')
-    async getExpiredPredictions() {
-      return this.predictionService.getExpiredPredictions();
-    }
+    async getExpiredPredictions(@Res() response) {
+        const preds = await this.predictionService.getExpiredPredictions();
+        return response.status(HttpStatus.OK).json(preds);
+    }   
 
     /**
      * Retourne la liste des prédictions en attente (status "waiting")
      * @returns predictions en attente
      */
     @Get('/waiting')
-    async getWaitingPredictions() {
-      return this.predictionService.getWaitingPredictions();
+    async getWaitingPredictions(@Res() response) {
+        const preds = await this.predictionService.getWaitingPredictions();
+        return response.status(HttpStatus.OK).json(preds);
     }
 
     /**
@@ -44,8 +46,9 @@ export class PredictionController {
      * @returns predictions validées
      */
     @Get('/valid')
-    async getValidPredictions() {
-        return this.predictionService.getValidPredictions();
+    async getValidPredictions(@Res() response) {
+        const preds = await this.predictionService.getValidPredictions();
+        return response.status(HttpStatus.OK).json(preds);
     }
 
 
