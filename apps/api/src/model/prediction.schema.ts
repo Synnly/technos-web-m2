@@ -39,7 +39,7 @@ export class Prediction {
      * Valeurs possibles : 'Valid', 'Invalid', 'waiting'.
      * Ce champ est requis et a une valeur par défaut de 'waiting'.
      */
-    @Prop({ required: true, enum: Object.values(PredictionStatus), default: PredictionStatus.Waiting })
+    @Prop({ required: true, enum: PredictionStatus, default: PredictionStatus.Waiting })
     status: PredictionStatus;
 
     /**

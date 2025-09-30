@@ -165,9 +165,10 @@ export class PredictionService {
 	  if (!prediction) throw new Error('Prédiction introuvable');
 
 	  // Vérifier que l'option gagnante est valide
-	  if (!prediction.options[winningOption]) {
-	    throw new Error('Option gagnante invalide');
+	  if (!(winningOption in prediction.options)) {
+  		throw new Error('Option gagnante invalide');
 	  }
+
 
 	  // Récupérer tous les votes liés
 	  const votes = await this.voteModel.find({ prediction_id: predictionId }).exec();
@@ -202,17 +203,55 @@ export class PredictionService {
 	    }
 	  }
 
-	  // Mettre à jour la prédiction comme validée
-	  prediction.status = PredictionStatus.Valid;
-	  prediction.results = winningOption;
-	  await prediction.save();
+	  	// Mettre à jour la prédiction comme validée
+	  	prediction.status = PredictionStatus.Valid;
+	  	prediction.results = winningOption;
+	  	await prediction.save();
 
-	  return {
-	    predictionId,
-	    winningOption,
-	    ratio,
-	    rewards,
-	  };
+	  	return {
+	    	predictionId,
+	    	winningOption,
+	    	ratio,
+	    	rewards,
+		};
+	}
+
+	/**
+	 * Retourne les prédictions expirées, c'est-à-dire celles dont la date de fin est passée,
+	 * les résultats ne sont pas définis et le statut est "Valid".
+	 * @returns Les prédictions expirées
+	 */
+	async getExpiredPredictions() {
+  		const now = new Date();
+  	  	return this.predictionModel.find({
+  	    	dateFin: { $lte: now },
+  	    	results: '',
+  	    	status: PredictionStatus.Valid,
+  	  	}).exec();
+  	}
+
+	/**
+	 * Retourne les prédictions en attente, c'est-à-dire celles dont le statut est "waiting"
+	 * et les résultats ne sont pas encore définis.
+	 * @returns les prédictions en attente
+	 */
+  	async getWaitingPredictions() {
+  	  	return this.predictionModel.find({
+  	    	status: PredictionStatus.Waiting,
+  	    	results: '',
+  	  	}).exec();
+  	}
+
+	/**
+	 * Récupère les prédictions validées (status "Valid") qui ne sont pas encore expirées.
+	 * @returns la liste des prédictions
+	 */
+	async getValidPredictions(): Promise<Prediction[]> {
+		const now = new Date();
+	  	return this.predictionModel.find({
+	    	status: PredictionStatus.Valid,
+	    	dateFin: { $gt: now }, // uniquement les non-expirées
+	  	}).exec();
 	}
 
 }

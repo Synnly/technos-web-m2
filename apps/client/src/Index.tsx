@@ -40,20 +40,17 @@ function Index() {
     const fetchPredictions = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API_URL}/prediction`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-            const predictions: Prediction[] = res.data;
-            const pred = predictions.filter((p) => p.results?.trim() === '' && p.status === 'Valid');
-            console.log(pred);
-            setPredictions(pred);
-
+            const res = await axios.get<Prediction[]>(`${API_URL}/prediction/valid`, {
+            headers: { Authorization: `Bearer ${token}` },
+            });
+            setPredictions(res.data);
         } catch (err) {
-            console.error(err);
+            console.error("Erreur lors de la récupération des prédictions :", err);
         } finally {
             setLoading(false);
         }
-    };
+        };
+
 
     const fetchUsers = async () => {
         try {

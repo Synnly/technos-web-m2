@@ -65,14 +65,16 @@ function Dashboard() {
   }
 );
       // rafraîchir les listes après modification
-      const res = await axios.get<Prediction[]>(`${API_URL}/prediction`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-      const now = new Date();
+      const expiredRes = await axios.get<Prediction[]>(`${API_URL}/prediction/expired`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setExpiredPrediction(expiredRes.data);
+      
+      const waitingRes = await axios.get<Prediction[]>(`${API_URL}/prediction/waiting`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWaitingPrediction(waitingRes.data);
 
-      setExpiredPrediction(
-        res.data.filter((p) => new Date(p.dateFin) <= now && p.results?.trim() === '' && p.status === 'Valid'));
-      setWaitingPrediction(res.data.filter((p) => p.status === "waiting" && p.results === ''));
     } catch (err) {
       console.error("Erreur lors de la mise à jour de la prédiction :", err);
     }
@@ -96,19 +98,17 @@ function Dashboard() {
   // Si admin, récupérer les prédictions expirées et en attente
   useEffect(() => {
     if (role === "admin") {
+      // Récupérer les prédictions expirées
       axios
-        .get<Prediction[]>(`${API_URL}/prediction`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => {
-          const now = new Date();
-          const expired = res.data.filter((p) => new Date(p.dateFin) <= now && p.results?.trim() === '' && p.status === 'Valid');
+        .get<Prediction[]>(`${API_URL}/prediction/expired`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => setExpiredPrediction(res.data))
+        .catch((err) => console.error("Erreur lors de la récupération des prédictions expirées :", err));
 
-          setExpiredPrediction(expired);
-          const waiting = res.data.filter((p) => p.status === "waiting" && p.results === '');
-          setWaitingPrediction(waiting);
-        })
-        .catch((err) => {
-          console.error("Erreur lors de la récupération des prédictions :", err);
-        });
+      // Récupérer les prédictions en attente
+      axios
+        .get<Prediction[]>(`${API_URL}/prediction/waiting`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => setWaitingPrediction(res.data))
+        .catch((err) => console.error("Erreur lors de la récupération des prédictions en attente :", err));
     }
   }, [role]);
 

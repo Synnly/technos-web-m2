@@ -210,5 +210,119 @@ describe('PredictionService', () => {
 			expect(result).toEqual(expectedPred1);
 		});
 	});
+
+	describe('validatePrediction', () => {
+		it('should throw if prediction is not found', async () => {
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+
+			await expect(predictionService.validatePrediction('p1', 'yes')).rejects.toThrow('Prédiction introuvable');
+			expect(mockPredModel.findById).toHaveBeenCalledWith('p1');
+		});
+
+		it('should throw if winning option is invalid', async () => {
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
+
+			await expect(predictionService.validatePrediction('p1', 'invalid')).rejects.toThrow('Option gagnante invalide');
+		});
+
+		it('should throw if no points on winning option', async () => {
+		  const predWithNoPoints = { ...expectedPred1, options: { yes: 0, no: 15 }, save: jest.fn() };
+		  mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(predWithNoPoints) });
+
+		  // simulate no votes
+		  mockVoteModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+
+		  await expect(predictionService.validatePrediction('p1', 'yes')).rejects.toThrow('Aucun point sur l’option gagnante');
+		});
+
+
+		it('should distribute rewards correctly and update prediction', async () => {
+			const pred = { ...expectedPred1, save: jest.fn() }; // clone avec save
+			const fakeVotes = [
+			{ user_id: 'u1', option: 'yes', amount: 4 },
+			{ user_id: 'u2', option: 'no', amount: 5 },
+			{ user_id: 'u3', option: 'yes', amount: 6 },
+			];
+
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(pred) });
+			mockVoteModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue(fakeVotes) });
+			mockUserModel.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+
+			const result = await predictionService.validatePrediction('p1', 'yes');
+
+			// totalPoints = 10 + 5 = 15, winningPoints = 10
+			expect(result.ratio).toBe(15 / 10);
+			expect(result.predictionId).toBe('p1');
+			expect(result.winningOption).toBe('yes');
+
+			expect(result.rewards).toEqual([
+			{ user_id: 'u1', gain: Math.floor(4 * (15 / 10)) },
+			{ user_id: 'u3', gain: Math.floor(6 * (15 / 10)) },
+			]);
+
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('u1', { $inc: { points: expect.any(Number) } }, { new: true });
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('u3', { $inc: { points: expect.any(Number) } }, { new: true });
+
+			expect(pred.status).toBe(PredictionStatus.Valid);
+			expect(pred.results).toBe('yes');
+			expect(pred.save).toHaveBeenCalled();
+		});
+	});
+
+	describe('getExpiredPredictions', () => {
+  	  it('should return expired valid predictions', async () => {
+  	    const now = new Date();
+  	    const expired = { ...expectedPred2, dateFin: new Date(now.getTime() - 1000) };
+
+  	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expired]) });
+
+  	    const result = await predictionService.getExpiredPredictions();
+
+  	    expect(mockPredModel.find).toHaveBeenCalledWith({
+  	      dateFin: { $lte: expect.any(Date) },
+  	      results: '',
+  	      status: PredictionStatus.Valid,
+  	    });
+  	    expect(result).toEqual([expired]);
+  	  });
+  	});
+
+  	describe('getWaitingPredictions', () => {
+  	  it('should return waiting predictions with no results', async () => {
+  	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedPred1]) });
+
+  	    const result = await predictionService.getWaitingPredictions();
+
+  	    expect(mockPredModel.find).toHaveBeenCalledWith({
+  	      status: PredictionStatus.Waiting,
+  	      results: '',
+  	    });
+  	    expect(result).toEqual([expectedPred1]);
+  	  });
+  	});
+
+	describe('getValidPredictions', () => {
+  it('should return only predictions with status Valid and dateFin in the future', async () => {
+    const now = new Date();
+    const futurePred = { ...expectedPred1, status: PredictionStatus.Valid, dateFin: new Date(now.getTime() + 100000), save: jest.fn() };
+    const pastPred = { ...expectedPred2, status: PredictionStatus.Valid, dateFin: new Date(now.getTime() - 100000), save: jest.fn() };
+
+    // Simuler find pour qu'il ne retourne que la prédiction future
+    mockPredModel.find.mockReturnValue({
+      exec: jest.fn().mockResolvedValue([futurePred])
+    });
+
+    const result = await predictionService.getValidPredictions();
+
+    expect(mockPredModel.find).toHaveBeenCalledWith({
+      status: PredictionStatus.Valid,
+      dateFin: { $gt: expect.any(Date) },
+    });
+    
+    expect(result).toEqual([futurePred]);
+  });
 });
+
+});
+
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res, Req, Query } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "../model/prediction.schema";
 import { PredictionService } from "../service/prediction.service";
 
@@ -19,6 +19,35 @@ export class PredictionController {
         const preds = await this.predictionService.getAll();
         return response.status(HttpStatus.OK).json(preds);
     }
+
+
+    /**
+     * 
+     * @returns La liste des prédictions expirées
+     */
+    @Get('/expired')
+    async getExpiredPredictions() {
+      return this.predictionService.getExpiredPredictions();
+    }
+
+    /**
+     * Retourne la liste des prédictions en attente (status "waiting")
+     * @returns predictions en attente
+     */
+    @Get('/waiting')
+    async getWaitingPredictions() {
+      return this.predictionService.getWaitingPredictions();
+    }
+
+    /**
+     * Retourne la liste des prédictions validées (status "valid")
+     * @returns predictions validées
+     */
+    @Get('/valid')
+    async getValidPredictions() {
+        return this.predictionService.getValidPredictions();
+    }
+
 
     /**
      * Récupère une prédiction par son id.
