@@ -66,7 +66,10 @@ export class Prediction {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
     user_id: Types.ObjectId;
 
-
+    /**
+     * Résultats de la prédiction.
+     * Chaîne vide si la prédiction n'est pas encore validée par un administrateur.
+     */
     @Prop({ type: String, default: '' })
     results: string;
 }

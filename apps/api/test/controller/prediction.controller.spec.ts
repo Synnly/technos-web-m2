@@ -49,6 +49,8 @@ const mockPredictionService = {
 	createPrediction: jest.fn(),
 	createOrUpdateById: jest.fn(),
 	deleteById: jest.fn(),
+	validatePrediction: jest.fn(),
+
 };
 
 describe('PredictionController', () => {
@@ -441,5 +443,48 @@ describe('PredictionController', () => {
 			expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Not found' });
 		});
 	});
+	describe('validatePrediction', () => {
+	  it('should return 400 if winningOption is missing', async () => {
+	    const res = {status: jest.fn().mockReturnThis(),json: jest.fn()};
+
+	    await predictionController.validatePrediction('p1', { winningOption: '' }, res);
+
+	    expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+	    expect(res.json).toHaveBeenCalledWith({ message: 'L’option gagnante est requise' });
+	    expect(mockPredictionService.validatePrediction).not.toHaveBeenCalled();
+	  });
+
+	  it('should call service and return 200 when validation succeeds', async () => {
+	    const res = {
+	      status: jest.fn().mockReturnThis(),
+	      json: jest.fn(),
+	    };
+	    const expectedResult = { _id: 'p1', status: 'Valid', results: 'oui' };
+
+	    mockPredictionService.validatePrediction.mockResolvedValue(expectedResult);
+
+	    await predictionController.validatePrediction('p1', { winningOption: 'oui' }, res);
+
+	    expect(mockPredictionService.validatePrediction).toHaveBeenCalledWith('p1', 'oui');
+	    expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+	    expect(res.json).toHaveBeenCalledWith(expectedResult);
+	  });
+
+	  it('should return 400 when service throws an error', async () => {
+	    const res = {
+	      status: jest.fn().mockReturnThis(),
+	      json: jest.fn(),
+	    };
+
+	    mockPredictionService.validatePrediction.mockRejectedValue(new Error('Invalid prediction'));
+
+	    await predictionController.validatePrediction('p1', { winningOption: 'oui' }, res);
+
+	    expect(mockPredictionService.validatePrediction).toHaveBeenCalledWith('p1', 'oui');
+	    expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+	    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid prediction' });
+	  });
+	});
+
 });
 

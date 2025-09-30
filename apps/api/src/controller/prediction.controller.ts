@@ -137,6 +137,13 @@ export class PredictionController {
         }
     }
 
+    /**
+     * Valide une prédiction en spécifiant l’option gagnante.
+     * @param id l'id de la prédiction
+     * @param body body contenant l’option gagnante
+     * @param res Objet de réponse HTTP.
+     * @returns La prédiction validée avec le statut mis à jour et les récompenses distribuées, ou une erreur HTTP 400 (Bad Request) si la validation échoue.
+     */
     @Put('/:id/validate')
     async validatePrediction(@Param('id') id: string, @Body() body: { winningOption: string }, @Res() res) {
         const { winningOption } = body;

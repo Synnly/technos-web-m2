@@ -19,6 +19,7 @@ export class PredictionService {
 	 * Crée une instance de PredictionService.
 	 * @param predictionModel Modèle Mongoose injecté pour interagir avec la collection des prédictions.
 	 * @param userModel Modèle Mongoose injecté pour interagir avec la collection des utilisateurs.
+	 * @param voteModel Modèle Mongoose injecté pour interagir avec la collection des votes.
 	 */
 	constructor(
 		@InjectModel(Prediction.name) private predictionModel: Model<PredictionDocument>,
@@ -148,11 +149,22 @@ export class PredictionService {
 		return this.normalizePred(deleted) as Prediction;
 	}
 
+	/**
+	 * Permet de valider une prédiction en spécifiant l'option gagnante.
+	 * Cette méthode met à jour le statut de la prédiction, enregistre les résultats,
+	 * et distribue les récompenses aux utilisateurs ayant voté pour l'option gagnante
+	 * en calculant un ratio basé sur les points totaux et les points sur l'option gagnante.
+	 * @param predictionId id de la prédiction à valider
+	 * @param winningOption option gagnante
+	 * @returns la prédiction validée avec les récompenses distribuées
+	 */
 	async validatePrediction(predictionId: string, winningOption: string) {
+
 	  // Récupérer la prédiction
 	  const prediction = await this.predictionModel.findById(predictionId).exec();
 	  if (!prediction) throw new Error('Prédiction introuvable');
 
+	  // Vérifier que l'option gagnante est valide
 	  if (!prediction.options[winningOption]) {
 	    throw new Error('Option gagnante invalide');
 	  }
@@ -164,8 +176,10 @@ export class PredictionService {
 	  const totalPoints = Object.values(prediction.options).reduce((a, b) => a + b, 0);
 	  const winningPoints = prediction.options[winningOption];
 
+	  // Si pas de points sur l’option gagnante, on ne peut pas récompenser
 	  if (winningPoints === 0) throw new Error('Aucun point sur l’option gagnante');
 
+	  // Calcul du ratio
 	  const ratio = totalPoints / winningPoints;
 
 	  // Récompenses des utilisateurs
@@ -173,7 +187,9 @@ export class PredictionService {
 
 	  for (const vote of votes) {
 	    if (vote.option === winningOption) {
-	      const gain = Math.floor(vote.amount * ratio);
+			// Calcul du gain arrondi à l'entier inférieur pour éviter d'introduire des points
+			// inexsitants par rapport à l'arrondi supérieur
+	      	const gain = Math.floor(vote.amount * ratio);
 
 	      // Crédite le user en base
 	      await this.userModel.findByIdAndUpdate(

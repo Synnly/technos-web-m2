@@ -4,6 +4,9 @@ import { Prediction } from './prediction.schema';
 import { Vote } from './vote.schema';
 export type UserDocument = User & Document;
 
+/**
+ * Enumération des rôles utilisateur
+ */
 export enum Role {
     USER = 'user',
     ADMIN = 'admin',
@@ -11,7 +14,6 @@ export enum Role {
     PRENIUM = 'premium',
     PLUS = 'plus'
 }
-
 
 /**
  * Représente une entité Utilisateur dans le système.
@@ -64,6 +66,10 @@ export class User {
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vote', default: [] }] })
     votes: Vote[];
 
+    /**
+     * Le rôle de l'utilisateur.
+     * Ce champ est requis.
+     */
     @Prop({ type: String, enum: Role, required: true})
     role: Role;
 }
