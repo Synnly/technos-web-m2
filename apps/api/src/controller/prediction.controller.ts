@@ -22,8 +22,8 @@ export class PredictionController {
 
 
     /**
-     * 
-     * @returns La liste des prédictions expirées
+     * Retourne la liste des prédictions expirées (dateFin < aujourd'hui)
+     * @returns une réponse HTTP (OK) avec la liste des prédictions expirées
      */
     @Get('/expired')
     async getExpiredPredictions(@Res() response) {
@@ -33,7 +33,7 @@ export class PredictionController {
 
     /**
      * Retourne la liste des prédictions en attente (status "waiting")
-     * @returns predictions en attente
+     * @returns une réponse HTTP (OK) avec la liste des prédictions en attente
      */
     @Get('/waiting')
     async getWaitingPredictions(@Res() response) {
@@ -43,7 +43,7 @@ export class PredictionController {
 
     /**
      * Retourne la liste des prédictions validées (status "valid")
-     * @returns predictions validées
+     * @returns une réponse HTTP (OK) avec la liste des prédictions validées
      */
     @Get('/valid')
     async getValidPredictions(@Res() response) {
