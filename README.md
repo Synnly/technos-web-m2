@@ -185,8 +185,8 @@ npm run start
 <!-- CONTACT -->
 ## Contact
 
-Emanuel Fernandes dos Santos - [mail UL](emanuel.fernandes-dos-santos4@etu.univ-lorraine.fr) - [mail pro](emanuelfernandespro@gmail.com) <br>
-Médéric Cuny - [mail UL](mederic.cuny9@etu.univ-lorraine.fr) - [mail pro](medericpro7@gmail.com)
+Emanuel Fernandes dos Santos - [mail UL](mailto:emanuel.fernandes-dos-santos4@etu.univ-lorraine.fr) - [mail pro](mailto:emanuelfernandespro@gmail.com) <br>
+Médéric Cuny - [mail UL](mailto:mederic.cuny9@etu.univ-lorraine.fr) - [mail pro](mailto:medericpro7@gmail.com)
 
 Lien du projet: [https://github.com/Synnly/technos-web-m2](https://github.com/Synnly/technos-web-m2)
 
