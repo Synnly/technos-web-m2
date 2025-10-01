@@ -11,7 +11,7 @@ export enum Role {
     USER = 'user',
     ADMIN = 'admin',
     VIP = 'vip',
-    PRENIUM = 'premium',
+    PREMIUM = 'premium',
     PLUS = 'plus'
 }
 
@@ -70,7 +70,7 @@ export class User {
      * Le rôle de l'utilisateur.
      * Ce champ est requis.
      */
-    @Prop({ type: String, enum: Role, required: true})
+    @Prop({ type: String, enum: Role, required: true, default: Role.USER })
     role: Role;
 }
 

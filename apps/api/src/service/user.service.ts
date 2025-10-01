@@ -63,7 +63,7 @@ export class UserService {
         const hash = await bcrypt.hash(user.motDePasse, 10);
         const reqBody = {
             username: user.username,
-            role: user.role ?? 'user',
+            role: 'user',
             motDePasse: hash
         }
         const newUser = new this.userModel(reqBody);

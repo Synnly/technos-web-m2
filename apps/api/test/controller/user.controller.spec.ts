@@ -1,7 +1,7 @@
 import { UserController } from "../../src/controller/user.controller";
 import { UserService } from "../../src/service/user.service";
 import { Test } from "@nestjs/testing";
-import { User } from "../../src/model/user.schema";
+import { Role, User } from "../../src/model/user.schema";
 import { JwtService } from '@nestjs/jwt';
 import { HttpException } from "@nestjs/common/exceptions/http.exception";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
@@ -389,11 +389,20 @@ describe("UserController", () => {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn().mockReturnThis(),
             };
+            
+            const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
 
-            await userController.updateUserByUsername(mockResponse, "1", expectedUser1);
+            // Utiliser le même username que dans mockReq.user.username pour passer la vérification de permission
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, expectedUser1);
 
             // Vérifier que le service a été appelé correctement
-            expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith("1", expectedUser1);
+            expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, expectedUser1);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -413,7 +422,14 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, updatedUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
@@ -436,7 +452,15 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, updatedUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
@@ -459,7 +483,15 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, updatedUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
@@ -482,7 +514,15 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, updatedUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
@@ -504,7 +544,14 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, expectedUser1);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, expectedUser1);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, expectedUser1);
@@ -526,7 +573,15 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, noPasswordUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, noPasswordUser);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, noPasswordUser);
@@ -547,7 +602,15 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, noUsernameUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, noUsernameUser);
 
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -567,7 +630,15 @@ describe("UserController", () => {
                 json: jest.fn().mockReturnThis(),
             };
 
-            await userController.updateUserByUsername(mockResponse, expectedUser1.username, updatedUser);
+             const mockReq = { 
+                user: {
+                    _id: (expectedUser1 as any)._id,
+                    role: expectedUser1.role,
+                    username: expectedUser1.username
+                }
+            } as any;
+
+            await userController.updateUserByUsername(mockReq, mockResponse, expectedUser1.username, updatedUser);
 
             // Vérifier que le service a été appelé correctement
             expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
-import { User } from "../model/user.schema";
+import { Role, User } from "../model/user.schema";
 import { UserService } from "../service/user.service";
 import { JwtService } from '@nestjs/jwt'
 
@@ -69,9 +69,8 @@ export class UserController {
         if (!/[a-z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre minuscule.' });
         if (!/[0-9]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
         if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
-
         try {
-            const newUser = await this.userService.createUser(user);
+            const newUser = await this.userService.createUser({...user, role: Role.USER});
             return Response.status(HttpStatus.CREATED).json(newUser);
         } catch (error) {
             return Response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
@@ -88,9 +87,13 @@ export class UserController {
      * d'utilisateur.
      */
     @Put('/{:username}')
-    async updateUserByUsername(@Res() response, @Param('username') username: string, @Body() user: User) {
+    async updateUserByUsername(@Req() request, @Res() response, @Param('username') username: string, @Body() user: User) {
         if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
         if (!user) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
+        
+        if (request.user.role !== Role.ADMIN && request.user.username !== username) {
+            return response.status(HttpStatus.FORBIDDEN).json({ message: 'Vous n\'avez pas la permission de modifier cet utilisateur.' });
+        }
 
         try{
             const updatedUser = await this.userService.createOrUpdateByUsername(username, user);
