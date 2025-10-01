@@ -44,7 +44,9 @@ export default function CreatePredictionForm({ username, fetchPredictions, onClo
             let user_id: string | undefined;
             if (username) {
                 try {
-                    const userRes = await axios.get(`${API_URL}/user/${username}`);
+                    const userRes = await axios.get(`${API_URL}/user/${username}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
                     user_id = userRes.data?._id;
                 } catch {}
             }
@@ -54,6 +56,7 @@ export default function CreatePredictionForm({ username, fetchPredictions, onClo
                 description,
                 dateFin: new Date(dateFin).toISOString(),
                 status: 'waiting',
+                results : '',
                 options
             };
             if (user_id) payload.user_id = user_id;

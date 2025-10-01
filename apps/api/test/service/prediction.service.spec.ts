@@ -1,17 +1,19 @@
 import { Test } from "@nestjs/testing";
 import { getModelToken } from '@nestjs/mongoose';
-import { PredictionService } from "../../src/service/prediction.service";
-import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
-import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
-import { User } from "src/model/user.schema";
+import { PredictionService } from "../../src/prediction/prediction.service";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
+import { User } from "../../src/user/user.schema";
+import { Vote } from "../../src/vote/vote.schema";
 
 const expectedUser1 = { 
 	_id: '1', 
 	username: 'testuser1', 
 	motDePasse: 'H@sh3dpassword', 
 	points: 50, 
-	pointsQuotidiensRecuperes: false,
-	predictions : []
+	dateDerniereRecompenseQuotidienne: null,
+	predictions : [],
+	votes : [],
+	role: 'user'
 } as User;
 
 const expectedPred1 = {
@@ -19,9 +21,10 @@ const expectedPred1 = {
 	title: 'Will it rain tomorrow?',
 	description: 'Simple weather prediction',
 	status: PredictionStatus.Waiting,
-	dateFin: new Date('2025-12-31'),
+	dateFin: new Date('3025-12-31'),
 	options: { yes: 10, no: 5 },
-	user_id: (expectedUser1 as any)._id
+	user_id: (expectedUser1 as any)._id,
+	results: ''
 } as Prediction;
 
 const expectedPred2 = {
@@ -29,9 +32,10 @@ const expectedPred2 = {
 	title: 'Will team A win?',
 	description: 'Match outcome',
 	status: PredictionStatus.Valid,
-	dateFin: new Date('2025-11-30'),
+	dateFin: new Date('3025-11-30'),
 	options: { teamA: 3, teamB: 7 },
-	user_id: (expectedUser1 as any)._id
+	user_id: (expectedUser1 as any)._id,
+	results: ''
 } as Prediction;
 
 const expectedPredictions = [expectedPred1, expectedPred2];
@@ -58,6 +62,13 @@ const mockUserModel = {
 	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
 } as any;
 
+
+const mockVoteModel = {
+  find: jest.fn(),
+  create: jest.fn(),
+} as any;
+
+
 describe('PredictionService', () => {
 	let predictionService: PredictionService;
 
@@ -69,6 +80,7 @@ describe('PredictionService', () => {
 				PredictionService,
 				{ provide: getModelToken(Prediction.name), useValue: mockPredModel },
 				{ provide: getModelToken('User'), useValue: mockUserModel },
+				{ provide: getModelToken(Vote.name), useValue: mockVoteModel }, 
 			],
 		}).compile();
 
@@ -180,9 +192,7 @@ describe('PredictionService', () => {
 		it('should throw when not found', async () => {
 			mockPredModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
 
-			await expect(predictionService.deleteById('unknown')).rejects.toEqual(
-				expect.objectContaining({ message: 'Prediction not found', status: HttpStatus.NOT_FOUND })
-			);
+			await expect(predictionService.deleteById('unknown')).rejects.toThrow('Prédiction introuvable');
 
 			expect(mockPredModel.findByIdAndDelete).toHaveBeenCalledWith('unknown');
 		});
@@ -197,5 +207,119 @@ describe('PredictionService', () => {
 			expect(result).toEqual(expectedPred1);
 		});
 	});
+
+	describe('validatePrediction', () => {
+		it('should throw if prediction is not found', async () => {
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+
+			await expect(predictionService.validatePrediction('p1', 'yes')).rejects.toThrow('Prédiction introuvable');
+			expect(mockPredModel.findById).toHaveBeenCalledWith('p1');
+		});
+
+		it('should throw if winning option is invalid', async () => {
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
+
+			await expect(predictionService.validatePrediction('p1', 'invalid')).rejects.toThrow('Option gagnante invalide');
+		});
+
+		it('should throw if no points on winning option', async () => {
+		  const predWithNoPoints = { ...expectedPred1, options: { yes: 0, no: 15 }, save: jest.fn() };
+		  mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(predWithNoPoints) });
+
+		  // simulate no votes
+		  mockVoteModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+
+		  await expect(predictionService.validatePrediction('p1', 'yes')).rejects.toThrow('Aucun point sur l’option gagnante');
+		});
+
+
+		it('should distribute rewards correctly and update prediction', async () => {
+			const pred = { ...expectedPred1, save: jest.fn() }; // clone avec save
+			const fakeVotes = [
+			{ user_id: 'u1', option: 'yes', amount: 4 },
+			{ user_id: 'u2', option: 'no', amount: 5 },
+			{ user_id: 'u3', option: 'yes', amount: 6 },
+			];
+
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(pred) });
+			mockVoteModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue(fakeVotes) });
+			mockUserModel.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+
+			const result = await predictionService.validatePrediction('p1', 'yes');
+
+			// totalPoints = 10 + 5 = 15, winningPoints = 10
+			expect(result.ratio).toBe(15 / 10);
+			expect(result.predictionId).toBe('p1');
+			expect(result.winningOption).toBe('yes');
+
+			expect(result.rewards).toEqual([
+			{ user_id: 'u1', gain: Math.floor(4 * (15 / 10)) },
+			{ user_id: 'u3', gain: Math.floor(6 * (15 / 10)) },
+			]);
+
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('u1', { $inc: { points: expect.any(Number) } }, { new: true });
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('u3', { $inc: { points: expect.any(Number) } }, { new: true });
+
+			expect(pred.status).toBe(PredictionStatus.Valid);
+			expect(pred.results).toBe('yes');
+			expect(pred.save).toHaveBeenCalled();
+		});
+	});
+
+	describe('getExpiredPredictions', () => {
+  	  it('should return expired valid predictions', async () => {
+  	    const now = new Date();
+  	    const expired = { ...expectedPred2, dateFin: new Date(now.getTime() - 1000) };
+
+  	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expired]) });
+
+  	    const result = await predictionService.getExpiredPredictions();
+
+  	    expect(mockPredModel.find).toHaveBeenCalledWith({
+  	      dateFin: { $lte: expect.any(Date) },
+  	      results: '',
+  	      status: PredictionStatus.Valid,
+  	    });
+  	    expect(result).toEqual([expired]);
+  	  });
+  	});
+
+  	describe('getWaitingPredictions', () => {
+  	  it('should return waiting predictions with no results', async () => {
+  	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedPred1]) });
+
+  	    const result = await predictionService.getWaitingPredictions();
+
+  	    expect(mockPredModel.find).toHaveBeenCalledWith({
+  	      status: PredictionStatus.Waiting,
+  	      results: '',
+  	    });
+  	    expect(result).toEqual([expectedPred1]);
+  	  });
+  	});
+
+	describe('getValidPredictions', () => {
+  it('should return only predictions with status Valid and dateFin in the future', async () => {
+    const now = new Date();
+    const futurePred = { ...expectedPred1, status: PredictionStatus.Valid, dateFin: new Date(now.getTime() + 100000), save: jest.fn() };
+    const pastPred = { ...expectedPred2, status: PredictionStatus.Valid, dateFin: new Date(now.getTime() - 100000), save: jest.fn() };
+
+    // Simuler find pour qu'il ne retourne que la prédiction future
+    mockPredModel.find.mockReturnValue({
+      exec: jest.fn().mockResolvedValue([futurePred])
+    });
+
+    const result = await predictionService.getValidPredictions();
+
+    expect(mockPredModel.find).toHaveBeenCalledWith({
+      status: PredictionStatus.Valid,
+      dateFin: { $gt: expect.any(Date) },
+    });
+    
+    expect(result).toEqual([futurePred]);
+  });
 });
+
+});
+
 

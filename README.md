@@ -16,12 +16,13 @@
       <a href="#a-propos">A propos</a>
       <ul>
         <li><a href="#fait-avec">Fait avec</a></li>
+        <li><a href="#documentation">Documentation</li>
       </ul>
     </li>
     <li>
       <a href="#pour-commencer">Pour commencer</a>
       <ul>
-        <li><a href="#prerequis">Prérequis</a></li>
+        <li><a href="#prérequis">Prérequis</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
@@ -33,6 +34,10 @@
       </ul>
     </li>
     <li><a href="#utilisation">Utilisation</a></li>
+    <ul>
+      <li><a href="#développement">Développement</a></li>
+      <li><a href="#production">Production</a></li>
+    </ul>
     <li><a href="#feuille-de-route">Feuille de route</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#remerciements">Remerciements</a></li>
@@ -52,6 +57,10 @@
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
+### Documentation
+Tableur d'avancement : [Google sheets](https://docs.google.com/spreadsheets/d/16UJ5eu9x0MTj6YgVtItG8Io4gMjyfLKyI22iAefOFXs/edit?usp=sharing)
+
+Specification : [Google docs](https://docs.google.com/document/d/1QRYGtfH678zQ-XyCAZXBkuYG8LSYG_tSej-hMPigHOY/edit?usp=sharing)
 
 
 <!-- GETTING STARTED -->
@@ -60,27 +69,10 @@
 Pour obtenir une copie locale et la faire fonctionner, suivez ces étapes simples.
 
 ### Prérequis
-
-* Node.js version 18+ (recommandé Node.js 20.x LTS)
-* npm version 7+ (recommandé npm 9+)
-* MongoDB version 4.4+ 
-
-```sh
-wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-
-# Ubuntu 20.04
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/multiverse amd64 mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-# Debian 11 
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/debian bullseye/multiverse amd64 mongodb-org/6.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-sudo apt-get update
-sudo apt-get install -y mongodb-org nodejs npm
-sudo systemctl start mongod
-
-# Facultatif
-sudo systemctl enable mongod
-```
-
+* [npm](https://nodejs.org/en/download/current) version 7+ (recommandé npm 11+)
+* [Node.js](https://nodejs.org/en/download/current) version 20+ (recommandé Node.js 24.x LTS)
+* [MongoDB](https://www.mongodb.com/docs/manual/installation/) version 4.4+ 
+* (Production) Serveur HTTP (NGINX, Apache, ...)
 ### Installation
 
 1. Cloner le repo
@@ -139,9 +131,13 @@ Modifiez `JWT_SECRET` pour modifier le secret JWT. Un secret de moins de 256 bit
 JWT_SECRET=<secret JWT>
 ```
 
-<!-- USAGE EXAMPLES -->
+> [!IMPORTANT]
+> Il est impératif de changer le secret JWT <ins>**AVANT**</ins> de lancer le projet
+
+
 ## Utilisation
 
+## Développement
 ```sh
 npm run dev
 ```
@@ -158,6 +154,17 @@ Pour lancer seulement le client
 npm run client
 ```
 
+## Production
+D'abord compilez le projet
+```sh
+npm run build
+```
+
+Puis démarrez l'API
+```sh
+npm run start
+```
+
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
 
@@ -169,16 +176,16 @@ npm run client
 - [x] Déconnexion
 - [x] Suppression de compte
 - [x] Modification de compte
-- [ ] Création de prédiction
-- [ ] Vote de prédiction
-- [ ] Confirmer le résultat d’une prédiction
-- [ ] Créer une publication sous une prédiction
-- [ ] Récupérer les points quotidiens
-- [ ] Répondre à une publication
-- [ ] Liker une publication
+- [x] Création de prédiction
+- [x] Vote de prédiction
+- [x] Confirmer le résultat d’une prédiction
+- [x] Créer une publication sous une prédiction
+- [x] Récupérer les points quotidiens
+- [x] Répondre à une publication
+- [x] Liker une publication
 - [ ] Changer de cosmétique
 - [ ] Acheter un cosmétique pour son profil
-- [ ] Valider une prédiction
+- [x] Valider une prédiction
 - [ ] Afficher les probabilités de la prédiction par IA
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
@@ -187,8 +194,8 @@ npm run client
 <!-- CONTACT -->
 ## Contact
 
-Emanuel Fernandes dos Santos - [mail UL](emanuel.fernandes-dos-santos4@etu.univ-lorraine.fr) - [mail pro](emanuelfernandespro@gmail.com) <br>
-Médéric Cuny - [mail UL](mederic.cuny9@etu.univ-lorraine.fr) - [mail pro](medericpro7@gmail.com)
+Emanuel Fernandes dos Santos - [mail UL](mailto:emanuel.fernandes-dos-santos4@etu.univ-lorraine.fr) - [mail pro](mailto:emanuelfernandespro@gmail.com) <br>
+Médéric Cuny - [mail UL](mailto:mederic.cuny9@etu.univ-lorraine.fr) - [mail pro](mailto:medericpro7@gmail.com)
 
 Lien du projet: [https://github.com/Synnly/technos-web-m2](https://github.com/Synnly/technos-web-m2)
 

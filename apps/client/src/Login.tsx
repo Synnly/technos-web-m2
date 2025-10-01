@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import "./App.css";
 import axios from "axios";
 import { useAuth } from "./hooks/useAuth";
@@ -23,9 +24,13 @@ type LoginFormInputs = {
 function Login() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
-    if(isAuthenticated) navigate("/", {replace: true})
-        
     const from = useLocation().state?.from ?? "/";
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/", { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const {
         register,

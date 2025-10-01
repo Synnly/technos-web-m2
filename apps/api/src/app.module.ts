@@ -1,25 +1,39 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
-import { isAuthenticated } from './app.middleware';
-import { UserService } from './service/user.service';
-import { User, UserSchema } from './model/user.schema';
-import { UserController } from './controller/user.controller';
-import { PredictionController } from './controller/prediction.controller';
-import { PredictionService } from './service/prediction.service';
-import { Prediction, PredictionSchema } from './model/prediction.schema';
-import { TokenController } from './controller/token.controller';
+import {
+	MiddlewareConsumer,
+	Module,
+	NestModule,
+	RequestMethod,
+} from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
+import { JwtModule } from "@nestjs/jwt";
+import { ConfigModule } from "@nestjs/config";
+import { isAuthenticated } from "./app.middleware";
+import { UserService } from "./user/user.service";
+import { User, UserSchema } from "./user/user.schema";
+import { UserController } from "./user/user.controller";
+import { PredictionController } from "./prediction/prediction.controller";
+import { PredictionService } from "./prediction/prediction.service";
+import { Prediction, PredictionSchema } from "./prediction/prediction.schema";
+import { TokenController } from "./user/token.controller";
+import { VoteService } from "./vote/vote.service";
+import { Vote, VoteSchema } from "./vote/vote.schema";
+import { VoteController } from "./vote/vote.controller";
+import {
+	Publication,
+	PublicationSchema,
+} from "./publication/publication.schema";
+import { PublicationService } from "./publication/publication.service";
+import { PublicationController } from "./publication/publication.controller";
 
 /**
  * Module principal de l'application API.
- * 
- * Ce module configure la configuration, la connexion à la base de données, 
- * l'authentification JWT et le middleware pour l'application. 
+ *
+ * Ce module configure la configuration, la connexion à la base de données,
+ * l'authentification JWT et le middleware pour l'application.
  * Il enregistre également les contrôleurs et services utilisés dans l'application.
- * 
+ *
  * @module AppModule
- * 
+ *
  * @description
  * - Configure le `ConfigModule` pour qu'il soit disponible globalement dans l'application.
  * - Établit une connexion à la base de données MongoDB en utilisant `MongooseModule`.
@@ -29,7 +43,7 @@ import { TokenController } from './controller/token.controller';
  * - Enregistre les contrôleurs `AppController` et `UserController` pour gérer les requêtes HTTP.
  * - Fournit les services `AppService` et `UserService` pour la logique de l'application.
  * - Applique le middleware `isAuthenticated` à la route `/main`.
- * 
+ *
  * @class
  * @method configure
  * @param consumer - Le `MiddlewareConsumer` utilisé pour appliquer le middleware aux routes.
@@ -43,20 +57,39 @@ import { TokenController } from './controller/token.controller';
 		MongooseModule.forFeature([
 			{ name: User.name, schema: UserSchema },
 			{ name: Prediction.name, schema: PredictionSchema },
+			{ name: Vote.name, schema: VoteSchema },
+			{ name: Publication.name, schema: PublicationSchema },
 		]),
 		JwtModule.register({
 			secret: process.env.JWT_SECRET!,
-			signOptions: { expiresIn: '2h' },
+			signOptions: { expiresIn: "2h" },
 		}),
 	],
-	controllers: [UserController, PredictionController, TokenController],
-	providers: [UserService, PredictionService],
+	controllers: [
+		UserController,
+		PredictionController,
+		TokenController,
+		VoteController,
+		PublicationController,
+	],
+	providers: [
+		UserService,
+		PredictionService,
+		VoteService,
+		PublicationService,
+	],
 })
-
-export class AppModule {
-	configure(consumer: MiddlewareConsumer){
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
 		consumer
 			.apply(isAuthenticated)
-			.forRoutes('/main')
+			.exclude({ path: "/api/user/login", method: RequestMethod.POST }) // Login
+			.exclude({ path: "/api/user", method: RequestMethod.POST }) // Create user
+			.forRoutes(
+				"/api/user",
+				"/api/vote",
+				"/api/prediction",
+				"/api/publication",
+			);
 	}
 }

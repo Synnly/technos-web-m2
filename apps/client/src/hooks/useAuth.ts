@@ -25,9 +25,12 @@ export const useAuth = () => {
             .then(() => {
                 setIsAuthenticated(true);
                 setUsername(jwtDecode<TokenJwtPayload>(token).username);
+                setIsLoading(false);
             })
-            .catch(() => localStorage.removeItem('token'));
-        setIsLoading(false);
+            .catch(() => {
+                localStorage.removeItem('token');
+                setIsLoading(false);
+            });
     }, []);
 
     const logout = () => {

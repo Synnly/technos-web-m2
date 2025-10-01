@@ -39,7 +39,7 @@ export class Prediction {
      * Valeurs possibles : 'Valid', 'Invalid', 'waiting'.
      * Ce champ est requis et a une valeur par défaut de 'waiting'.
      */
-    @Prop({ required: true, enum: Object.values(PredictionStatus), default: PredictionStatus.Waiting })
+    @Prop({ required: true, enum: PredictionStatus, default: PredictionStatus.Waiting })
     status: PredictionStatus;
 
     /**
@@ -65,6 +65,13 @@ export class Prediction {
      */
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
     user_id: Types.ObjectId;
+
+    /**
+     * Résultats de la prédiction.
+     * Chaîne vide si la prédiction n'est pas encore validée par un administrateur.
+     */
+    @Prop({ type: String, default: '' })
+    results: string;
 }
 
 export const PredictionSchema = SchemaFactory.createForClass(Prediction);

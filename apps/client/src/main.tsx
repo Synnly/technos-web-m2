@@ -7,6 +7,7 @@ import Register from "./Registration";
 import Index from "./Index";
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from './Dashboard';
+import Prediction from './Prediction';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -16,14 +17,16 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/signup" element={<Register />} />
 
                 {/* Routes protégées */}
-                <Route 
-                    path="/dashboard" 
-                    element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    } 
-                />
+                <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                } />
+                <Route path="/prediction/:id" element={
+                    <ProtectedRoute>
+                        <Prediction />
+                    </ProtectedRoute>
+                } />
 
 
                 <Route path="/" element={<Index />} />
