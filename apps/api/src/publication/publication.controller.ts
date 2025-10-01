@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
-import { Publication } from '../model/publication.schema';
-import { PublicationService } from '../service/publication.service';
+import { Publication } from './publication.schema';
+import { PublicationService } from '../publication/publication.service';
 import { response } from 'express';
 
 /**

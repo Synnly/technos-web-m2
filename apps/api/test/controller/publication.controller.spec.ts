@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
-import { PublicationController } from '../../src/controller/publication.controller';
-import { PublicationService } from '../../src/service/publication.service';
-import { Publication } from '../../src/model/publication.schema';
+import { PublicationController } from '../../src/publication/publication.controller';
+import { PublicationService } from '../../src/publication/publication.service';
+import { Publication } from '../../src/publication/publication.schema';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 const expectedPub1 = {

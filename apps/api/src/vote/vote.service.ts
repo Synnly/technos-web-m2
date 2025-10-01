@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Prediction, PredictionDocument } from "../model/prediction.schema";
-import { User, UserDocument } from "../model/user.schema";
-import { Vote, VoteDocument } from "../model/vote.schema";
+import { Prediction, PredictionDocument } from "../prediction/prediction.schema";
+import { User, UserDocument } from "../user/user.schema";
+import { Vote, VoteDocument } from "../vote/vote.schema";
 
 /**
  * Service pour la gestion des votes sur les prédictions.

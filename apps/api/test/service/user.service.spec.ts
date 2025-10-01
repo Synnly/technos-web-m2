@@ -1,8 +1,8 @@
-import { UserController } from "../../src/controller/user.controller";
-import { UserService } from "../../src/service/user.service";
+import { UserController } from "../../src/user/user.controller";
+import { UserService } from "../../src/user/user.service";
 import { JwtService } from '@nestjs/jwt';
 import { Test } from "@nestjs/testing";
-import { User } from "../../src/model/user.schema";
+import { User } from "../../src/user/user.schema";
 import { getModelToken } from '@nestjs/mongoose';
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
 
