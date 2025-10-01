@@ -16,6 +16,7 @@
       <a href="#a-propos">A propos</a>
       <ul>
         <li><a href="#fait-avec">Fait avec</a></li>
+        <li><a href="#documentation">Documentation</li>
       </ul>
     </li>
     <li>
@@ -56,6 +57,10 @@
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
+### Documentation
+Tableur d'avancement : [Google sheets](https://docs.google.com/spreadsheets/d/16UJ5eu9x0MTj6YgVtItG8Io4gMjyfLKyI22iAefOFXs/edit?usp=sharing)
+
+Specification : [Google docs](https://docs.google.com/document/d/1QRYGtfH678zQ-XyCAZXBkuYG8LSYG_tSej-hMPigHOY/edit?usp=sharing)
 
 
 <!-- GETTING STARTED -->
