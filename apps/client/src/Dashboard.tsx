@@ -148,7 +148,9 @@ function Dashboard() {
         "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible !"
       )
     ) {
-      axios.delete(`${API_URL}/user/${decodedToken.username}`).then(() => {
+      axios.delete(`${API_URL}/user/${decodedToken.username}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(() => {
         logout();
         navigate("/signup", { replace: true });
       });
