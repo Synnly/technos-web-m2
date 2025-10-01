@@ -7,16 +7,16 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 const expectedPub1 = {
     _id: '507f1f77bcf86cd799439011',
     message: 'Hello world',
-    datePublication: new Date('2025-10-01'),
+    datePublication: new Date('3025-10-01'),
     prediction_id: '507f1f77bcf86cd799439012',
     parentPublication_id: undefined,
-    user_id: '507f1f77bcf86cd799439013'
+    user_id: '507f1f77bcf86cd799439013',
 } as unknown as Publication;
 
 const expectedPub2 = {
     _id: '507f1f77bcf86cd799439014',
     message: 'Reply',
-    datePublication: new Date('2025-10-02'),
+    datePublication: new Date('3025-10-02'),
     prediction_id: '507f1f77bcf86cd799439012',
     parentPublication_id: '507f1f77bcf86cd799439011',
     user_id: '507f1f77bcf86cd799439015'
