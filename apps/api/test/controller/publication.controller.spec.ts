@@ -125,7 +125,7 @@ describe("PublicationController", () => {
 
 		it("should return 400 when publication body is missing", async () => {
 			await expect(
-				publicationController.createPublication(undefined as any)
+				publicationController.createPublication(undefined as any),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -136,7 +136,7 @@ describe("PublicationController", () => {
 			} as unknown as Publication;
 
 			await expect(
-				publicationController.createPublication(bad)
+				publicationController.createPublication(bad),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -147,7 +147,7 @@ describe("PublicationController", () => {
 			} as unknown as Publication;
 
 			await expect(
-				publicationController.createPublication(bad)
+				publicationController.createPublication(bad),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -158,7 +158,7 @@ describe("PublicationController", () => {
 			} as unknown as Publication;
 
 			await expect(
-				publicationController.createPublication(bad)
+				publicationController.createPublication(bad),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -169,7 +169,7 @@ describe("PublicationController", () => {
 			} as unknown as Publication;
 
 			await expect(
-				publicationController.createPublication(bad)
+				publicationController.createPublication(bad),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -180,7 +180,7 @@ describe("PublicationController", () => {
 			} as unknown as Publication;
 
 			await expect(
-				publicationController.createPublication(bad)
+				publicationController.createPublication(bad),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -192,7 +192,7 @@ describe("PublicationController", () => {
 			);
 
 			await expect(
-				publicationController.createPublication(expectedPub1)
+				publicationController.createPublication(expectedPub1),
 			).rejects.toThrow();
 
 			expect(publicationService.createPublication).toHaveBeenCalledWith(
@@ -223,7 +223,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					undefined as any,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -232,7 +232,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					"",
 					expectedPub1,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -246,7 +246,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					bad,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -260,7 +260,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					bad,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -274,7 +274,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					bad,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -288,7 +288,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					bad,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -302,7 +302,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					bad,
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -317,7 +317,7 @@ describe("PublicationController", () => {
 				publicationController.createOrUpdatePublicationById(
 					expectedPub1._id!,
 					expectedPub1,
-				)
+				),
 			).rejects.toThrow();
 
 			expect(publicationService.createOrUpdateById).toHaveBeenCalledWith(
@@ -342,7 +342,7 @@ describe("PublicationController", () => {
 
 		it("should return 400 when id missing", async () => {
 			await expect(
-				publicationController.deletePublicationById("")
+				publicationController.deletePublicationById(""),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -354,7 +354,7 @@ describe("PublicationController", () => {
 			await expect(
 				publicationController.deletePublicationById(
 					"507f1f77bcf86cd799439999",
-				)
+				),
 			).rejects.toThrow();
 
 			expect(publicationService.deleteById).toHaveBeenCalledWith(
@@ -391,7 +391,7 @@ describe("PublicationController", () => {
 				publicationController.toggleLikePublication(
 					"",
 					"507f1f77bcf86cd799439015",
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -400,7 +400,7 @@ describe("PublicationController", () => {
 				publicationController.toggleLikePublication(
 					expectedPub1._id!,
 					"",
-				)
+				),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -415,7 +415,7 @@ describe("PublicationController", () => {
 				publicationController.toggleLikePublication(
 					expectedPub1._id!,
 					"507f1f77bcf86cd799439015",
-				)
+				),
 			).rejects.toThrow();
 
 			expect(
