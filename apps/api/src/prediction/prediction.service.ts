@@ -158,7 +158,7 @@ export class PredictionService {
 	async deleteById(id: string): Promise<Prediction> {
 		const deleted = await this.predictionModel.findByIdAndDelete(id).exec();
 		if (!deleted) {
-			throw new Error("Prediction not found");
+			throw new Error("Prédiction introuvable");
 		}
 
 		// Supprime la référence de la liste des prédictions de l'utilisateur si elle est présente

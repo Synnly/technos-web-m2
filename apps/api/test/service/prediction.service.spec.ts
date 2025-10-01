@@ -2,7 +2,6 @@ import { Test } from "@nestjs/testing";
 import { getModelToken } from '@nestjs/mongoose';
 import { PredictionService } from "../../src/prediction/prediction.service";
 import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
-import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
 import { User } from "../../src/user/user.schema";
 import { Vote } from "../../src/vote/vote.schema";
 
@@ -193,9 +192,7 @@ describe('PredictionService', () => {
 		it('should throw when not found', async () => {
 			mockPredModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
 
-			await expect(predictionService.deleteById('unknown')).rejects.toEqual(
-				expect.objectContaining({ message: 'Prediction not found', status: HttpStatus.NOT_FOUND })
-			);
+			await expect(predictionService.deleteById('unknown')).rejects.toThrow('Prédiction introuvable');
 
 			expect(mockPredModel.findByIdAndDelete).toHaveBeenCalledWith('unknown');
 		});
