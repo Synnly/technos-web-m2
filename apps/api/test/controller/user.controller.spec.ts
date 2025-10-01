@@ -11,7 +11,7 @@ const expectedUser1 = {
     username: 'testuser1', 
     motDePasse: 'H@sh3dpassword', 
     points: 50, 
-    pointsQuotidiensRecuperes: false,
+    dateDerniereRecompenseQuotidienne: null,
     predictions : [],
     votes : [],
     role: 'user'
@@ -22,7 +22,7 @@ const expectedUser2 = {
     username: 'testuser2', 
     motDePasse: 'H@sh3dpassword2', 
     points: 100, 
-    pointsQuotidiensRecuperes: true,
+    dateDerniereRecompenseQuotidienne: new Date(),
     predictions : [],
     votes : [],
     role: 'user'
@@ -36,7 +36,8 @@ const mockUserService = {
     createUser: jest.fn(),
     createOrUpdateByUsername : jest.fn(),
     deleteByUsername : jest.fn(),
-    getJwtToken : jest.fn()
+    getJwtToken : jest.fn(),
+    claimDailyReward: jest.fn()
 };
 
 // Mock du JwtService
@@ -503,9 +504,9 @@ describe("UserController", () => {
     });
 
     describe('updateUserByUsername', () => {
-        it('should return a 200 when a user\'s pointsQuotidiensRecuperes is updated', async () => {
-            const updatedUser = {...expectedUser1, pointsQuotidiensRecuperes: true} as User;
-            
+        it('should return a 200 when a user\'s dateDerniereRecompenseQuotidienne is updated', async () => {
+            const updatedUser = {...expectedUser1, dateDerniereRecompenseQuotidienne: new Date()} as User;
+
             // Configuration du mock pour retourner l'utilisateur créé
             mockUserService.createOrUpdateByUsername.mockResolvedValue(updatedUser);
 
@@ -829,6 +830,91 @@ describe("UserController", () => {
             // Vérifier que les méthodes du mock de response ont été appelées correctement
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(mockResponse.json).toHaveBeenCalledWith({message : 'Identifiants incorrects.'});
+        });
+    });
+
+    describe('getDailyReward', () => {
+        it('should return the daily reward when valid username is provided', async () => {
+            const reward = 10;
+            const username = expectedUser1.username;
+
+            // Configuration du mock pour retourner la récompense
+            mockUserService.claimDailyReward.mockResolvedValue(reward);
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.getDailyReward(username, mockResponse);
+
+            // Vérifier que le service a été appelé correctement
+            expect(userService.claimDailyReward).toHaveBeenCalledWith(username);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith({ reward: reward });
+        });
+
+        it('should return a 400 when no username is provided', async () => {
+            const username = '';
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.getDailyReward(username, mockResponse);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Le nom d\'utilisateur est requis' });
+        });
+
+        it('should return a 404 when user is not found', async () => {
+            const username = 'unknownuser';
+
+            // Configuration du mock pour lancer une exception
+            mockUserService.claimDailyReward.mockImplementation(() => {
+                throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+            });
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.getDailyReward(username, mockResponse);
+
+            // Vérifier que le service a été appelé correctement
+            expect(userService.claimDailyReward).toHaveBeenCalledWith(username);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(404);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'L\'utilisateur n\'est pas trouvable' });
+        });
+
+        it('should return a 400 when daily reward already claimed today', async () => {
+            const username = expectedUser1.username;
+
+            // Configuration du mock pour lancer une exception
+            mockUserService.claimDailyReward.mockImplementation(() => {
+                throw new HttpException('Récompense quotidienne déjà réclamée aujourd\'hui.', HttpStatus.BAD_REQUEST);
+            });
+
+            const mockResponse = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis(),
+            };
+
+            await userController.getDailyReward(username, mockResponse);
+
+            // Vérifier que le service a été appelé correctement
+            expect(userService.claimDailyReward).toHaveBeenCalledWith(username);
+
+            // Vérifier que les méthodes du mock de response ont été appelées correctement
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Récompense quotidienne déjà réclamée aujourd\'hui.' });
         });
     });
 })

@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Publication, PublicationDocument } from "../model/publication.schema";
 
 
@@ -79,6 +79,7 @@ export class PublicationService {
             existing.prediction_id = pub.prediction_id ?? existing.prediction_id;
             existing.parentPublication_id = pub.parentPublication_id ?? existing.parentPublication_id;
             existing.user_id = pub.user_id ?? existing.user_id;
+            existing.likes = pub.likes ?? existing.likes;
             return await existing.save();
         } else {
             const toCreate = { ...pub } as any;
@@ -100,5 +101,27 @@ export class PublicationService {
             throw new HttpException('Publication not found', HttpStatus.NOT_FOUND);
         }
         return this.normalizePub(deleted) as Publication;
+    }
+
+    /**
+     * Permet à un utilisateur de liker ou unliker une publication.
+     * @param pubId Identifiant de la publication à liker ou unliker.
+     * @param userId Identifiant de l'utilisateur qui like ou unlike la publication.
+     * @returns Une promesse avec la publication mise à jour.
+     * @throws Error si la publication n'est pas trouvée.
+     */
+    async toggleLikePublication(pubId: string, userId: string): Promise<Publication> {
+        const publication = await this.publicationModel.findById(pubId).exec();
+        if (!publication) throw Error('Publication introuvable');
+
+        const userObjectId = new Types.ObjectId(userId);
+        if (publication.likes && publication.likes.filter(id => id.equals(userObjectId)).length > 0) { // Retirer le like
+            publication.likes = publication.likes.filter(id => !id.equals(userObjectId));
+        } else {    // Ajouter le like
+            publication.likes.push(userObjectId);
+        }
+
+        await publication.save();
+        return this.normalizePub(publication) as Publication;
     }
 }

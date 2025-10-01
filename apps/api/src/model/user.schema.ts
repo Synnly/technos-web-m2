@@ -45,11 +45,11 @@ export class User {
     points: number;
 
     /**
-     * Indique si l'utilisateur a récupéré ses points quotidiens.
-     * Ce champ est requis et a une valeur par défaut de false.
+     * Indique la date de la dernière récupération des points quotidiens.
+     * Ce champ peut être nul si l'utilisateur n'a jamais récupéré de points quotidiens.
      */
-    @Prop({ required: true, default: false })
-    pointsQuotidiensRecuperes: boolean;
+    @Prop({ default: null, type: Date })
+    dateDerniereRecompenseQuotidienne: Date | null;
 
     /**
      * Les prédictions associées à l'utilisateur.

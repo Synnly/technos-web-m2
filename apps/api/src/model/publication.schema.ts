@@ -37,6 +37,12 @@ export class Publication {
     @Prop({ type: Types.ObjectId, ref: "User", required: true })
     user_id: Types.ObjectId;
 
+    /**
+     * Liste des id des utilisateurs ayant liké la publication
+     */
+    @Prop({ type: [{ type: Types.ObjectId, ref: "User" }], default: [] })
+    likes: Types.ObjectId[];
+
 }
 
 export const PublicationSchema = SchemaFactory.createForClass(Publication);

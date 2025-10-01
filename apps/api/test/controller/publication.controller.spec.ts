@@ -5,21 +5,21 @@ import { Publication } from '../../src/model/publication.schema';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 const expectedPub1 = {
-    _id: 'pub1',
+    _id: '507f1f77bcf86cd799439011',
     message: 'Hello world',
-    datePublication: new Date('3025-12-01'),
-    prediction_id: 'p1',
+    datePublication: new Date('3025-10-01'),
+    prediction_id: '507f1f77bcf86cd799439012',
     parentPublication_id: undefined,
-    user_id: 'u1'
+    user_id: '507f1f77bcf86cd799439013',
 } as unknown as Publication;
 
 const expectedPub2 = {
-    _id: 'pub2',
+    _id: '507f1f77bcf86cd799439014',
     message: 'Reply',
-    datePublication: new Date('3025-12-02'),
-    prediction_id: 'p1',
-    parentPublication_id: 'pub1',
-    user_id: 'u2'
+    datePublication: new Date('3025-10-02'),
+    prediction_id: '507f1f77bcf86cd799439012',
+    parentPublication_id: '507f1f77bcf86cd799439011',
+    user_id: '507f1f77bcf86cd799439015'
 } as unknown as Publication;
 
 const expectedPublications = [expectedPub1, expectedPub2];
@@ -30,6 +30,7 @@ const mockPublicationService = {
     createPublication: jest.fn(),
     createOrUpdateById: jest.fn(),
     deleteById: jest.fn(),
+    toggleLikePublication: jest.fn(),
 };
 
 describe('PublicationController', () => {
@@ -92,9 +93,9 @@ describe('PublicationController', () => {
             mockPublicationService.getById.mockResolvedValue(null);
             const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 
-            await publicationController.getPublicationById(mockResponse as any, 'unknown');
+            await publicationController.getPublicationById(mockResponse as any, '507f1f77bcf86cd799439999');
 
-            expect(publicationService.getById).toHaveBeenCalledWith('unknown');
+            expect(publicationService.getById).toHaveBeenCalledWith('507f1f77bcf86cd799439999');
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Publication non trouvée' });
         });
@@ -309,11 +310,54 @@ describe('PublicationController', () => {
             mockPublicationService.deleteById.mockImplementationOnce(() => { throw new Error('delete fail'); });
             const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 
-            await publicationController.deletePublicationById(mockResponse as any, 'unknown');
+            await publicationController.deletePublicationById(mockResponse as any, '507f1f77bcf86cd799439999');
 
-            expect(publicationService.deleteById).toHaveBeenCalledWith('unknown');
+            expect(publicationService.deleteById).toHaveBeenCalledWith('507f1f77bcf86cd799439999');
             expect(mockResponse.status).toHaveBeenCalledWith(500);
             expect(mockResponse.json).toHaveBeenCalledWith({ message: 'delete fail' });
+        });
+    });
+
+    describe('toggleLikePublication', () => {
+        it('should toggle like and return 200', async () => {
+            const updatedPub = { ...expectedPub1, likes: ['507f1f77bcf86cd799439015'] };
+            mockPublicationService.toggleLikePublication.mockResolvedValue(updatedPub);
+            const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+
+            await publicationController.toggleLikePublication(mockResponse as any, expectedPub1._id!, '507f1f77bcf86cd799439015');
+
+            expect(publicationService.toggleLikePublication).toHaveBeenCalledWith(expectedPub1._id, '507f1f77bcf86cd799439015');
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith(updatedPub);
+        });
+
+        it('should return 400 when publication id is missing', async () => {
+            const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+
+            await publicationController.toggleLikePublication(mockResponse as any, '', '507f1f77bcf86cd799439015');
+
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: "L'identifiant de la publication est requis" });
+        });
+
+        it('should return 400 when user id is missing', async () => {
+            const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+
+            await publicationController.toggleLikePublication(mockResponse as any, expectedPub1._id!, '');
+
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: "L'identifiant de l'utilisateur est requis" });
+        });
+
+        it('should return 500 when service throws error', async () => {
+            mockPublicationService.toggleLikePublication.mockImplementationOnce(() => { throw new Error('toggle error'); });
+            const mockResponse = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+
+            await publicationController.toggleLikePublication(mockResponse as any, expectedPub1._id!, '507f1f77bcf86cd799439015');
+
+            expect(publicationService.toggleLikePublication).toHaveBeenCalledWith(expectedPub1._id, '507f1f77bcf86cd799439015');
+            expect(mockResponse.status).toHaveBeenCalledWith(500);
+            expect(mockResponse.json).toHaveBeenCalledWith({ message: 'toggle error' });
         });
     });
 });
