@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, InternalServerErrorException, NotFoundException, Param, Post, Put, Res } from '@nestjs/common';
 import { Publication } from './publication.schema';
 import { PublicationService } from '../publication/publication.service';
 import { response } from 'express';
@@ -21,9 +21,9 @@ export class PublicationController {
      * @returns La liste des publications avec un statut HTTP 200 (OK).
      */
     @Get('')
-    async getPublications(@Res() response): Promise<Publication[]> {
+    async getPublications(): Promise<Publication[]> {
         const publications = await this.publicationService.getAll();
-        return response.status(HttpStatus.OK).json(publications);
+        return publications;
     }
 
     /**
@@ -34,13 +34,13 @@ export class PublicationController {
      * 
      */
     @Get('/:id')
-    async getPublicationById(@Res() response, @Param('id') id: string): Promise<Publication | undefined> {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'identifiant est requis' });
+    async getPublicationById(@Param('id') id: string): Promise<Publication | undefined> {
+        if (!id) throw new BadRequestException({ message: 'L\'identifiant est requis' });
 
         const pub = await this.publicationService.getById(id);
-        if(!pub) return response.status(HttpStatus.NOT_FOUND).json({ message: 'Publication non trouvée' });
+        if(!pub) throw new NotFoundException({ message: 'Publication non trouvée' });
 
-        return response.status(HttpStatus.OK).json(pub);
+        return pub;
     }
 
     /**
@@ -50,8 +50,8 @@ export class PublicationController {
      * @returns Les données de la nouvelle publication créée avec un statut HTTP 201 (Created), ou une erreur HTTP 400 (Bad Request) si la validation échoue, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de création impossible.
      */
     @Post('')
-    async createPublication(@Res() response, @Body() pub: Publication): Promise<Publication> {
-
+    @HttpCode(201)
+    async createPublication(@Body() pub: Publication): Promise<Publication> {
         const toleranceMs = 10 * 1000;
         // Validation des champs requis
         const missing = [
@@ -62,12 +62,12 @@ export class PublicationController {
             !pub?.user_id && 'L\'utilisateur est requis',
             !pub?.prediction_id && 'La prédiction est requise',
         ].filter(Boolean)[0];
-        if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
+        if (missing) throw new BadRequestException({ message: missing });
         try {
             const created = await this.publicationService.createPublication(pub);
-            return response.status(HttpStatus.CREATED).json(created);
+            return created;
         } catch (error) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: error.message });
+            throw new InternalServerErrorException({ message: error.message });
         }
     }
 
@@ -79,7 +79,7 @@ export class PublicationController {
      * @returns Les données de la publication créée ou mise à jour avec un statut HTTP 200 (OK), ou une erreur HTTP 400 (Bad Request) si la validation échoue, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de création ou mise à jour impossible.
      */
     @Put('/:id')
-    async createOrUpdatePublicationById(@Res() response, @Param('id') id: string, @Body() pub: Publication ): Promise<Publication> {
+    async createOrUpdatePublicationById(@Param('id') id: string, @Body() pub: Publication ): Promise<Publication> {
         const toleranceMs = 10 * 1000;
         // Validation des champs requis
         const missing = [
@@ -92,13 +92,13 @@ export class PublicationController {
             !pub?.prediction_id && 'La prédiction est requise',
         ].filter(Boolean)[0];
 
-        if (missing) return response.status(HttpStatus.BAD_REQUEST).json({ message: missing });
+        if (missing) throw new BadRequestException({ message: missing });
 
         try {
             const updated = await this.publicationService.createOrUpdateById(id, pub);
-            return response.status(HttpStatus.OK).json(updated);
+            return updated;
         } catch (e) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: e.message });
+            throw new InternalServerErrorException({ message: e.message });
         }
     }
 
@@ -109,13 +109,13 @@ export class PublicationController {
      * @returns Les données de la publication supprimée avec un statut HTTP 200 (OK), ou une erreur HTTP 400 (Bad Request) si l'id est manquant, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de suppression impossible.
      */
     @Delete('/:id')
-    async deletePublicationById(@Res() response, @Param('id') id: string): Promise<Publication> {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: "L'identifiant est requis" });
+    async deletePublicationById(@Param('id') id: string): Promise<Publication> {
+        if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
         try {
             const deleted = await this.publicationService.deleteById(id);
-            return response.status(HttpStatus.OK).json(deleted);
+            return deleted;
         } catch (e) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: e.message });
+            throw new InternalServerErrorException({ message: e.message });
         }
     }
 
@@ -129,14 +129,14 @@ export class PublicationController {
      *  impossible.
      */
     @Put('/:id/toggle-like/:userId')
-    async toggleLikePublication(@Res() response, @Param('id') id: string, @Param('userId') userId: string): Promise<Publication> {
-        if (!id) return response.status(HttpStatus.BAD_REQUEST).json({ message: "L'identifiant de la publication est requis" });
-        if (!userId) return response.status(HttpStatus.BAD_REQUEST).json({ message: "L'identifiant de l'utilisateur est requis" });
+    async toggleLikePublication(@Param('id') id: string, @Param('userId') userId: string): Promise<Publication> {
+        if (!id) throw new BadRequestException({ message: "L'identifiant de la publication est requis" });
+        if (!userId) throw new BadRequestException({ message: "L'identifiant de l'utilisateur est requis" });
         try {
             const updated = await this.publicationService.toggleLikePublication(id, userId);
-            return response.status(HttpStatus.OK).json(updated);
+            return updated;
         } catch (e) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: e.message });
+            throw new InternalServerErrorException({ message: e.message });
         }
     }
 }       

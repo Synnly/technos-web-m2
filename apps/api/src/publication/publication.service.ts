@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { Injectable, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { Publication, PublicationDocument } from "../publication/publication.schema";
@@ -98,7 +98,7 @@ export class PublicationService {
     async deleteById(id: string): Promise<Publication> {
         const deleted = await this.publicationModel.findByIdAndDelete(id).exec();
         if (!deleted) {
-            throw new Error('Publication introuvable');
+            throw new NotFoundException('Publication introuvable');
         }
         return this.normalizePub(deleted) as Publication;
     }
@@ -112,7 +112,7 @@ export class PublicationService {
      */
     async toggleLikePublication(pubId: string, userId: string): Promise<Publication> {
         const publication = await this.publicationModel.findById(pubId).exec();
-        if (!publication) throw Error('Publication introuvable');
+        if (!publication) throw new NotFoundException('Publication introuvable');
 
         const userObjectId = new Types.ObjectId(userId);
         if (publication.likes && publication.likes.filter(id => id.equals(userObjectId)).length > 0) { // Retirer le like
