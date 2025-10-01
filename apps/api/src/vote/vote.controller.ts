@@ -25,7 +25,7 @@ export class VoteController {
 	/**
 	 * Récupère tous les votes du système.
 	 * @param response Objet de réponse HTTP
-	 * @returns {Promise<void>} Liste complète des votes avec statut HTTP 200 (OK)
+	 * @returns La liste complète des votes
 	 */
 	@Get("")
 	async getVotes() {
@@ -37,7 +37,8 @@ export class VoteController {
 	 * Récupère un vote spécifique par son identifiant.
 	 * @param response Objet de réponse HTTP
 	 * @param id Identifiant unique du vote à récupérer
-	 * @returns {Promise<void>} Le vote correspondant avec statut HTTP 200 (OK) ou 404 (Not Found) si le vote est introuvable
+	 * @returns Le vote correspondant
+	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Get("/:id")
 	async getVoteById(@Param("id") id: string) {
@@ -47,13 +48,11 @@ export class VoteController {
 	}
 
 	/**
-	 * Crée un nouveau vote sur une prédiction.
-	 * L'utilisateur doit être authentifié et le vote doit respecter les contraintes métier.
-	 *
+	 * Crée un nouveau vote pour une prédiction.
 	 * @param req Objet de requête HTTP contenant les informations d'authentification
-	 * @param response Objet de réponse HTTP
-	 * @param vote Données du vote à créer (prediction_id, option, amount, date)
-	 * @returns {Promise<void>} Le vote créé avec statut HTTP 201 (Created) ou 400 (Bad Request) si les données sont invalides ou manquantes
+	 * @param vote Données du vote à créer (user_id, prediction_id, option, amount, date)
+	 * @returns Le vote créé avec statut
+	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
 	 */
 	@Post("")
     @HttpCode(201)
@@ -85,13 +84,13 @@ export class VoteController {
 	}
 
 	/**
-	 * Met à jour un vote existant ou le crée s'il n'existe pas.
-	 *
+	 * Met à jour un vote existant.
 	 * @param req Objet de requête HTTP contenant les informations d'authentification
-	 * @param response Objet de réponse HTTP
-	 * @param id Identifiant du vote à mettre à jour
-	 * @param vote Nouvelles données du vote (user_id, prediction_id, option, amount)
-	 * @returns {Promise<void>} Le vote mis à jour avec statut HTTP 200 (OK) ou 400 (Bad Request) si les données sont invalides ou manquantes
+	 * @param id Identifiant unique du vote à mettre à jour
+	 * @param vote Données du vote à mettre à jour (user_id, prediction_id, option, amount, date)
+	 * @returns Le vote mis à jour
+	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
+	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Put("/:id")
 	async updateVote(
@@ -133,12 +132,10 @@ export class VoteController {
 	}
 
 	/**
-	 * Supprime définitivement un vote du système.
-	 * Cette action est irréversible.
-	 *
-	 * @param response Objet de réponse HTTP
-	 * @param id Identifiant du vote à supprimer
-	 * @returns {Promise<void>} Le vote supprimé avec statut HTTP 200 (OK) ou 404 (Not Found) si le vote est introuvable
+	 * Supprime un vote existant.
+	 * @param id Identifiant unique du vote à supprimer
+	 * @returns Le vote supprimé
+	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Delete("/:id")
 	async deleteVote(@Param("id") id: string) {

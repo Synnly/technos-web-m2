@@ -93,12 +93,12 @@ export class PublicationService {
      * Supprime une publication par son identifiant.
      * @param id Identifiant de la publication à supprimer
      * @returns Une promesse avec la publication supprimée.
-     * @throws HttpException si la publication n'est pas trouvée
+     * @throws Error si la publication n'est pas trouvée
      */
     async deleteById(id: string): Promise<Publication> {
         const deleted = await this.publicationModel.findByIdAndDelete(id).exec();
         if (!deleted) {
-            throw new NotFoundException('Publication introuvable');
+            throw new Error('Publication introuvable');
         }
         return this.normalizePub(deleted) as Publication;
     }
@@ -112,7 +112,7 @@ export class PublicationService {
      */
     async toggleLikePublication(pubId: string, userId: string): Promise<Publication> {
         const publication = await this.publicationModel.findById(pubId).exec();
-        if (!publication) throw new NotFoundException('Publication introuvable');
+        if (!publication) throw new Error('Publication introuvable');
 
         const userObjectId = new Types.ObjectId(userId);
         if (publication.likes && publication.likes.filter(id => id.equals(userObjectId)).length > 0) { // Retirer le like

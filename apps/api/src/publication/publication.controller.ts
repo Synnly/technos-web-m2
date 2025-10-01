@@ -5,7 +5,6 @@ import {
 	Delete,
 	Get,
 	HttpCode,
-	HttpStatus,
 	InternalServerErrorException,
 	NotFoundException,
 	Param,
@@ -14,7 +13,6 @@ import {
 } from "@nestjs/common";
 import { Publication } from "./publication.schema";
 import { PublicationService } from "../publication/publication.service";
-import { response } from "express";
 
 /**
  * Contrôleur pour gérer les opérations liées aux publications.
@@ -23,14 +21,13 @@ import { response } from "express";
 export class PublicationController {
 	/**
 	 * Constructeur pour PublicationController.
-	 * @param publicationService - Service pour la logique métier liée aux publications.
+	 * @param publicationService Service pour la logique métier liée aux publications.
 	 */
 	constructor(private readonly publicationService: PublicationService) {}
 
 	/**
 	 * Récupère toutes les publications.
-	 * @param response Objet de réponse HTTP.
-	 * @returns La liste des publications avec un statut HTTP 200 (OK).
+	 * @returns Un tableau de publications
 	 */
 	@Get("")
 	async getPublications(): Promise<Publication[]> {
@@ -40,10 +37,10 @@ export class PublicationController {
 
 	/**
 	 * Récupère une publication par son identifiant.
-	 * @param response Objet de réponse HTTP.
-	 * @param id - Identifiant de la publication à récupérer.
-	 * @returns Les données de la publication si trouvée avec un statut HTTP 200 (OK), ou une erreur HTTP 400 (Bad Request) si l'id est manquant, ou 404 (Not Found) si la publication n'existe pas.
-	 *
+	 * @param id Identifiant de la publication à récupérer.
+	 * @returns La publication correspondante
+	 * @throws {BadRequestException} si l'identifiant est manquant.
+	 * @throws {NotFoundException} si la publication n'est pas trouvée.
 	 */
 	@Get("/:id")
 	async getPublicationById(
@@ -63,9 +60,10 @@ export class PublicationController {
 
 	/**
 	 * Crée une nouvelle publication.
-	 * @param response Objet de réponse HTTP.
-	 * @param pub - Les données de la publication à créer.
-	 * @returns Les données de la nouvelle publication créée avec un statut HTTP 201 (Created), ou une erreur HTTP 400 (Bad Request) si la validation échoue, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de création impossible.
+	 * @param pub Données de la publication à créer.
+	 * @returns La publication créée
+	 * @throws {BadRequestException} si les données de la publication sont invalides ou manquantes.
+	 * @throws {InternalServerErrorException} si la création de la publication échoue.
 	 */
 	@Post("")
 	@HttpCode(201)
@@ -94,11 +92,12 @@ export class PublicationController {
 	}
 
 	/**
-	 * Crée ou met à jour une publication par son identifiant.
-	 * @param response - Objet de réponse HTTP.
-	 * @param id - Identifiant de la publication à créer ou mettre à jour.
-	 * @param pub - Les données de la publication à créer ou mettre à jour.
-	 * @returns Les données de la publication créée ou mise à jour avec un statut HTTP 200 (OK), ou une erreur HTTP 400 (Bad Request) si la validation échoue, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de création ou mise à jour impossible.
+	 * Met à jour une publication si elle existe, sinon la crée.
+	 * @param id Identifiant de la publication à créer ou mettre à jour
+	 * @param pub Publication à créer ou mettre à jour
+	 * @returns La publication créée ou mise à jour
+	 * @throws {BadRequestException} si les données de la publication sont invalides ou manquantes.
+	 * @throws {InternalServerErrorException} si la création ou la mise à jour de la publication échoue.
 	 */
 	@Put("/:id")
 	async createOrUpdatePublicationById(
@@ -135,9 +134,10 @@ export class PublicationController {
 
 	/**
 	 * Supprime une publication par son identifiant.
-	 * @param response - Objet de réponse HTTP.
-	 * @param id - Identifiant de la publication à supprimer.
-	 * @returns Les données de la publication supprimée avec un statut HTTP 200 (OK), ou une erreur HTTP 400 (Bad Request) si l'id est manquant, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de suppression impossible.
+	 * @param id Identifiant de la publication à supprimer.
+	 * @returns La publication supprimée.
+	 * @throws {BadRequestException} si l'identifiant est manquant.
+	 * @throws {InternalServerErrorException} si la suppression de la publication échoue.
 	 */
 	@Delete("/:id")
 	async deletePublicationById(@Param("id") id: string): Promise<Publication> {
@@ -155,12 +155,11 @@ export class PublicationController {
 
 	/**
 	 * Permet à un utilisateur de liker ou unliker une publication.
-	 * @param response Objet de réponse HTTP.
 	 * @param id Identifiant de la publication à liker ou unliker.
 	 * @param userId Identifiant de l'utilisateur qui like ou unlike la publication.
-	 * @returns Les données de la publication mise à jour avec un statut HTTP 200 (OK), ou une erreur HTTP 400
-	 * (Bad Request) si l'id ou userId est manquant, ou une erreur HTTP 500 (INTERNAL_SERVER_ERROR) en cas de mise à jour
-	 *  impossible.
+	 * @returns La publication mise à jour.
+	 * @throws {BadRequestException} si l'identifiant de la publication ou de l'utilisateur est manquant.
+	 * @throws {InternalServerErrorException} si la mise à jour de la publication échoue.
 	 */
 	@Put("/:id/toggle-like/:userId")
 	async toggleLikePublication(

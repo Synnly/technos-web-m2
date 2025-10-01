@@ -22,7 +22,6 @@ export class UserService {
     
     /**
      * Récupère tous les utilisateurs du système.
-     * 
      * @returns Une promesse qui résout un tableau d'objets utilisateur.
      */
     async getAll(): Promise<User[]> {
@@ -31,8 +30,7 @@ export class UserService {
 
     /**
      * Récupère un utilisateur unique basé sur le nom d'utilisateur fourni.
-     *
-     * @param username - Le nom d\'utilisateur (nom d'utilisateur ou identifiant) de l'utilisateur à récupérer.
+     * @param username Le nom d'utilisateur (nom d'utilisateur ou identifiant) de l'utilisateur à récupérer.
      * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond au username donné.
      */
     async getByUsername(username: any): Promise<User | undefined> {
@@ -42,17 +40,9 @@ export class UserService {
     
     /**
      * Crée un nouvel utilisateur dans la base de données.
-     * 
-     * Avant de créer l'utilisateur, cette méthode vérifie si un utilisateur avec le même username existe déjà.
-     * Si c'est le cas, une exception HTTP est levée pour indiquer que le nom d'utilisateur est déjà utilisé.
-     * Le mot de passe de l'utilisateur est haché avant d'être stocké dans la base de données pour des raisons de 
-     * sécurité.
-     * 
-     * @param user - L'objet utilisateur contenant les informations nécessaires à la création (doit inclure `username` et 
-     * `motDePasse`).
-     * @returns Une promesse qui résout l'utilisateur nouvellement créé.
-     * 
-     * @throws HttpException - Levée avec un statut HttpStatus.BAD_REQUEST si le nom d'utilisateur est déjà utilisé.
+     * @param user - L'objet utilisateur contenant les informations nécessaires pour créer un nouvel utilisateur.
+     * @returns Une promesse qui résout l'objet utilisateur créé.
+     * @throws Error si le nom d'utilisateur est déjà utilisé.
      */
     async createUser(user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ username: user.username }).exec();
@@ -71,13 +61,12 @@ export class UserService {
     }
 
     /**
-     * Authentifie un utilisateur en vérifiant ses identifiants et génère un token JWT en cas de succès.
-     * @param user - L'objet utilisateur contenant le nom d'utilisateur (nom d'utilisateur) et le motDePasse (mot de passe).
-     * @param jwt - L'instance JwtService utilisée pour signer et générer le token JWT.
-     * @returns Une promesse qui résout un objet contenant le token JWT si l'authentification réussit.
-     *
-     * @throws HttpException - Levée avec un statut HttpStatus.UNAUTHORIZED si le nom d'utilisateur ou le mot de passe 
-     * est incorrect.
+     * Génère un token JWT pour un utilisateur donné si les informations d'identification sont valides.
+     * @param username Le nom d'utilisateur de l'utilisateur.
+     * @param password Le mot de passe de l'utilisateur.
+     * @param jwt Le service JWT utilisé pour signer le token.
+     * @returns Une promesse qui résout un objet contenant le token JWT si les informations d'identification sont valides.
+     * @throws Error si l'utilisateur n'est pas trouvable ou si les informations d'identification sont incorrectes.
      */
     async getJwtToken(username: string, password: string, jwt: JwtService): Promise<any> {
         const foundUser = await this.userModel.findOne({ username: username }).exec();
@@ -97,10 +86,10 @@ export class UserService {
     }
 
     /**
-     * Crée ou met à jour un utilisateur par son nom d'utilisateur.
-     * @param username - Le nom d'utilisateur de l'utilisateur à créer ou mettre à jour.
-     * @param user - Les données de l'utilisateur à créer ou mettre à jour.
-     * @returns Une promesse qui résout l'utilisateur créé ou mis à jour.
+     * Met à jour un utilisateur existant basé sur le nom d'utilisateur fourni, ou crée un nouvel utilisateur si aucun n'existe.
+     * @param username Le nom d'utilisateur de l'utilisateur à mettre à jour ou à créer.
+     * @param user L'objet utilisateur contenant les informations à mettre à jour ou à utiliser pour la création.
+     * @returns Une promesse qui résout l'objet utilisateur mis à jour ou créé.
      */
     async createOrUpdateByUsername(username: string, user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ username }).exec();
@@ -128,10 +117,9 @@ export class UserService {
     
     /**
      * Supprime un utilisateur de la base de données à partir de son identifiant.
-     *
-     * @param id - Identifiant unique de l'utilisateur à supprimer.
+     * @param id L'identifiant de l'utilisateur à supprimer.
      * @returns Une promesse qui résout l'utilisateur supprimé si trouvé, ou lève une exception si aucun utilisateur n'est trouvé avec cet identifiant.
-     * @throws HttpException - Levée avec un statut HttpStatus.NOT_FOUND si l'utilisateur n'existe pas.
+     * @throws Error si l'utilisateur n'est pas trouvable.
      */
     async deleteById(id : string) : Promise<User> {
         const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
@@ -145,9 +133,9 @@ export class UserService {
 
     /**
      * Supprime un utilisateur de la base de données à partir de son nom d'utilisateur.
-     * @param username - Le nom d'utilisateur de l'utilisateur à supprimer.
+     * @param username Le nom d'utilisateur de l'utilisateur à supprimer.
      * @returns Une promesse qui résout l'utilisateur supprimé si trouvé, ou lève une exception si aucun utilisateur n'est trouvé avec ce nom d'utilisateur.
-     * @throws HttpException - Levée avec un statut HttpStatus.NOT_FOUND si l'utilisateur n'existe pas.`
+     * @throws Error si l'utilisateur n'est pas trouvable.
      */
     async deleteByUsername(username: string){
         const deletedUser = await this.userModel.findOneAndDelete({ username }).exec();
@@ -161,10 +149,9 @@ export class UserService {
 
     /**
      * Permet à un utilisateur de réclamer une récompense quotidienne.
-     * Cette méthode vérifie si l'utilisateur a déjà réclamé la récompense aujourd'hui.
      * @param username Le nom d'utilisateur de l'utilisateur réclamant la récompense.
-     * @returns Le nombre de points ajoutés à l'utilisateur.
-     * @throws HttpException Si l'utilisateur n'est pas trouvable ou si la récompense a déjà été réclamée aujourd'hui.
+     * @returns Une promesse qui résout le nombre de points ajoutés à l'utilisateur.
+     * @throws Error si l'utilisateur n'est pas trouvable ou si la récompense a déjà été réclamée aujourd'hui.
      */
     async claimDailyReward(username: string): Promise<number> {
         const user = await this.userModel.findOne({ username }).exec();

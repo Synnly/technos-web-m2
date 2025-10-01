@@ -1,10 +1,13 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { Injectable, HttpStatus } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Prediction, PredictionDocument, PredictionStatus } from "./prediction.schema";
+import {
+	Prediction,
+	PredictionDocument,
+	PredictionStatus,
+} from "./prediction.schema";
 import { User, UserDocument } from "../user/user.schema";
 import { Vote, VoteDocument } from "../vote/vote.schema";
-
 
 @Injectable()
 /**
@@ -14,7 +17,6 @@ import { Vote, VoteDocument } from "../vote/vote.schema";
  * en utilisant le modèle Mongoose injecté.
  */
 export class PredictionService {
-
 	/**
 	 * Crée une instance de PredictionService.
 	 * @param predictionModel Modèle Mongoose injecté pour interagir avec la collection des prédictions.
@@ -22,24 +24,27 @@ export class PredictionService {
 	 * @param voteModel Modèle Mongoose injecté pour interagir avec la collection des votes.
 	 */
 	constructor(
-		@InjectModel(Prediction.name) private predictionModel: Model<PredictionDocument>,
+		@InjectModel(Prediction.name)
+		private predictionModel: Model<PredictionDocument>,
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
 		@InjectModel(Vote.name) private voteModel: Model<VoteDocument>,
 	) {}
 
-	
 	/**
 	 * Normalise un objet prédiction en s'assurant que les références d'utilisateur sont des chaînes.
 	 * @param pred L'objet prédiction à normaliser.
 	 * @returns L'objet normalisé.
 	 */
 	private normalizePred(pred: any) {
-		const obj = typeof pred.toObject === 'function' ? pred.toObject() : { ...pred };
-		if (obj.user_id && typeof obj.user_id === 'object' && obj.user_id._id) obj.user_id = String(obj.user_id._id);
-		if (obj.user && typeof obj.user === 'object' && obj.user._id) obj.user_id = String(obj.user._id);
+		const obj =
+			typeof pred.toObject === "function" ? pred.toObject() : { ...pred };
+		if (obj.user_id && typeof obj.user_id === "object" && obj.user_id._id)
+			obj.user_id = String(obj.user_id._id);
+		if (obj.user && typeof obj.user === "object" && obj.user._id)
+			obj.user_id = String(obj.user._id);
 		return obj;
 	}
-	
+
 	/**
 	 * Récupère toutes les prédictions disponibles.
 	 *
@@ -47,7 +52,10 @@ export class PredictionService {
 	 */
 	async getAll(): Promise<Prediction[]> {
 		// Peupler le champ user_id avec uniquement le username
-		const preds = await this.predictionModel.find().populate('user_id', 'username').exec();
+		const preds = await this.predictionModel
+			.find()
+			.populate("user_id", "username")
+			.exec();
 		return (preds as any[]).map((p) => this.normalizePred(p));
 	}
 
@@ -58,7 +66,11 @@ export class PredictionService {
 	 * @returns Une promesse qui résout la prédiction si elle est trouvée, ou `undefined` sinon.
 	 */
 	async getById(id: string): Promise<Prediction | undefined> {
-		const pred = await this.predictionModel.findById(id).populate('user_id', 'username').exec() ?? undefined;
+		const pred =
+			(await this.predictionModel
+				.findById(id)
+				.populate("user_id", "username")
+				.exec()) ?? undefined;
 		if (!pred) return undefined;
 		return this.normalizePred(pred) as Prediction;
 	}
@@ -75,10 +87,14 @@ export class PredictionService {
 		const newPred = new this.predictionModel(pred);
 		const created = await newPred.save();
 
-		// Si la prédiction a une référence user_id, ajouter cet identifiant de prédiction dans le tableau des 
+		// Si la prédiction a une référence user_id, ajouter cet identifiant de prédiction dans le tableau des
 		// prédictions de l'utilisateur
 		if (created && (created as any).user_id) {
-			await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { predictions: created._id } }).exec();
+			await this.userModel
+				.findByIdAndUpdate((created as any).user_id, {
+					$push: { predictions: created._id },
+				})
+				.exec();
 		}
 
 		return this.normalizePred(created) as Prediction;
@@ -94,7 +110,10 @@ export class PredictionService {
 	 * @param pred - Données à appliquer à la prédiction.
 	 * @returns La prédiction mise à jour ou nouvellement créée.
 	 */
-	async createOrUpdateById(id: string, pred: Prediction): Promise<Prediction> {
+	async createOrUpdateById(
+		id: string,
+		pred: Prediction,
+	): Promise<Prediction> {
 		const existing = await this.predictionModel.findById(id).exec();
 
 		if (existing) {
@@ -107,14 +126,21 @@ export class PredictionService {
 			return await existing.save();
 		} else {
 			// créer une nouvelle prédiction avec l'identifiant fourni si donné
-			const toCreate = { ...pred, options: (pred as any).options ?? {} } as any;
+			const toCreate = {
+				...pred,
+				options: (pred as any).options ?? {},
+			} as any;
 			if (id) toCreate._id = id;
 			const newPred = new this.predictionModel(toCreate);
 			const created = await newPred.save();
 
 			if (created && (created as any).user_id) {
 				try {
-					await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { predictions: created._id } }).exec();
+					await this.userModel
+						.findByIdAndUpdate((created as any).user_id, {
+							$push: { predictions: created._id },
+						})
+						.exec();
 				} catch (e) {}
 			}
 
@@ -127,20 +153,24 @@ export class PredictionService {
 	 *
 	 * @param id - Identifiant de la prédiction à supprimer.
 	 * @returns La prédiction supprimée si elle existait.
-	 * @throws HttpException avec statut 404 si la prédiction n'existe pas.
+	 * @throws Error si la prédiction n'est pas trouvée.
 	 */
 	async deleteById(id: string): Promise<Prediction> {
 		const deleted = await this.predictionModel.findByIdAndDelete(id).exec();
 		if (!deleted) {
-			throw new HttpException('Prediction not found', HttpStatus.NOT_FOUND);
+			throw new Error("Prediction not found");
 		}
 
 		// Supprime la référence de la liste des prédictions de l'utilisateur si elle est présente
 		try {
 			if ((deleted as any).user_id) {
-				await this.userModel.findByIdAndUpdate((deleted as any).user_id, { $pull: { predictions: deleted._id } }).exec();
+				await this.userModel
+					.findByIdAndUpdate((deleted as any).user_id, {
+						$pull: { predictions: deleted._id },
+					})
+					.exec();
 			}
-		} catch (_){}
+		} catch (_) {}
 
 		return this.normalizePred(deleted) as Prediction;
 	}
@@ -152,63 +182,78 @@ export class PredictionService {
 	 * en calculant un ratio basé sur les points totaux et les points sur l'option gagnante.
 	 * @param predictionId id de la prédiction à valider
 	 * @param winningOption option gagnante
-	 * @returns la prédiction validée avec les récompenses distribuées
+	 * @return Un objet contenant les détails de la validation, y compris le ratio et les récompenses distribuées.
+	 * @throws Error si la prédiction n'est pas trouvée, si l'option gagnante est invalide,
+	 * si aucun point n'a été misé sur l'option gagnante, ou en cas d'erreur lors de la mise à jour des utilisateurs.
 	 */
-	async validatePrediction(predictionId: string, winningOption: string) {
+	async validatePrediction(
+		predictionId: string,
+		winningOption: string,
+	): Promise<{
+		predictionId: string;
+		winningOption: string;
+		ratio: number;
+		rewards: { user_id: string; gain: number }[];
+	}> {
+		// Récupérer la prédiction
+		const prediction = await this.predictionModel
+			.findById(predictionId)
+			.exec();
+		if (!prediction) throw new Error("Prédiction introuvable");
 
-	  // Récupérer la prédiction
-	  const prediction = await this.predictionModel.findById(predictionId).exec();
-	  if (!prediction) throw new Error('Prédiction introuvable');
+		// Vérifier que l'option gagnante est valide
+		if (!(winningOption in prediction.options))
+			throw new Error("Option gagnante invalide");
 
-	  // Vérifier que l'option gagnante est valide
-	  if (!(winningOption in prediction.options)) {
-  		throw new Error('Option gagnante invalide');
-	  }
+		// Récupérer tous les votes liés
+		const votes = await this.voteModel
+			.find({ prediction_id: predictionId })
+			.exec();
 
+		// Somme totale et somme sur l’option gagnante
+		const totalPoints = Object.values(prediction.options).reduce(
+			(a, b) => a + b,
+			0,
+		);
+		const winningPoints = prediction.options[winningOption];
 
-	  // Récupérer tous les votes liés
-	  const votes = await this.voteModel.find({ prediction_id: predictionId }).exec();
+		// Si pas de points sur l’option gagnante, on ne peut pas récompenser
+		if (winningPoints === 0)
+			throw new Error("Aucun point sur l’option gagnante");
 
-	  // Somme totale et somme sur l’option gagnante
-	  const totalPoints = Object.values(prediction.options).reduce((a, b) => a + b, 0);
-	  const winningPoints = prediction.options[winningOption];
+		// Calcul du ratio
+		const ratio = totalPoints / winningPoints;
 
-	  // Si pas de points sur l’option gagnante, on ne peut pas récompenser
-	  if (winningPoints === 0) throw new Error('Aucun point sur l’option gagnante');
+		// Récompenses des utilisateurs
+		const rewards: { user_id: string; gain: number }[] = [];
 
-	  // Calcul du ratio
-	  const ratio = totalPoints / winningPoints;
+		for (const vote of votes) {
+			if (vote.option === winningOption) {
+				// Calcul du gain arrondi à l'entier inférieur pour éviter d'introduire des points
+				// inexsitants par rapport à l'arrondi supérieur
+				const gain = Math.floor(vote.amount * ratio);
 
-	  // Récompenses des utilisateurs
-	  const rewards: { user_id: string; gain: number }[] = [];
+				// Crédite le user en base
+				await this.userModel.findByIdAndUpdate(
+					vote.user_id,
+					{ $inc: { points: gain } },
+					{ new: true },
+				);
 
-	  for (const vote of votes) {
-	    if (vote.option === winningOption) {
-			// Calcul du gain arrondi à l'entier inférieur pour éviter d'introduire des points
-			// inexsitants par rapport à l'arrondi supérieur
-	      	const gain = Math.floor(vote.amount * ratio);
+				rewards.push({ user_id: vote.user_id.toString(), gain });
+			}
+		}
 
-	      // Crédite le user en base
-	      await this.userModel.findByIdAndUpdate(
-	        vote.user_id,
-	        { $inc: { points: gain } },
-	        { new: true }
-	      );
+		// Mettre à jour la prédiction comme validée
+		prediction.status = PredictionStatus.Valid;
+		prediction.results = winningOption;
+		await prediction.save();
 
-	      rewards.push({ user_id: vote.user_id.toString(), gain });
-	    }
-	  }
-
-	  	// Mettre à jour la prédiction comme validée
-	  	prediction.status = PredictionStatus.Valid;
-	  	prediction.results = winningOption;
-	  	await prediction.save();
-
-	  	return {
-	    	predictionId,
-	    	winningOption,
-	    	ratio,
-	    	rewards,
+		return {
+			predictionId,
+			winningOption,
+			ratio,
+			rewards,
 		};
 	}
 
@@ -218,25 +263,29 @@ export class PredictionService {
 	 * @returns Les prédictions expirées
 	 */
 	async getExpiredPredictions() {
-  		const now = new Date();
-  	  	return this.predictionModel.find({
-  	    	dateFin: { $lte: now },
-  	    	results: '',
-  	    	status: PredictionStatus.Valid,
-  	  	}).exec();
-  	}
+		const now = new Date();
+		return this.predictionModel
+			.find({
+				dateFin: { $lte: now },
+				results: "",
+				status: PredictionStatus.Valid,
+			})
+			.exec();
+	}
 
 	/**
 	 * Retourne les prédictions en attente, c'est-à-dire celles dont le statut est "waiting"
 	 * et les résultats ne sont pas encore définis.
 	 * @returns les prédictions en attente
 	 */
-  	async getWaitingPredictions() {
-  	  	return this.predictionModel.find({
-  	    	status: PredictionStatus.Waiting,
-  	    	results: '',
-  	  	}).exec();
-  	}
+	async getWaitingPredictions() {
+		return this.predictionModel
+			.find({
+				status: PredictionStatus.Waiting,
+				results: "",
+			})
+			.exec();
+	}
 
 	/**
 	 * Récupère les prédictions validées (status "Valid") qui ne sont pas encore expirées.
@@ -244,10 +293,11 @@ export class PredictionService {
 	 */
 	async getValidPredictions(): Promise<Prediction[]> {
 		const now = new Date();
-	  	return this.predictionModel.find({
-	    	status: PredictionStatus.Valid,
-	    	dateFin: { $gt: now }, // uniquement les non-expirées
-	  	}).exec();
+		return this.predictionModel
+			.find({
+				status: PredictionStatus.Valid,
+				dateFin: { $gt: now }, // uniquement les non-expirées
+			})
+			.exec();
 	}
-
 }

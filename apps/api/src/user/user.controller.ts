@@ -18,22 +18,21 @@ export class UserController {
     }
 
     /**
-     * Récupère tous les utilisateurs
-     * @param response - L'objet de réponse HTTP.
-     * @returns La liste des utilisateurs avec le statut HTTP 200.
+     * Récupère tous les utilisateurs.
+     * @returns La liste des utilisateurs
      */
     @Get('')
-    async getUsers() {
+    async getUsers() : Promise<User[]> {
         const user = await this.userService.getAll();
         return user;
     }
 
     /**
-     * Récupère un utilisateur par son username.
-     * @param response - L'objet de réponse HTTP.
-     * @param username - Le nom d\'utilisateur de l'utilisateur à récupérer.
-     * @returns Les données de l'utilisateur avec le statut HTTP 200 si trouvé, sinon une erreur HTTP 400 (Bad Request) 
-     * s'il n'y a pas de username, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
+     * Récupère un utilisateur par son nom d'utilisateur.
+     * @param username Le nom d'utilisateur de l'utilisateur à récupérer.
+     * @returns Les données de l'utilisateur 
+     * @throws {BadRequestException} si le nom d'utilisateur est manquant.
+     * @throws {NotFoundException} si l'utilisateur n'existe pas.
      */
     @Get('/{:username}')
     async getUserByUsername(@Param('username') username: string) {
@@ -49,11 +48,9 @@ export class UserController {
 
     /**
      * Crée un nouvel utilisateur.
-     * @param Response - L'objet de réponse HTTP.
      * @param user - Les données de l'utilisateur à créer.
-     * @returns Les données du nouvel utilisateur avec le statut HTTP 201 (Created) si l'utilisateur est créé avec 
-     * succès, sinon une erreur HTTP 400 (Bad Request) s'il n'y a pas d'utilisateur, si les champs requis sont manquants, 
-     * si les contraintes du mot de passe ne sont pas respectées, ou si le nom d'utilisateur est déjà utilisé.
+     * @returns Les données de l'utilisateur
+     * @throws {BadRequestException} si les données de l'utilisateur sont invalides ou si la création échoue.
      */
     @Post('')
     @HttpCode(201)
@@ -79,13 +76,12 @@ export class UserController {
     }
     
     /**
-     * Met à jour un utilisateur par son username.
-     * @param response - L'objet de réponse HTTP.
-     * @param username - Le nom d\'utilisateur de l'utilisateur à mettre à jour.
-     * @param user - Les nouvelles données de l'utilisateur.
-     * @returns Les données de l'utilisateur mis à jour avec le statut HTTP 200 (Ok) si trouvé, sinon une erreur HTTP 404 
-     * (Not Found) si l'utilisateur n'existe pas, ou une erreur HTTP 400 (Bad Request) s'il n'y a pas de username ou 
-     * d'utilisateur.
+     * Met à jour un utilisateur par son nom d'utilisateur.
+     * @param request L'objet de requête HTTP contenant les informations de l'utilisateur authentifié.
+     * @param username Le nom d'utilisateur de l'utilisateur à mettre à jour.
+     * @param user Les nouvelles données de l'utilisateur.
+     * @returns Les données de l'utilisateur mis à jour.
+     * @throws {BadRequestException} si le nom d'utilisateur ou les données de l'utilisateur sont invalides.
      */
     @Put('/{:username}')
     async updateUserByUsername(@Req() request, @Param('username') username: string, @Body() user: User) {
@@ -106,11 +102,11 @@ export class UserController {
     }
 
     /**
-     * Supprime un utilisateur par son username.
-     * @param response - L'objet de réponse HTTP.
-     * @param username - Le nom d\'utilisateur de l'utilisateur à supprimer.
-     * @returns Les données de l'utilisateur supprimé avec le statut HTTP 200 (Ok) si trouvé, sinon une erreur HTTP 404 
-     * (Not Found) si l'utilisateur n'existe pas ou une erreur HTTP 400 (Bad Request) s'il n'y a pas de username.
+     * Supprime un utilisateur par son nom d'utilisateur.
+     * @param username Le nom d'utilisateur de l'utilisateur à supprimer.
+     * @returns Les données de l'utilisateur supprimé.
+     * @throws {BadRequestException} si le nom d'utilisateur est invalide.
+     * @throws {NotFoundException} si l'utilisateur n'existe pas.
      */
     @Delete('/{:username}')
     async deleteUser(@Param('username') username : string) {
@@ -126,10 +122,10 @@ export class UserController {
 
     /**
      * Authentifie un utilisateur et génère un token JWT.
-     * @param response - L'objet de réponse HTTP utilisé pour envoyer la réponse.
-     * @param credentials - Les identifiants de connexion (username et mot de passe).
-     * @returns La réponse HTTP contenant le token JWT si l'authentification réussit, ou un message d'erreur avec le 
-     * statut HTTP approprié.
+     * @param credentials Les informations d'identification de l'utilisateur (nom d'utilisateur et mot de passe).
+     * @returns Un objet contenant le token JWT si l'authentification est réussie.
+     * @throws {BadRequestException} si les informations d'identification sont invalides.
+     * @throws {UnauthorizedException} si l'authentification échoue.
      */
     @Post('/login')
     async login(@Body() credentials: { username: string; password: string }) {
@@ -148,10 +144,9 @@ export class UserController {
 
     /**
      * Récupère la récompense quotidienne pour un utilisateur donné.
-     * @param username Le nom d'utilisateur de l'utilisateur qui réclame la récompense quotidienne.
-     * @param response L'objet de réponse HTTP utilisé pour envoyer la réponse.
-     * @returns La réponse HTTP contenant la récompense quotidienne si l'utilisateur est trouvé, ou une erreur HTTP
-     * 400 (Bad Request) si le nom d'utilisateur est manquant ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
+     * @param username Le nom d'utilisateur de l'utilisateur.
+     * @returns Un objet contenant la récompense quotidienne.
+     * @throws {BadRequestException} si le nom d'utilisateur est invalide ou si la récupération de la récompense échoue.
      */
     @Get('/{:username}/daily-reward')
     async getDailyReward(@Param('username') username : string, ) {
