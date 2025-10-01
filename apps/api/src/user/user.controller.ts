@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Req, Res, UnauthorizedException } from "@nestjs/common";
 import { Role, User } from "../user/user.schema";
 import { UserService } from "./user.service";
 import { JwtService } from '@nestjs/jwt'
@@ -23,9 +23,9 @@ export class UserController {
      * @returns La liste des utilisateurs avec le statut HTTP 200.
      */
     @Get('')
-    async getUsers(@Res() response) {
+    async getUsers() {
         const user = await this.userService.getAll();
-        return response.status(HttpStatus.OK).json(user);
+        return user;
     }
 
     /**
@@ -36,15 +36,15 @@ export class UserController {
      * s'il n'y a pas de username, ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
      */
     @Get('/{:username}')
-    async getUserByUsername(@Res() response, @Param('username') username: string) {
+    async getUserByUsername(@Param('username') username: string) {
         if (username === undefined || username === null) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
+            throw new BadRequestException({ message: 'Le nom d\'utilisateur est requis' });
         }
 
         const user = await this.userService.getByUsername(username);
-        if (!user) return response.status(HttpStatus.NOT_FOUND).json({ message: 'L\'utilisateur n\'est pas trouvable' });
+        if (!user) throw new NotFoundException({ message: 'L\'utilisateur n\'est pas trouvable' });
 
-        return response.status(HttpStatus.OK).json(user);
+        return user;
     }
 
     /**
@@ -56,24 +56,25 @@ export class UserController {
      * si les contraintes du mot de passe ne sont pas respectées, ou si le nom d'utilisateur est déjà utilisé.
      */
     @Post('')
-    async createUser(@Res() Response, @Body() user: User) {
-        if (!user) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
+    @HttpCode(201)
+    async createUser(@Body() user: User) {
+        if (!user) throw new BadRequestException({ message: 'L\'utilisateur est requis' });
 
         // Validation des champs requis
-        if (!user.motDePasse) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis.' });
-        if (!user.username) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis.' });
+        if (!user.motDePasse) throw new BadRequestException({ message: 'Le mot de passe est requis.' });
+        if (!user.username) throw new BadRequestException({ message: 'Le nom d\'utilisateur est requis.' });
 
         // Validation des contraintes du mot de passe
-        if (user.motDePasse.length < 8) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
-        if (!/[A-Z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre majuscule.' });
-        if (!/[a-z]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins une lettre minuscule.' });
-        if (!/[0-9]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
-        if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) return Response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
+        if (user.motDePasse.length < 8) throw new BadRequestException({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
+        if (!/[A-Z]/.test(user.motDePasse)) throw new BadRequestException({ message: 'Le mot de passe doit contenir au moins une lettre majuscule.' });
+        if (!/[a-z]/.test(user.motDePasse)) throw new BadRequestException({ message: 'Le mot de passe doit contenir au moins une lettre minuscule.' });
+        if (!/[0-9]/.test(user.motDePasse)) throw new BadRequestException({ message: 'Le mot de passe doit contenir au moins un chiffre.' });
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse)) throw new BadRequestException({ message: 'Le mot de passe doit contenir au moins un caractère spécial.' });
         try {
             const newUser = await this.userService.createUser({...user, role: Role.USER});
-            return Response.status(HttpStatus.CREATED).json(newUser);
+            return newUser;
         } catch (error) {
-            return Response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
+            throw new BadRequestException({ message : error.message });
         }
     }
     
@@ -87,20 +88,20 @@ export class UserController {
      * d'utilisateur.
      */
     @Put('/{:username}')
-    async updateUserByUsername(@Req() request, @Res() response, @Param('username') username: string, @Body() user: User) {
-        if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
-        if (!user) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'L\'utilisateur est requis' });
-        
+    async updateUserByUsername(@Req() request, @Param('username') username: string, @Body() user: User) {
+        if (!username) throw new BadRequestException({ message: 'Le nom d\'utilisateur est requis' });
+        if (!user) throw new BadRequestException({ message: 'L\'utilisateur est requis' });
+
         if (request.user.role !== Role.ADMIN && request.user.username !== username) {
-            return response.status(HttpStatus.FORBIDDEN).json({ message: 'Vous n\'avez pas la permission de modifier cet utilisateur.' });
+            throw new ForbiddenException({ message: 'Vous n\'avez pas la permission de modifier cet utilisateur.' });
         }
 
         try{
             const updatedUser = await this.userService.createOrUpdateByUsername(username, user);
-            return response.status(HttpStatus.OK).json(updatedUser);
+            return updatedUser;
         }
         catch (error) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ message : error.message });
+            throw new BadRequestException({ message : error.message });
         }
     }
 
@@ -112,14 +113,14 @@ export class UserController {
      * (Not Found) si l'utilisateur n'existe pas ou une erreur HTTP 400 (Bad Request) s'il n'y a pas de username.
      */
     @Delete('/{:username}')
-    async deleteUser(@Res() response, @Param('username') username : string) {
-        if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
+    async deleteUser(@Param('username') username : string) {
+        if (!username) throw new BadRequestException({ message: 'Le nom d\'utilisateur est requis' });
 
         try{
             const deletedUser = await this.userService.deleteByUsername(username);
-            return response.status(HttpStatus.OK).json(deletedUser);
+            return deletedUser;
         } catch (error) {
-            return response.status(HttpStatus.NOT_FOUND).json({ message : error.message });
+            throw new NotFoundException({ message : error.message });
         }
     }
 
@@ -131,15 +132,15 @@ export class UserController {
      * statut HTTP approprié.
      */
     @Post('/login')
-    async login(@Res() response, @Body() credentials: { username: string; password: string }) {
-        if (!credentials.username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
-        if (!credentials.password) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le mot de passe est requis' });
+    async login(@Body() credentials: { username: string; password: string }) {
+        if (!credentials.username) throw new BadRequestException({ message: 'Le nom d\'utilisateur est requis' });
+        if (!credentials.password) throw new BadRequestException({ message: 'Le mot de passe est requis' });
 
         try {
             const token = await this.userService.getJwtToken(credentials.username, credentials.password, this.jwtService);
-            return response.status(HttpStatus.OK).json({ token: token});
+            return { token: token};
         } catch (error) {
-            return response.status(error.status || HttpStatus.UNAUTHORIZED).json({ 
+            throw new UnauthorizedException({ 
                 message: error.message || 'Échec de l\'authentification' 
             });
         }
@@ -153,14 +154,14 @@ export class UserController {
      * 400 (Bad Request) si le nom d'utilisateur est manquant ou une erreur HTTP 404 (Not Found) si l'utilisateur n'existe pas.
      */
     @Get('/{:username}/daily-reward')
-    async getDailyReward(@Param('username') username : string, @Res() response) {
-        if (!username) return response.status(HttpStatus.BAD_REQUEST).json({ message: 'Le nom d\'utilisateur est requis' });
+    async getDailyReward(@Param('username') username : string, ) {
+        if (!username) throw new BadRequestException({ message: 'Le nom d\'utilisateur est requis' });
 
         try {
             const reward = await this.userService.claimDailyReward(username);
-            return response.status(HttpStatus.OK).json({ reward: reward });
+            return { reward: reward };
         } catch (error) {
-            return response.status(error.status || HttpStatus.BAD_REQUEST).json({ 
+            throw new BadRequestException({ 
                 message: error.message || 'Échec de la récupération de la récompense quotidienne' 
             });
         }
