@@ -21,7 +21,7 @@
     <li>
       <a href="#pour-commencer">Pour commencer</a>
       <ul>
-        <li><a href="#prerequis">Prérequis</a></li>
+        <li><a href="#prérequis">Prérequis</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
@@ -33,6 +33,10 @@
       </ul>
     </li>
     <li><a href="#utilisation">Utilisation</a></li>
+    <ul>
+      <li><a href="#développement">Développement</a></li>
+      <li><a href="#production">Production</a></li>
+    </ul>
     <li><a href="#feuille-de-route">Feuille de route</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#remerciements">Remerciements</a></li>
@@ -169,14 +173,14 @@ npm run start
 - [x] Modification de compte
 - [x] Création de prédiction
 - [x] Vote de prédiction
-- [ ] Confirmer le résultat d’une prédiction
+- [x] Confirmer le résultat d’une prédiction
 - [x] Créer une publication sous une prédiction
-- [ ] Récupérer les points quotidiens
+- [x] Récupérer les points quotidiens
 - [x] Répondre à une publication
-- [ ] Liker une publication
+- [x] Liker une publication
 - [ ] Changer de cosmétique
 - [ ] Acheter un cosmétique pour son profil
-- [ ] Valider une prédiction
+- [x] Valider une prédiction
 - [ ] Afficher les probabilités de la prédiction par IA
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
