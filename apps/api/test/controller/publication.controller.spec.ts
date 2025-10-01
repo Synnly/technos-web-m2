@@ -7,7 +7,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 const expectedPub1 = {
     _id: 'pub1',
     message: 'Hello world',
-    datePublication: new Date('2025-10-01'),
+    datePublication: new Date('3025-12-01'),
     prediction_id: 'p1',
     parentPublication_id: undefined,
     user_id: 'u1'
@@ -16,7 +16,7 @@ const expectedPub1 = {
 const expectedPub2 = {
     _id: 'pub2',
     message: 'Reply',
-    datePublication: new Date('2025-10-02'),
+    datePublication: new Date('3025-12-02'),
     prediction_id: 'p1',
     parentPublication_id: 'pub1',
     user_id: 'u2'

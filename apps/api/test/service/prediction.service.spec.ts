@@ -22,7 +22,7 @@ const expectedPred1 = {
 	title: 'Will it rain tomorrow?',
 	description: 'Simple weather prediction',
 	status: PredictionStatus.Waiting,
-	dateFin: new Date('2025-12-31'),
+	dateFin: new Date('3025-12-31'),
 	options: { yes: 10, no: 5 },
 	user_id: (expectedUser1 as any)._id,
 	results: ''
@@ -33,7 +33,7 @@ const expectedPred2 = {
 	title: 'Will team A win?',
 	description: 'Match outcome',
 	status: PredictionStatus.Valid,
-	dateFin: new Date('2025-11-30'),
+	dateFin: new Date('3025-11-30'),
 	options: { teamA: 3, teamB: 7 },
 	user_id: (expectedUser1 as any)._id,
 	results: ''
