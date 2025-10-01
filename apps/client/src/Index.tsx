@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CreatePredictionForm from "./components/predictions/CreatePredictionForm";
 import PredictionsList from "./components/predictions/PredictionsList";
-import { set } from "react-hook-form";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,7 +32,7 @@ function Index() {
     const [showForm, setShowForm] = useState(false);
     const [showOnlyMine, setShowOnlyMine] = useState(false);
     const [usersMap, setUsersMap] = useState<Record<string, string>>({});
-    const [points, setPoints] = useState<number>(0);
+    const [_, setPoints] = useState<number>(0);
     const [user, setUser] = useState<any>(null);
 
     // form state used by child
