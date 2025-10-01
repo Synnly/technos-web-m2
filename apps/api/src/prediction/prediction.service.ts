@@ -78,11 +78,7 @@ export class PredictionService {
 		// Si la prédiction a une référence user_id, ajouter cet identifiant de prédiction dans le tableau des 
 		// prédictions de l'utilisateur
 		if (created && (created as any).user_id) {
-			try {
-				await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { predictions: created._id } }).exec();
-			} catch (e) {
-				console.error("Erreur update user:", e);
-			}
+			await this.userModel.findByIdAndUpdate((created as any).user_id, { $push: { predictions: created._id } }).exec();
 		}
 
 		return this.normalizePred(created) as Prediction;
