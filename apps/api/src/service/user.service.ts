@@ -57,7 +57,7 @@ export class UserService {
     async createUser(user: User): Promise<User> {
         const existingUser = await this.userModel.findOne({ username: user.username }).exec();
         if (existingUser) {
-            throw new HttpException('Username déjà utilisé.', HttpStatus.BAD_REQUEST);
+            throw new Error('Username déjà utilisé.');
         }
 
         const hash = await bcrypt.hash(user.motDePasse, 10);
@@ -81,7 +81,7 @@ export class UserService {
      */
     async getJwtToken(username: string, password: string, jwt: JwtService): Promise<any> {
         const foundUser = await this.userModel.findOne({ username: username }).exec();
-        if (!foundUser) throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+        if (!foundUser) throw new Error('L\'utilisateur n\'est pas trouvable');
 
         if (foundUser) {
             const { motDePasse, role } = foundUser;
@@ -91,9 +91,9 @@ export class UserService {
                     token: jwt.sign(payload),
                 };
             }
-            throw new HttpException('Identifiants incorrects.', HttpStatus.UNAUTHORIZED);
+            throw new Error('Identifiants incorrects.');
         }
-        throw new HttpException('Identifiants incorrects', HttpStatus.UNAUTHORIZED);
+        throw new Error('Identifiants incorrects.');
     }
 
     /**
@@ -137,7 +137,7 @@ export class UserService {
         const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
     
         if (!deletedUser) {
-            throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+            throw new Error('L\'utilisateur n\'est pas trouvable');
         }
         
         return deletedUser
@@ -153,7 +153,7 @@ export class UserService {
         const deletedUser = await this.userModel.findOneAndDelete({ username }).exec();
 
         if (!deletedUser) {
-            throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+            throw new Error('L\'utilisateur n\'est pas trouvable');
         }
 
         return deletedUser;
@@ -169,7 +169,7 @@ export class UserService {
     async claimDailyReward(username: string): Promise<number> {
         const user = await this.userModel.findOne({ username }).exec();
         if (!user) {
-            throw new HttpException('L\'utilisateur n\'est pas trouvable', HttpStatus.NOT_FOUND);
+            throw new Error('L\'utilisateur n\'est pas trouvable');
         }
 
         const today = new Date();
@@ -177,7 +177,7 @@ export class UserService {
 
         // Vérifie si la récompense a déjà été réclamée aujourd'hui
         if (lastClaimDate && lastClaimDate.toDateString() === today.toDateString()) {
-            throw new HttpException('Récompense quotidienne déjà réclamée aujourd\'hui.', HttpStatus.BAD_REQUEST);
+            throw new Error('Récompense quotidienne déjà réclamée aujourd\'hui.');
         }
 
         const pointsToAdd = 10;

@@ -160,7 +160,7 @@ describe('PublicationService', () => {
             mockPubModel.findByIdAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
 
             await expect(publicationService.deleteById('507f1f77bcf86cd799439999')).rejects.toEqual(
-                expect.objectContaining({ message: 'Publication not found', status: HttpStatus.NOT_FOUND })
+                new Error('Publication introuvable')
             );
 
             expect(mockPubModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439999');

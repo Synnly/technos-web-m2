@@ -98,7 +98,7 @@ export class PublicationService {
     async deleteById(id: string): Promise<Publication> {
         const deleted = await this.publicationModel.findByIdAndDelete(id).exec();
         if (!deleted) {
-            throw new HttpException('Publication not found', HttpStatus.NOT_FOUND);
+            throw new Error('Publication introuvable');
         }
         return this.normalizePub(deleted) as Publication;
     }

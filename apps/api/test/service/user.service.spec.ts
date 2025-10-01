@@ -197,10 +197,7 @@ describe("UserService", () => {
             mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
 
             await expect(userService.createUser(newUser)).rejects.toEqual(
-                expect.objectContaining({
-                    message: 'Username déjà utilisé.',
-                    status: HttpStatus.BAD_REQUEST
-                })
+                new Error('Username déjà utilisé.')
             );
         
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username: newUser.username });
@@ -239,10 +236,7 @@ describe("UserService", () => {
             });
 
             await expect(userService.getJwtToken(username, motDePasse, mockJwtService as unknown as JwtService)).rejects.toEqual(
-                expect.objectContaining({
-                    message: "L'utilisateur n'est pas trouvable",
-                    status: HttpStatus.NOT_FOUND
-                })
+                new Error("L'utilisateur n'est pas trouvable")
             );
         
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
@@ -262,10 +256,7 @@ describe("UserService", () => {
             mockBcryptCompare.mockResolvedValue(false);
 
             await expect(userService.getJwtToken(username, motDePasse, mockJwtService as unknown as JwtService)).rejects.toEqual(
-                expect.objectContaining({
-                    message: 'Identifiants incorrects.',
-                    status: HttpStatus.UNAUTHORIZED
-                })
+                new Error('Identifiants incorrects.')
             );
         
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
@@ -356,10 +347,7 @@ describe("UserService", () => {
             mockUserModel.findOneAndDelete.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
             
             await expect(userService.deleteByUsername(username)).rejects.toEqual(
-                expect.objectContaining({
-                    message: "L'utilisateur n'est pas trouvable",
-                    status: HttpStatus.NOT_FOUND
-                })
+                new Error("L'utilisateur n'est pas trouvable")
             );
 
             expect(mockUserModel.findOneAndDelete).toHaveBeenCalledWith({ username });
@@ -426,10 +414,7 @@ describe("UserService", () => {
             });
 
             await expect(userService.claimDailyReward(username)).rejects.toEqual(
-                expect.objectContaining({
-                    message: 'L\'utilisateur n\'est pas trouvable',
-                    status: HttpStatus.NOT_FOUND
-                })
+                    new Error("L\'utilisateur n\'est pas trouvable")
             );
 
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
@@ -451,10 +436,7 @@ describe("UserService", () => {
             });
 
             await expect(userService.claimDailyReward(username)).rejects.toEqual(
-                expect.objectContaining({
-                    message: 'Récompense quotidienne déjà réclamée aujourd\'hui.',
-                    status: HttpStatus.BAD_REQUEST
-                })
+                  new Error("Récompense quotidienne déjà réclamée aujourd'hui.")
             );
 
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
