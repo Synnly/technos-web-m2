@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res, Req, Query } from "@nestjs/common";
-import { Prediction, PredictionStatus } from "../model/prediction.schema";
-import { PredictionService } from "../service/prediction.service";
+import { Prediction, PredictionStatus } from "./prediction.schema";
+import { PredictionService } from "./prediction.service";
 
 /**
  * Contrôleur pour gérer les prédictions.

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
-import { Role, User } from "../model/user.schema";
-import { UserService } from "../service/user.service";
+import { Role, User } from "../user/user.schema";
+import { UserService } from "./user.service";
 import { JwtService } from '@nestjs/jwt'
 
 /**

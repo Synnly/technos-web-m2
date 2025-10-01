@@ -1,8 +1,8 @@
 import { Test } from "@nestjs/testing";
-import { VoteController } from "../../src/controller/vote.controller";
-import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
-import { User } from "../../src/model/user.schema";
-import { VoteService } from "../../src/service/vote.service";
+import { VoteController } from "../../src/vote/vote.controller";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
+import { User } from "../../src/user/user.schema";
+import { VoteService } from "../../src/vote/vote.service";
 
 const expectedUser1 = { 
     _id: '1', 

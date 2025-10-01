@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { UserService } from "src/service/user.service";
+import { UserService } from "../user/user.service";
 
 /**
  * Contrôleur pour gérer les requêtes vers le point de terminaison 'token'.

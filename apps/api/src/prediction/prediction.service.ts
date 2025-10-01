@@ -1,9 +1,9 @@
 import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Prediction, PredictionDocument, PredictionStatus } from "../model/prediction.schema";
-import { User, UserDocument } from "../model/user.schema";
-import { Vote, VoteDocument } from "../model/vote.schema";
+import { Prediction, PredictionDocument, PredictionStatus } from "./prediction.schema";
+import { User, UserDocument } from "../user/user.schema";
+import { Vote, VoteDocument } from "../vote/vote.schema";
 
 
 @Injectable()

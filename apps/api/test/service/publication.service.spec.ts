@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { PublicationService } from '../../src/service/publication.service';
-import { Publication } from '../../src/model/publication.schema';
+import { PublicationService } from '../../src/publication/publication.service';
+import { Publication } from '../../src/publication/publication.schema';
 import { HttpStatus } from '@nestjs/common/enums/http-status.enum';
 import { Types } from 'mongoose';
 

@@ -1,7 +1,7 @@
-import { UserController } from "../../src/controller/user.controller";
-import { UserService } from "../../src/service/user.service";
+import { UserController } from "../../src/user/user.controller";
+import { UserService } from "../../src/user/user.service";
 import { Test } from "@nestjs/testing";
-import { Role, User } from "../../src/model/user.schema";
+import { Role, User } from "../../src/user/user.schema";
 import { JwtService } from '@nestjs/jwt';
 import { HttpException } from "@nestjs/common/exceptions/http.exception";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";

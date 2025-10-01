@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Prediction } from './prediction.schema';
-import { Vote } from './vote.schema';
+import { Prediction } from '../prediction/prediction.schema';
+import { Vote } from '../vote/vote.schema';
 export type UserDocument = User & Document;
 
 /**

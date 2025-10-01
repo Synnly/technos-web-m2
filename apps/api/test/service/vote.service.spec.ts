@@ -1,9 +1,9 @@
 import { Test } from "@nestjs/testing";
-import { Vote } from "../../src/model/vote.schema";
-import { VoteService } from "../../src/service/vote.service";
+import { Vote } from "../../src/vote/vote.schema";
+import { VoteService } from "../../src/vote/vote.service";
 import { getModelToken } from '@nestjs/mongoose';
-import { User } from "../../src/model/user.schema";
-import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
+import { User } from "../../src/user/user.schema";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
 
 const expectedUser1 = {
     _id: '1',

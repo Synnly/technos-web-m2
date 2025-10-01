@@ -1,7 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
-import { Publication, PublicationDocument } from "../model/publication.schema";
+import { Publication, PublicationDocument } from "../publication/publication.schema";
 
 
 @Injectable()

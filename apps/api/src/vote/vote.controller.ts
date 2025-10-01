@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
-import { VoteService } from "../service/vote.service";
+import { VoteService } from "../vote/vote.service";
 
 /**
  * Contrôleur pour la gestion des votes sur les prédictions.

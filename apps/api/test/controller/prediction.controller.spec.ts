@@ -1,10 +1,10 @@
-import { PredictionController } from "../../src/controller/prediction.controller";
-import { PredictionService } from "../../src/service/prediction.service";
+import { PredictionController } from "../../src/prediction/prediction.controller";
+import { PredictionService } from "../../src/prediction/prediction.service";
 import { Test } from "@nestjs/testing";
-import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
 import { HttpException } from "@nestjs/common/exceptions/http.exception";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
-import { User } from "src/model/user.schema";
+import { User } from "../../src/user/user.schema";
 
 const expectedUser1 = { 
 	_id: '1', 

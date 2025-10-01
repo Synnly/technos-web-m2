@@ -3,19 +3,19 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { isAuthenticated } from './app.middleware';
-import { UserService } from './service/user.service';
+import { UserService } from './user/user.service';
 import { User, UserSchema } from './model/user.schema';
-import { UserController } from './controller/user.controller';
-import { PredictionController } from './controller/prediction.controller';
-import { PredictionService } from './service/prediction.service';
-import { Prediction, PredictionSchema } from './model/prediction.schema';
-import { TokenController } from './controller/token.controller';
-import { VoteService } from './service/vote.service';
-import { Vote, VoteSchema } from './model/vote.schema';
+import { UserController } from './user/user.controller';
+import { PredictionController } from './prediction/prediction.controller';
+import { PredictionService } from './prediction/prediction.service';
+import { Prediction, PredictionSchema } from './prediction/prediction.schema';
+import { TokenController } from './user/token.controller';
+import { VoteService } from './vote/vote.service';
+import { Vote, VoteSchema } from './vote/vote.schema';
 import { VoteController } from './controller/vote.controller';
-import { Publication, PublicationSchema } from './model/publication.schema';
+import { Publication, PublicationSchema } from './publication/publication.schema';
 import { PublicationService } from './service/publication.service';
-import { PublicationController } from './controller/publication.controller';
+import { PublicationController } from './publication/publication.controller';
 
 /**
  * Module principal de l'application API.

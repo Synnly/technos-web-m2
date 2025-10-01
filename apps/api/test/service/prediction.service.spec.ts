@@ -1,10 +1,10 @@
 import { Test } from "@nestjs/testing";
 import { getModelToken } from '@nestjs/mongoose';
-import { PredictionService } from "../../src/service/prediction.service";
-import { Prediction, PredictionStatus } from "../../src/model/prediction.schema";
+import { PredictionService } from "../../src/prediction/prediction.service";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
-import { User } from "../../src/model/user.schema";
-import { Vote } from "../../src/model/vote.schema";
+import { User } from "../../src/user/user.schema";
+import { Vote } from "../../src/vote/vote.schema";
 
 const expectedUser1 = { 
 	_id: '1', 
