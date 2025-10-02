@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { CosmeticService } from "./cosmetic.service";
 import { Cosmetic } from "./cosmetic.schema";
-import { Role } from "src/user/user.schema";
+import { Role } from "../../src/user/user.schema";
 
 /**
  * Contrôleur pour gérer les cosmétiques.
@@ -27,7 +27,7 @@ export class CosmeticController {
 	 */
 	@Get("")
 	async getCosmetics(): Promise<Cosmetic[]> {
-		return this.cosmeticService.findAll();
+		return await this.cosmeticService.findAll();
 	}
 
 	/**
@@ -40,7 +40,7 @@ export class CosmeticController {
 	@Get("/:id")
 	async getCosmeticById(@Param("id") id: string): Promise<Cosmetic> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
-		const cosmetic = this.cosmeticService.findById(id);
+		const cosmetic = await this.cosmeticService.findById(id);
 		if (!cosmetic) throw new NotFoundException("Prédiction non trouvée");
 
 		return cosmetic;
@@ -69,13 +69,14 @@ export class CosmeticController {
 
 		const missing = [
 			!cosmetic && "Le cosmétique est requis",
-			!cosmetic.name && "Le nom du cosmétique est requis",
-			!cosmetic.cost && "Le coût du cosmétique est requis",
-			!cosmetic.type && "Le type du cosmétique est requis",
-		].filter(Boolean);
+			!cosmetic?.name && "Le nom du cosmétique est requis",
+			!cosmetic?.cost && "Le coût du cosmétique est requis",
+			!cosmetic?.type && "Le type du cosmétique est requis",
+		].filter(Boolean)[0];
+		
 		if (missing) throw new BadRequestException(missing);
 
-		return this.cosmeticService.create(cosmetic);
+		return await this.cosmeticService.create(cosmetic);
 	}
 
 	/**
@@ -104,10 +105,11 @@ export class CosmeticController {
 
 		const missing = [
 			!cosmetic && "Le cosmétique est requis",
-			!cosmetic.name && "Le nom du cosmétique est requis",
-			!cosmetic.cost && "Le coût du cosmétique est requis",
-			!cosmetic.type && "Le type du cosmétique est requis",
-		].filter(Boolean);
+			!cosmetic?.name && "Le nom du cosmétique est requis",
+			!cosmetic?.cost && "Le coût du cosmétique est requis",
+			!cosmetic?.type && "Le type du cosmétique est requis",
+		].filter(Boolean)[0];
+
 		if (missing) throw new BadRequestException(missing);
 
         if(id !== undefined){
@@ -117,7 +119,7 @@ export class CosmeticController {
             }
         }
 
-		return this.cosmeticService.updateById(id, cosmetic);
+		return await this.cosmeticService.updateById(id, cosmetic);
 	}
 
 	/**
