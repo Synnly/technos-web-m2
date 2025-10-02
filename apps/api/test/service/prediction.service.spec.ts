@@ -13,7 +13,8 @@ const expectedUser1 = {
 	dateDerniereRecompenseQuotidienne: null,
 	predictions : [],
 	votes : [],
-	role: 'user'
+	role: 'user',
+	cosmeticsOwned: []
 } as User;
 
 const expectedPred1 = {

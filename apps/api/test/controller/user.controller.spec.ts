@@ -18,6 +18,7 @@ const expectedUser1 = {
 	predictions: [],
 	votes: [],
 	role: "user",
+	cosmeticsOwned: []
 } as User;
 
 const expectedUser2 = {
@@ -29,6 +30,7 @@ const expectedUser2 = {
 	predictions: [],
 	votes: [],
 	role: "user",
+	cosmeticsOwned: []
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];

@@ -22,7 +22,8 @@ const expectedUser1 = {
     dateDerniereRecompenseQuotidienne: null,
     predictions : [],
     votes : [],
-    role: 'user'
+    role: 'user',
+    cosmeticsOwned: []
 } as User;
 
 const expectedUser2 = {
@@ -33,7 +34,8 @@ const expectedUser2 = {
     dateDerniereRecompenseQuotidienne: new Date(),
     predictions : [],
     votes : [],
-    role: 'user'
+    role: 'user',
+    cosmeticsOwned: []
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];

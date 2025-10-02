@@ -22,6 +22,7 @@ const expectedUser1 = {
 	predictions: [],
 	votes: [],
 	role: "user",
+	cosmeticsOwned: []
 } as User;
 
 const expectedPred1 = {
