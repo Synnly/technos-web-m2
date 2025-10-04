@@ -11,7 +11,6 @@ import { User, UserDocument } from "../user/user.schema";
 import { Vote, VoteDocument } from "../vote/vote.schema";
 import OpenAI from "openai";
 import { ConfigService } from "@nestjs/config";
-import { endWith } from "rxjs";
 
 @Injectable()
 /**
@@ -425,19 +424,23 @@ export class PredictionService {
 	}
 
 	/**
-	 * Prédit les options de réponse pour une prédiction donnée. Utilise les API LangSearch et OpenAI pour rechercher
-	 * des documents pertinents
+	 * Modifie les pronostics pour une prédiction donnée. Utilise les API LangSearch et OpenAI pour rechercher
+	 * des documents pertinents. Si l'option ENABLE_AI_PRONOSTICS est désactivée, la méthode ne fait rien.
 	 * @param id L'identifiant de la prédiction pour laquelle générer les options
-	 * @returns Un objet contenant les options et leurs probabilités respectives
 	 * @throws Error si la clé API OpenAI est absente, ou si aucune option n'es passée à l'IA
 	 */
-	async predictOptionsByAI(id: string): Promise<Record<string, number>> {
-		const OPENAI_API_KEY = this.configService.get<string>("OPENAI_API_KEY");
-		if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
+	async updatePronosticsByAI(id: string) {
+		if (this.configService.get<string>("ENABLE_AI_PRONOSTICS") === "true") {
+			const OPENAI_API_KEY =
+				this.configService.get<string>("OPENAI_API_KEY");
+			if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
+		}
 
 		// Préparation des documents pour la prédiction de l'IA
 		const prediction = await this.getById(id);
 		if (!prediction) throw new Error("Prédiction non trouvée");
+
+		if (this.configService.get<string>("ENABLE_AI_PRONOSTICS") !== "true") return;
 
 		const query = await this.getQueryFromTitle(prediction.title);
 		const startTime = Date.now();
@@ -491,8 +494,9 @@ export class PredictionService {
 					{
 					"error": "Impossible de répondre à la question avec les documents fournis."
 					}
-					TU NE DOIS RÉPONDRE QUE PAR L'OBJECT JSON, RIEN D'AUTRE, PAS MEME DE STYLAGE MARKDOWN. LA REPONSE DOIT POUVOIR ETRE PARSÉE DIRECTEMENT EN JSON. 
-					SI TU NE PEUX PAS RÉPONDRE, UTILISE LE FORMAT D'ERREUR CI-DESSUS. REMPLACE LA CLEF "option1", "option2", ... PAR LES OPTIONS RÉELLES QUI TE SONT FOURNIES.
+					TU NE DOIS RÉPONDRE QUE PAR L'OBJECT JSON, RIEN D'AUTRE, PAS MEME DE STYLAGE MARKDOWN. LA REPONSE 
+					DOIT POUVOIR ETRE PARSÉE DIRECTEMENT EN JSON. SI TU NE PEUX PAS RÉPONDRE, UTILISE LE FORMAT D'ERREUR
+					CI-DESSUS. REMPLACE LA CLEF "option1", "option2", ... PAR LES OPTIONS RÉELLES QUI TE SONT FOURNIES.
 					\`\`\``,
 				},
 				{
@@ -502,10 +506,10 @@ export class PredictionService {
 			],
 			text: { verbosity: "low" },
 		});
-
 		const parsedResponse = JSON.parse(response.output_text) || {};
 		if (parsedResponse.error) throw new Error(parsedResponse.error);
 
-		return parsedResponse;
+		prediction.pronostics_ia = parsedResponse;
+		await this.predictionModel.findByIdAndUpdate(id, prediction);
 	}
 }

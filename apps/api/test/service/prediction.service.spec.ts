@@ -4,6 +4,7 @@ import { PredictionService } from "../../src/prediction/prediction.service";
 import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
 import { User } from "../../src/user/user.schema";
 import { Vote } from "../../src/vote/vote.schema";
+import { ConfigService } from "@nestjs/config";
 
 const expectedUser1 = { 
 	_id: '1', 
@@ -68,6 +69,16 @@ const mockVoteModel = {
   create: jest.fn(),
 } as any;
 
+const mockConfigService = {
+    get: jest.fn().mockImplementation((key: string) => {
+        const configMap = {
+            'OPENAI_API_KEY': 'test-api-key',
+            'OPENAI_MODEL': 'gpt-3.5-turbo',
+            'DATABASE_URL': 'mongodb://localhost:27017/test',
+        };
+        return configMap[key];
+    }),
+} as any;
 
 describe('PredictionService', () => {
 	let predictionService: PredictionService;
@@ -81,6 +92,7 @@ describe('PredictionService', () => {
 				{ provide: getModelToken(Prediction.name), useValue: mockPredModel },
 				{ provide: getModelToken('User'), useValue: mockUserModel },
 				{ provide: getModelToken(Vote.name), useValue: mockVoteModel }, 
+                { provide: ConfigService, useValue: mockConfigService }, 
 			],
 		}).compile();
 

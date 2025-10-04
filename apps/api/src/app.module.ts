@@ -24,6 +24,7 @@ import {
 } from "./publication/publication.schema";
 import { PublicationService } from "./publication/publication.service";
 import { PublicationController } from "./publication/publication.controller";
+import { PronosticQueueManagerService } from "./prediction/pronosticQueueManager.service";
 
 /**
  * Module principal de l'application API.
@@ -77,6 +78,7 @@ import { PublicationController } from "./publication/publication.controller";
 		PredictionService,
 		VoteService,
 		PublicationService,
+		PronosticQueueManagerService,
 	],
 })
 export class AppModule implements NestModule {
