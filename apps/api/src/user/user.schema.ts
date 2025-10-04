@@ -84,7 +84,7 @@ export class User {
 	 * Ce champ est une liste de chaînes représentant les identifiants des cosmétiques.
 	 */
 	@Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic", default: [] })
-	cosmeticsOwned: Cosmetic[];
+	cosmeticsOwned: String[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

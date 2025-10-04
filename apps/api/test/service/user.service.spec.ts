@@ -13,6 +13,7 @@ jest.mock('bcrypt', () => ({
 }));
 
 import * as bcrypt from 'bcrypt';
+import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
 
 const expectedUser1 = { 
     _id: '1', 
@@ -64,6 +65,13 @@ const mockUserModel = jest.fn().mockImplementation((data) => ({
     })
 })) as unknown as MockUserModel;
 
+const mockCosmeticService = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    create: jest.fn(),
+};
+
+
 // Ajouter les méthodes statiques
 mockUserModel.findOne = jest.fn();
 mockUserModel.find = jest.fn();
@@ -98,6 +106,10 @@ describe("UserService", () => {
                 {
                     provide: JwtService,
                     useValue: mockJwtService,
+                },
+                {
+                    provide: CosmeticService,
+                    useValue: mockCosmeticService,
                 }
             ],
         })

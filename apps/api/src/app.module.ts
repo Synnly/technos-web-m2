@@ -24,6 +24,9 @@ import {
 } from "./publication/publication.schema";
 import { PublicationService } from "./publication/publication.service";
 import { PublicationController } from "./publication/publication.controller";
+import { Cosmetic, CosmeticSchema } from "./cosmetic/cosmetic.schema";
+import { CosmeticService } from "./cosmetic/cosmetic.service";
+import { CosmeticController } from "./cosmetic/cosmetic.controller";
 
 /**
  * Module principal de l'application API.
@@ -59,6 +62,7 @@ import { PublicationController } from "./publication/publication.controller";
 			{ name: Prediction.name, schema: PredictionSchema },
 			{ name: Vote.name, schema: VoteSchema },
 			{ name: Publication.name, schema: PublicationSchema },
+			{ name: Cosmetic.name, schema: CosmeticSchema },
 		]),
 		JwtModule.register({
 			secret: process.env.JWT_SECRET!,
@@ -71,12 +75,14 @@ import { PublicationController } from "./publication/publication.controller";
 		TokenController,
 		VoteController,
 		PublicationController,
+		CosmeticController,
 	],
 	providers: [
 		UserService,
 		PredictionService,
 		VoteService,
 		PublicationService,
+		CosmeticService,
 	],
 })
 export class AppModule implements NestModule {

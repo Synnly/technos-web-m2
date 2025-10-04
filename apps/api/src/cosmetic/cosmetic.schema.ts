@@ -1,4 +1,4 @@
-import { Prop, Schema } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 
 export type CosmeticDocument = Cosmetic & Document;
 
@@ -53,3 +53,5 @@ export class Cosmetic {
     @Prop({ default: false })
     owned?: boolean;
 }
+
+export const CosmeticSchema = SchemaFactory.createForClass(Cosmetic);

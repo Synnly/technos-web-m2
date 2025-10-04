@@ -8,6 +8,10 @@ import {
 	NotFoundException,
 	UnauthorizedException,
 } from "@nestjs/common";
+import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
+import { getModelToken } from "@nestjs/mongoose";
+import { CosmeticType } from "../../src/cosmetic/cosmetic.schema";
+import { Model } from 'mongoose';
 
 const expectedUser1 = {
 	_id: "1",
@@ -18,7 +22,7 @@ const expectedUser1 = {
 	predictions: [],
 	votes: [],
 	role: "user",
-	cosmeticsOwned: []
+	cosmeticsOwned: [],
 } as User;
 
 const expectedUser2 = {
@@ -30,7 +34,7 @@ const expectedUser2 = {
 	predictions: [],
 	votes: [],
 	role: "user",
-	cosmeticsOwned: []
+	cosmeticsOwned: [],
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];
@@ -50,6 +54,42 @@ const mockJwtService = {
 	sign: jest.fn().mockReturnValue("mock-jwt-token"),
 };
 
+const mockCosmeticService = {
+	findAll: jest.fn(),
+	findById: jest.fn(),
+	create: jest.fn(),
+	updateById: jest.fn(),
+	deleteById: jest.fn(),
+};
+
+interface MockCosmeticModel {
+	new (data: any): { save: jest.Mock; [key: string]: any };
+	find: jest.Mock;
+	findById: jest.Mock;
+	findByIdAndUpdate: jest.Mock;
+	findByIdAndDelete: jest.Mock;
+	findOne: jest.Mock;
+}
+
+const mockCosmeticModel = jest.fn().mockImplementation((data) => ({
+    ...data,
+    save: jest.fn().mockResolvedValue({
+        _id: '3',
+        ...data,
+		owned: false,
+    })
+})) as unknown as MockCosmeticModel;
+
+// Mock User Model required by UserController constructor
+const mockUserModel = {
+	findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	find: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedUser1, expectedUser2]) }),
+	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	create: jest.fn().mockResolvedValue(expectedUser1),
+} as any;
+
+
 describe("UserController", () => {
 	let userService: UserService;
 	let userController: UserController;
@@ -68,6 +108,22 @@ describe("UserController", () => {
 				{
 					provide: JwtService,
 					useValue: mockJwtService,
+				},
+				{
+					provide: CosmeticService,
+					useValue: mockCosmeticService,
+				},
+				{
+					provide: getModelToken("Cosmetic"),
+					useValue: mockCosmeticModel,
+				},
+				{
+					provide: Model,
+					useValue: mockUserModel,
+				},
+				{
+					provide: getModelToken(User.name),
+					useValue: mockUserModel,
 				},
 			],
 		}).compile();

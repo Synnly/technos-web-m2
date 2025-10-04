@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { User, UserDocument } from "../user/user.schema";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { Cosmetic } from "../../src/cosmetic/cosmetic.schema";
 
 
 @Injectable()
@@ -176,4 +177,12 @@ export class UserService {
         await user.save();
         return pointsToAdd; // Retourne le nombre de points ajoutés
     }   
+
+    async buyCosmetic(user, cosmetic: Cosmetic): Promise<User> {
+        user.points -= cosmetic.cost;
+        user.cosmeticsOwned.push(cosmetic._id);
+        
+        await user.save();
+        return user;
+    }
 }
