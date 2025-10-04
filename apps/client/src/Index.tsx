@@ -60,6 +60,7 @@ function Index() {
   });
             const map: Record<string, string> = {};
             (res.data || []).forEach((u: any) => { if (u && u._id) map[u._id] = u.username; });
+            console.log("Fetched users:", map);
             setUsersMap(map);
         } catch (e) {
             console.error(e);
@@ -168,6 +169,9 @@ function Index() {
                             className="px-3 py-1 bg-blue-500 text-white rounded"
                         >
                             {showForm ? "Annuler" : "Créer une prédiction"}
+                        </button>
+                        <button onClick={() => navigate('/shop')} className="px-3 py-1 bg-indigo-500 text-white rounded">
+                            Boutique
                         </button>
                         <button onClick={handleLogout} className="px-3 py-1 bg-gray-200 rounded">
                             Déconnexion

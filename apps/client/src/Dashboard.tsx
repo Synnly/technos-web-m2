@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "./hooks/useAuth";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 import PasswordWithConfirmationInput from "./PasswordWithConfirmationInput";
+import CosmeticPicker from "./components/cosmetics/CosmeticPicker";
+import CreateCosmeticForm from "./components/cosmetics/CreateCosmeticForm";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -164,6 +166,9 @@ function Dashboard() {
       {/* Partie admin */}
       {role === "admin" && (
         <div className="my-8">
+          <div className="mb-6">
+            <CreateCosmeticForm />
+          </div>
           <div>
             <h2>Prédictions en attente de validation :</h2>
             {waitingPrediction.length === 0 ? (
@@ -266,6 +271,8 @@ function Dashboard() {
           <button onClick={confirmAccountDeletionHandler}>
             Supprimer le compte
           </button>
+          {/* Cosmetic picker only for the logged-in user */}
+          {username && <CosmeticPicker username={username} />}
         </div>
       )}
     </div>

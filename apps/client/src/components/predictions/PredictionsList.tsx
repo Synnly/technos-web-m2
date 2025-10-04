@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import PredictionItem from './PredictionItem';
+import { PredictionItem } from './PredictionItem';
 
 interface Props {
     predictions: any[];

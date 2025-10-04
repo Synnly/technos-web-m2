@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { CosmeticService } from "./cosmetic.service";
 import { Cosmetic } from "./cosmetic.schema";
-import { Role } from "../../src/user/user.schema";
+import { Role, User } from "../user/user.schema";
 
 /**
  * Contrôleur pour gérer les cosmétiques.
@@ -54,14 +54,14 @@ export class CosmeticController {
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
 	 * @returns le cosmétique créé
 	 */
-	@Post("")
+	@Post("/:username")
 	@HttpCode(201)
 	async createCosmetic(
 		@Body() cosmetic,
-		@Req() user,
-		@Param("username") username: string,
+		@Req() req,
+		@Param("username") username,
 	): Promise<Cosmetic> {
-		if (!user || user.username !== username || user.role !== Role.ADMIN) {
+		if (!req.user || req.user.role !== Role.ADMIN || req.user.username !== username) {
 			throw new BadRequestException(
 				"Seul l'administrateur peut créer un cosmétique",
 			);

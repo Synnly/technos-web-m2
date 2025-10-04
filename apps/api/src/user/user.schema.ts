@@ -83,8 +83,15 @@ export class User {
 	 * Liste des cosmétiques possédés par l'utilisateur.
 	 * Ce champ est une liste de chaînes représentant les identifiants des cosmétiques.
 	 */
-	@Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic", default: [] })
-	cosmeticsOwned: String[];
+	@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic" }], default: [] })
+	cosmeticsOwned: string[];
+
+	/**
+	 * Cosmétique actuellement appliqué par l'utilisateur (persisté).
+	 * Peut être null si aucun cosmétique n'est appliqué.
+	 */
+	@Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic", default: null })
+	currentCosmetic: string | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

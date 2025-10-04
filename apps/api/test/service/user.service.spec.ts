@@ -24,7 +24,8 @@ const expectedUser1 = {
     predictions : [],
     votes : [],
     role: 'user',
-    cosmeticsOwned: []
+    cosmeticsOwned: [],
+    currentCosmetic: null,
 } as User;
 
 const expectedUser2 = {
@@ -36,7 +37,8 @@ const expectedUser2 = {
     predictions : [],
     votes : [],
     role: 'user',
-    cosmeticsOwned: []
+    cosmeticsOwned: [],
+    currentCosmetic: null,
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];
@@ -455,6 +457,43 @@ describe("UserService", () => {
 
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
             expect(userWithTodayReward.save).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('buyCosmetic', () => {
+        it('should deduct cost, add cosmetic id to user and save', async () => {
+            const user: any = {
+                ...expectedUser1,
+                points: 50,
+                cosmeticsOwned: [],
+                save: jest.fn().mockResolvedValue({
+                    ...expectedUser1,
+                    points: 40,
+                    cosmeticsOwned: ['cos1']
+                })
+            };
+
+            const cosmetic: any = { _id: 'cos1', cost: 10 };
+
+            const result = await userService.buyCosmetic(user, cosmetic);
+
+            expect(user.save).toHaveBeenCalled();
+            expect(result.points).toEqual(40);
+            expect(result.cosmeticsOwned).toContain('cos1');
+        });
+
+        it('should propagate error when save fails', async () => {
+            const user: any = {
+                ...expectedUser1,
+                points: 50,
+                cosmeticsOwned: [],
+                save: jest.fn().mockRejectedValue(new Error('save failed'))
+            };
+
+            const cosmetic: any = { _id: 'cos2', cost: 10 };
+
+            await expect(userService.buyCosmetic(user, cosmetic)).rejects.toEqual(new Error('save failed'));
+            expect(user.save).toHaveBeenCalled();
         });
     });
 });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+// ...existing code...
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -24,6 +25,9 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
   const [collapsedIds, setCollapsedIds] = useState<string[]>([]);
   const [likes, setLikes] = useState<Record<string, { isLiked: boolean; count: number }>>({});
   const [likingIds, setLikingIds] = useState<string[]>([]);
+  // rely on server-populated `node.user.currentCosmetic`
+  const [cosmeticsMap, setCosmeticsMap] = useState<Record<string, any>>({});
+  const [usersById, setUsersById] = useState<Record<string, any>>({});
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -81,7 +85,28 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
       // normalize _id to string for ease
       const normalized = filtered.map((d) => ({ ...d, _id: String(d._id), parentPublication_id: d.parentPublication_id ? String(d.parentPublication_id) : undefined }));
       setPublications(normalized);
+      // fetch cosmetics list so we can resolve cosmetic IDs to objects (fallback)
+      try {
+        const cosRes = await axios.get(`${API_URL}/cosmetic`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        const cosArr: any[] = cosRes.data || [];
+        const cmap: Record<string, any> = {};
+        cosArr.forEach((c) => { cmap[String(c._id)] = c; });
+        setCosmeticsMap(cmap);
+      } catch (e) {
+        setCosmeticsMap({});
+      }
       
+      // fetch users list so we can resolve user_id -> user object when needed
+      try {
+        const usersRes = await axios.get(`${API_URL}/user`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        const usersArr: any[] = usersRes.data || [];
+        const uMap: Record<string, any> = {};
+        usersArr.forEach((u) => { if (u && u._id) uMap[String(u._id)] = u; });
+        setUsersById(uMap);
+      } catch (e) {
+        setUsersById({});
+      }
+
       // Récupérer les likes pour chaque publication
       const initialLikes: Record<string, { isLiked: boolean; count: number }> = {};
       
@@ -191,7 +216,16 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
               <ul className="space-y-2">
                 {buildTree(publications).map((root) => {
                   const renderNode = (node: any, level = 0) => {
-                    const pubAuthor = (node.user_id && typeof node.user_id === 'string') ? usersMap[node.user_id] : (node.user && node.user.username) || 'inconnu';
+                    // resolve full user object if only user_id is present
+                    const resolvedUser = (node.user && typeof node.user === 'object') ? node.user : (node.user_id && usersById[String(node.user_id)]) ? usersById[String(node.user_id)] : null;
+                    const pubAuthor = resolvedUser?.username ?? ((node.user_id && typeof node.user_id === 'string') ? usersMap[node.user_id] : 'inconnu');
+                    // determine applied cosmetic for this author using server-populated data or usersById fallback
+                    let appliedCosmetic: any = null;
+                    const userToCheck = resolvedUser;
+                    if (userToCheck && userToCheck.currentCosmetic) {
+                      if (typeof userToCheck.currentCosmetic === 'object') appliedCosmetic = userToCheck.currentCosmetic;
+                      else appliedCosmetic = cosmeticsMap[String(userToCheck.currentCosmetic)] || null;
+                    }
                     const hasChildren = node.children && node.children.length > 0;
                     const isCollapsed = collapsedIds.includes(node._id);
                     const likeInfo = likes[node._id] || { isLiked: false, count: 0 };
@@ -209,7 +243,19 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
                               })()}</div>
                             ) : null}
                             <div className="text-sm">{node.message}</div>
-                            <div className="text-xs text-gray-500">Par: {pubAuthor} • {new Date(node.datePublication).toLocaleString()}</div>
+                            <div className="text-xs text-gray-500">Par: {
+                              appliedCosmetic ? (
+                                appliedCosmetic.type === 'color' && appliedCosmetic.hexColor ? (
+                                  <span style={{ color: appliedCosmetic.hexColor }}>{pubAuthor}</span>
+                                ) : appliedCosmetic.type === 'badge' ? (
+                                  <span>{pubAuthor} {appliedCosmetic.name}</span>
+                                ) : (
+                                  <span>{pubAuthor}</span>
+                                )
+                              ) : (
+                                <span>{pubAuthor}</span>
+                              )
+                            } • {new Date(node.datePublication).toLocaleString()}</div>
                           </div>
                           <div className="ml-2 flex items-center gap-2">
                             {currentId && (

@@ -96,6 +96,7 @@ export class AppModule implements NestModule {
 				"/api/vote",
 				"/api/prediction",
 				"/api/publication",
+				"/api/cosmetic",
 			);
 	}
 }

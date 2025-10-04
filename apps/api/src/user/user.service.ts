@@ -102,6 +102,11 @@ export class UserService {
             }
             existingUser.points = user.points ?? existingUser.points;
             existingUser.dateDerniereRecompenseQuotidienne = user.dateDerniereRecompenseQuotidienne ?? existingUser.dateDerniereRecompenseQuotidienne;
+            // persist currentCosmetic if provided
+            if (user.hasOwnProperty('currentCosmetic')) {
+                // @ts-ignore
+                existingUser.currentCosmetic = user.currentCosmetic ?? null;
+            }
             
             return await existingUser.save();
         } else {                // Crée un nouvel utilisateur
@@ -112,6 +117,11 @@ export class UserService {
                 motDePasse: hash
             }
             const newUser = new this.userModel(reqBody);
+            // set currentCosmetic on creation if provided (unlikely on signup but safe)
+            if (user.hasOwnProperty('currentCosmetic')) {
+                // @ts-ignore
+                newUser.currentCosmetic = user.currentCosmetic ?? null;
+            }
             return await newUser.save();
         }
     }
@@ -181,7 +191,11 @@ export class UserService {
     async buyCosmetic(user, cosmetic: Cosmetic): Promise<User> {
         user.points -= cosmetic.cost;
         user.cosmeticsOwned.push(cosmetic._id);
-        
+        // if user has no currentCosmetic, set the newly bought cosmetic as applied by default
+        if (!user.currentCosmetic) {
+            user.currentCosmetic = cosmetic._id;
+        }
+
         await user.save();
         return user;
     }

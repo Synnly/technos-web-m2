@@ -15,10 +15,11 @@ import {
 	UnauthorizedException,
 } from "@nestjs/common";
 import { Role, User, UserDocument } from "../user/user.schema";
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { UserService } from "./user.service";
 import { JwtService } from "@nestjs/jwt";
-import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
-import { Model } from "mongoose";
+import { CosmeticService } from "../cosmetic/cosmetic.service";
 
 /**
  * Contrôleur pour gérer les opérations liées aux utilisateurs.
@@ -36,7 +37,7 @@ export class UserController {
 		private readonly userService: UserService,
 		private jwtService: JwtService,
 		private cosmeticService: CosmeticService,
-        private userModel: Model<UserDocument>,
+		@InjectModel(User.name) private userModel: Model<UserDocument>,
 	) {}
 
 	/**
@@ -256,7 +257,7 @@ export class UserController {
 		}
 	}
 
-	@Post("/:userId/buy/cosmetic/:cosmeticId")
+	@Post("/:username/buy/cosmetic/:cosmeticId")
 	async buyCosmetic(
 		@Param("cosmeticId") cosmeticId: string,
 		@Param("username") username,
@@ -274,7 +275,8 @@ export class UserController {
 				message: "L'identifiant du cosmétique est requis",
 			});
 
-		if (!request.user || request.user.id !== searchUser._id) {
+
+		if (!request.user || request.user.id !== searchUser._id.toString()) {
 			throw new ForbiddenException({
 				message: "Vous n'avez pas la permission",
 			});
