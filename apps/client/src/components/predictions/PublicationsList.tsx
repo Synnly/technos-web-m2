@@ -2,6 +2,7 @@ import { useState } from 'react';
 // ...existing code...
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { renderWithEmojis } from '../cosmetics/emoji';
 
 interface Props {
   p: any;
@@ -248,7 +249,7 @@ export default function PublicationsList({p, predictionId, usersMap, currentId }
                                 appliedCosmetic.type === 'color' && appliedCosmetic.hexColor ? (
                                   <span style={{ color: appliedCosmetic.hexColor }}>{pubAuthor}</span>
                                 ) : appliedCosmetic.type === 'badge' ? (
-                                  <span>{pubAuthor} {appliedCosmetic.name}</span>
+                                  <span>{pubAuthor} {renderWithEmojis(appliedCosmetic.name)}</span>
                                 ) : (
                                   <span>{pubAuthor}</span>
                                 )

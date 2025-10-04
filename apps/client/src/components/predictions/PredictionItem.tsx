@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import PublicationsList from './PublicationsList';
+import { renderWithEmojis } from '../cosmetics/emoji';
 
 interface Props {
     p: any;
@@ -91,7 +92,7 @@ export const PredictionItem: FC<Props> = ({ p, usersMap, cosmeticsMap, usersById
                                                             appliedCosmetic.type === 'color' && appliedCosmetic.hexColor ? (
                                                                 <span style={{ color: appliedCosmetic.hexColor }}>{pubAuthor}</span>
                                                             ) : appliedCosmetic.type === 'badge' ? (
-                                                                <span>{pubAuthor} {appliedCosmetic.name}</span>
+                                                                <span>{pubAuthor} {renderWithEmojis(appliedCosmetic.name)}</span>
                                                             ) : (
                                                                 <span>{pubAuthor}</span>
                                                             )
