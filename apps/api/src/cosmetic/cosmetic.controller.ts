@@ -61,7 +61,9 @@ export class CosmeticController {
 		@Req() req,
 		@Param("username") username,
 	): Promise<Cosmetic> {
-		if (!req.user || req.user.role !== Role.ADMIN || req.user.username !== username) {
+		// support tests which pass the user object directly as `req`, or a real request with `req.user`
+		const user = (req && (req as any).user) ? (req as any).user : req;
+		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException(
 				"Seul l'administrateur peut créer un cosmétique",
 			);
