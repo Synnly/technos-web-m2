@@ -5,5 +5,5 @@ emoji.replace_mode = "unified";
 emoji.allow_native = true;
 
 export function renderWithEmojis(text: string): string {
-  return emoji.replace_colons(text);
+	return emoji.replace_colons(text);
 }

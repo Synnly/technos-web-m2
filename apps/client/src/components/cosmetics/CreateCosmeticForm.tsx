@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,42 +24,19 @@ export default function CreateCosmeticForm() {
 		try {
 			const token = localStorage.getItem("token");
 
-			// try to extract username from the JWT payload so we can call the
-			// API with the username route param expected by the controller
-			const getUsernameFromToken = (t: string | null) => {
-				if (!t) return null;
+			let username: string | null = null;
+			if (token) {
 				try {
-					const parts = t.split(".");
-					if (parts.length < 2) return null;
-					const base64 = parts[1]
-						.replace(/-/g, "+")
-						.replace(/_/g, "/");
-					const json = decodeURIComponent(
-						atob(base64)
-							.split("")
-							.map(
-								(c) =>
-									"%" +
-									("00" + c.charCodeAt(0).toString(16)).slice(
-										-2,
-									),
-							)
-							.join(""),
-					);
-					const payload = JSON.parse(json);
-					return payload?.username || payload?.sub || null;
+					const payload: any = jwtDecode(token);
+					username = payload?.username || payload?.sub || null;
 				} catch (err) {
-					return null;
+					username = null;
 				}
-			};
-
-			const username = getUsernameFromToken(token);
-		
+			}
 
 			const payload: any = { name, cost: Number(cost), type };
 			if (type === "color") payload.hexColor = hexColor;
 
-			// include username in the URL when available to satisfy controller checks
 			const url = `${API_URL}/cosmetic/${username}`;
 			await axios.post(url, payload, {
 				headers: token ? { Authorization: `Bearer ${token}` } : {},
