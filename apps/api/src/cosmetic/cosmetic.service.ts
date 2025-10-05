@@ -33,23 +33,23 @@ export class CosmeticService {
 
     /**
      * Crée un nouveau cosmétique.
-     * @param data les données du cosmétique à créer
+     * @param cosmetic les données du cosmétique à créer
      * @returns le cosmétique créé
      */
-	async create(data: Cosmetic): Promise<Cosmetic> {
-		const newCosmetic = new this.cosmeticModel(data);
+	async create(cosmetic: Cosmetic): Promise<Cosmetic> {
+		const newCosmetic = new this.cosmeticModel(cosmetic);
 		return newCosmetic.save();
 	}
 
     /**
      * Met à jour un cosmétique par son identifiant.
      * @param id l'identifiant du cosmétique à mettre à jour
-     * @param data les nouvelles données du cosmétique
+     * @param cosmetic les nouvelles données du cosmétique
      * @returns la cosmétique mis à jour
      */
-	async updateById(id: string, data: Cosmetic): Promise<Cosmetic> {
+	async updateById(id: string, cosmetic: Cosmetic): Promise<Cosmetic> {
 		const updatedCosmetic = await this.cosmeticModel
-			.findByIdAndUpdate(id, data, { new: true })
+			.findByIdAndUpdate(id, cosmetic, { new: true })
 			.exec();
 		
 		return updatedCosmetic!;

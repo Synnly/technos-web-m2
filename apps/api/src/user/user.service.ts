@@ -188,10 +188,17 @@ export class UserService {
         return pointsToAdd; // Retourne le nombre de points ajoutés
     }   
 
+    /**
+     * Permet à un utilisateur d'acheter un cosmétique.
+     * @param user l'utilisateur achetant le cosmétique
+     * @param cosmetic le cosmétique à acheter
+     * @returns l'utilisateur mis à jour après l'achat
+     */
     async buyCosmetic(user, cosmetic: Cosmetic): Promise<User> {
         user.points -= cosmetic.cost;
         user.cosmeticsOwned.push(cosmetic._id);
-        // if user has no currentCosmetic, set the newly bought cosmetic as applied by default
+
+        //On met le cosmétique acheté comme cosmétique actuel si l'utilisateur n'en a pas déjà un
         if (!user.currentCosmetic) {
             user.currentCosmetic = cosmetic._id;
         }

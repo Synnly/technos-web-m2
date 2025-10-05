@@ -49,7 +49,7 @@ export class CosmeticController {
 	/**
 	 * Crée un nouveau cosmétique.
 	 * @param cosmetic le cosmétique à créer
-	 * @param user l'utilisateur effectuant la requête (doit être admin)
+	 * @param req la requête HTTP contenant l'utilisateur authentifié
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
 	 * @returns le cosmétique créé
@@ -61,8 +61,8 @@ export class CosmeticController {
 		@Req() req,
 		@Param("username") username,
 	): Promise<Cosmetic> {
-		// support tests which pass the user object directly as `req`, or a real request with `req.user`
-		const user = (req && (req as any).user) ? (req as any).user : req;
+
+		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException(
 				"Seul l'administrateur peut créer un cosmétique",
@@ -75,7 +75,7 @@ export class CosmeticController {
 			!cosmetic?.cost && "Le coût du cosmétique est requis",
 			!cosmetic?.type && "Le type du cosmétique est requis",
 		].filter(Boolean)[0];
-		
+
 		if (missing) throw new BadRequestException(missing);
 
 		return await this.cosmeticService.create(cosmetic);
@@ -85,10 +85,10 @@ export class CosmeticController {
 	 * Met à jour un cosmétique existant ou en créer un.
 	 * @param id l'identifiant du cosmétique à mettre à jour
 	 * @param cosmetic les nouvelles données du cosmétique
-	 * @param user l'utilisateur effectuant la requête (doit être admin)
+	 * @param req la requête HTTP contenant l'utilisateur authentifié
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
-     * @throws NotFoundException si le cosmétique à mettre à jour n'existe pas
+	 * @throws NotFoundException si le cosmétique à mettre à jour n'existe pas
 	 * @returns le cosmétique mis à jour
 	 */
 	@Put("/:id")
@@ -96,12 +96,13 @@ export class CosmeticController {
 	async updateCosmetic(
 		@Param("id") id: string,
 		@Body() cosmetic,
-		@Req() user,
+		@Req() req,
 		@Param("username") username: string,
 	): Promise<Cosmetic> {
-		if (!user || user.username !== username || user.role !== Role.ADMIN) {
+		const user = req && (req as any).user ? (req as any).user : req;
+		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException(
-				"Seul l'administrateur peut modifier un cosmétique",
+				"Seul l'administrateur peut créer un cosmétique",
 			);
 		}
 
@@ -114,12 +115,12 @@ export class CosmeticController {
 
 		if (missing) throw new BadRequestException(missing);
 
-        if(id !== undefined){
-            const existing = await this.cosmeticService.findById(id);
-            if(!existing) {
-                throw new NotFoundException("Cosmétique non trouvé");
-            }
-        }
+		if (id !== undefined) {
+			const existing = await this.cosmeticService.findById(id);
+			if (!existing) {
+				throw new NotFoundException("Cosmétique non trouvé");
+			}
+		}
 
 		return await this.cosmeticService.updateById(id, cosmetic);
 	}
@@ -127,28 +128,29 @@ export class CosmeticController {
 	/**
 	 * Supprime un cosmétique par son identifiant.
 	 * @param id l'identifiant du cosmétique à supprimer
-	 * @param user le utilisateur effectuant la requête (doit être admin)
+	 * @param req la requête HTTP contenant l'utilisateur authentifié
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si une erreur survient lors de la suppression
-     * @throws NotFoundException si le cosmétique n'est pas trouvé
+	 * @throws NotFoundException si le cosmétique n'est pas trouvé
 	 * @returns le cosmétique supprimé
 	 */
 	@Delete("/:id")
 	async deleteCosmetic(
 		@Param("id") id: string,
-		@Req() user,
+		@Req() req,
 		@Param("username") username: string,
 	): Promise<Cosmetic> {
-		if (!user || user.username !== username || user.role !== Role.ADMIN) {
+		const user = req && (req as any).user ? (req as any).user : req;
+		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException(
-				"Seul l'administrateur peut supprimer un cosmétique",
+				"Seul l'administrateur peut créer un cosmétique",
 			);
 		}
 
-        const cosmetic = await this.cosmeticService.findById(id);
-        if (!cosmetic) {
-            throw new NotFoundException("Cosmétique non trouvé");
-        }
+		const cosmetic = await this.cosmeticService.findById(id);
+		if (!cosmetic) {
+			throw new NotFoundException("Cosmétique non trouvé");
+		}
 
 		try {
 			const deleted = await this.cosmeticService.deleteById(id);

@@ -257,6 +257,19 @@ export class UserController {
 		}
 	}
 
+	/**
+	 * Achat d'un cosmétique par un utilisateur.
+	 * @param cosmeticId l'identifiant du cosmétique à acheter
+	 * @param username le nom d'utilisateur de l'acheteur
+	 * @param request la requête HTTP contenant l'utilisateur authentifié
+	 * @returns les données de l'utilisateur mis à jour après l'achat
+	 * @throws {BadRequestException} si l'identifiant du cosmétique est invalide.
+	 * @throws {BadRequestException} si l'utilisateur possède déjà le cosmétique.
+	 * @throws {BadRequestException} si l'utilisateur n'a pas assez de points pour acheter le cosmétique.
+	 * @throws {NotFoundException} si l'utilisateur n'existe pas.
+	 * @throws {NotFoundException} si le cosmétique n'existe pas.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié ne correspond pas à l'acheteur.
+	 */
 	@Post("/:username/buy/cosmetic/:cosmeticId")
 	async buyCosmetic(
 		@Param("cosmeticId") cosmeticId: string,
