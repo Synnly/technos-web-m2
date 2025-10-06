@@ -16,20 +16,20 @@ export default function Shop() {
 	const { isAuthenticated, username } = useAuth();
 	const [allCosmetics, setAllCosmetics] = useState<Cosmetic[]>([]);
 	const [ownedIds, setOwnedIds] = useState<string[]>([]);
-	const parseStored = () => {
+	const parseStored = (): (string | null)[] => {
 		try {
 			const raw = localStorage.getItem("appliedCosmetics");
-			if (!raw) return [] as string[];
+			if (!raw) return [null, null];
 			const parsed = JSON.parse(raw);
-			if (Array.isArray(parsed)) return parsed.map(String);
-			return [String(parsed)];
+			if (Array.isArray(parsed)) return [parsed[0] ? String(parsed[0]) : null, parsed[1] ? String(parsed[1]) : null];
+			return [String(parsed), null];
 		} catch (e) {
 			const raw = localStorage.getItem("appliedCosmetic");
-			if (raw) return [String(raw)];
-			return [] as string[];
+			if (raw) return [String(raw), null];
+			return [null, null];
 		}
 	};
-	const [currentApplied, setCurrentApplied] = useState<string[]>(parseStored());
+	const [currentApplied, setCurrentApplied] = useState<(string | null)[]>(parseStored());
 	const [loading, setLoading] = useState(false);
 	const [buyingId, setBuyingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -60,16 +60,25 @@ export default function Shop() {
 					);
 					setPoints(user?.points ?? null);
 					if (user?.currentCosmetic) {
-						const normalize = (val: any): string[] => {
-						if (!val) return [];
-						if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0,2);
-						if (typeof val === 'object' && val._id) return [String(val._id)];
-						return [String(val)];
-					};
-					const arr = normalize(user.currentCosmetic);
-					setCurrentApplied(arr);
-					localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
-				}
+						const normalize = (val: any): (string | null)[] => {
+							const out: (string | null)[] = [null, null];
+							if (!val) return out;
+							if (Array.isArray(val)) {
+								out[0] = val[0] ? String(val[0]) : null;
+								out[1] = val[1] ? String(val[1]) : null;
+								return out;
+							}
+							if (typeof val === 'object' && val._id) {
+								out[0] = String(val._id);
+								return out;
+							}
+							out[0] = String(val);
+							return out;
+						};
+						const arr = normalize(user.currentCosmetic);
+						setCurrentApplied(arr);
+						localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
+					}
 				})
 				.catch(() => {
 					setOwnedIds([]);
@@ -117,13 +126,7 @@ export default function Shop() {
 			if (typeof updatedUser?.points === "number")
 				setPoints(updatedUser.points);
 			if (updatedUser?.currentCosmetic) {
-				const normalize = (val: any): string[] => {
-					if (!val) return [];
-					if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0,2);
-					if (typeof val === 'object' && val._id) return [String(val._id)];
-					return [String(val)];
-				};
-				const arr = normalize(updatedUser.currentCosmetic);
+				const arr = normalizeCosmeticArray(updatedUser.currentCosmetic);
 				setCurrentApplied(arr);
 				localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
 			}
@@ -134,6 +137,48 @@ export default function Shop() {
 			setError(err?.response?.data?.message || "Erreur lors de l'achat");
 		} finally {
 			setBuyingId(null);
+		}
+	};
+
+	const normalizeCosmeticArray = (val: any): (string | null)[] => {
+		const out: (string | null)[] = [null, null];
+		if (!val) return out;
+		if (Array.isArray(val)) {
+			out[0] = val[0] ? String(val[0]) : null;
+			out[1] = val[1] ? String(val[1]) : null;
+			return out;
+		}
+		if (typeof val === "object" && val._id) {
+			out[0] = String(val._id);
+			return out;
+		}
+		out[0] = String(val);
+		return out;
+	};
+
+	const toggleEquip = async (cosmetic: Cosmetic) => {
+		if (!username) return setError("Utilisateur introuvable");
+		setError(null);
+		const token = localStorage.getItem("token");
+		const slot = cosmetic.type && String(cosmetic.type).toLowerCase().includes('color') ? 0 : 1;
+		const current = [currentApplied[0] ?? null, currentApplied[1] ?? null];
+		if (current[slot] === String(cosmetic._id)) {
+			current[slot] = null;
+		} else {
+			current[slot] = String(cosmetic._id);
+		}
+		try {
+			const res = await axios.put(
+				`${API_URL}/user/${username}`,
+				{ currentCosmetic: current },
+				{ headers: token ? { Authorization: `Bearer ${token}` } : {} },
+			);
+			const updated = res.data;
+			const arr = normalizeCosmeticArray(updated?.currentCosmetic ?? current);
+			setCurrentApplied(arr);
+			localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
+		} catch (err: any) {
+			setError(err?.response?.data?.message || "Impossible d'appliquer");
 		}
 	};
 
@@ -233,38 +278,16 @@ export default function Shop() {
 									</div>
 									<div className="mt-3">
 										{currentApplied.includes(String(c._id)) ? (
-											<button className="px-3 py-1 bg-green-600 text-white rounded">
+											<button
+												onClick={() => toggleEquip(c)}
+												className="px-3 py-1 bg-green-600 text-white rounded"
+												title="Cliquer pour désélectionner"
+											>
 												Appliqué
 											</button>
 										) : (
 											<button
-												onClick={async () => {
-													if (!username) return setError("Utilisateur introuvable");
-													const token = localStorage.getItem("token");
-													try {
-														const slot = c.type && String(c.type).toLowerCase().includes('color') ? 0 : 1;
-														const newArr = [...currentApplied];
-														newArr[slot] = String(c._id);
-
-														const res = await axios.put(
-															`${API_URL}/user/${username}`,
-															{ currentCosmetic: newArr },
-															{ headers: token ? { Authorization: `Bearer ${token}` } : {} },
-														);
-														const updated = res.data;
-														const normalize = (val: any): string[] => {
-															if (!val) return [];
-															if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0, 2);
-															if (typeof val === 'object' && val._id) return [String(val._id)];
-															return [String(val)];
-														};
-														const arr = normalize(updated?.currentCosmetic ?? newArr);
-														setCurrentApplied(arr);
-														localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
-													} catch (err: any) {
-														setError(err?.response?.data?.message || "Impossible d'appliquer");
-													}
-												}}
+												onClick={() => toggleEquip(c)}
 												className="px-3 py-1 bg-gray-200 rounded"
 											>
 												Appliquer

@@ -84,7 +84,6 @@ const mockCosmeticModel = jest.fn().mockImplementation((data) => ({
     })
 })) as unknown as MockCosmeticModel;
 
-// Mock User Model required by UserController constructor
 const mockUserModel = {
 	findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
 	findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
@@ -747,12 +746,10 @@ describe("UserController", () => {
 		});
 	});
 
-	// Tests for buyCosmetic
 	describe("buyCosmetic", () => {
 		it("should buy a cosmetic when everything is valid", async () => {
 			const cosmeticId = 'cos1';
 			const username = expectedUser1.username;
-			// ensure userModel.findOne returns expectedUser1
 			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
 			mockCosmeticService.findById.mockResolvedValue({ _id: cosmeticId, cost: 10 });
 			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] } } as any;
@@ -777,7 +774,6 @@ describe("UserController", () => {
 		it("should throw BadRequestException when cosmeticId is missing", async () => {
 			const cosmeticId = '';
 			const username = expectedUser1.username;
-			// make sure the user is found so controller will validate cosmeticId
 			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
 			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] } } as any;
 

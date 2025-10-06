@@ -39,7 +39,6 @@ export class PublicationService {
      */
     async getAll(): Promise<Publication[]> {
         const pubs = await this.publicationModel.find().exec();
-        // ensure populated fields (safe: Model.populate works with arrays/documents and ignores null refs)
         let populated: any[] = pubs as any[];
         try {
             populated = await (this.publicationModel as any).populate(pubs, [
@@ -47,7 +46,6 @@ export class PublicationService {
                 { path: 'prediction_id', select: 'title' }
             ]);
         } catch (e) {
-            // fallback: keep original pubs if populate fails
             populated = pubs as any[];
         }
         return (populated as any[]).map((d) => this.normalizePub(d));
@@ -81,7 +79,6 @@ export class PublicationService {
         const safePub = { ...pub } as any;
         const newPub = new this.publicationModel(safePub);
         const created = await newPub.save();
-        // populate created doc safely
         try {
             const populated = await (this.publicationModel as any).populate(created, [
                 { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },

@@ -42,7 +42,6 @@ const expectedPred2 = {
 
 const expectedPredictions = [expectedPred1, expectedPred2];
 
-// Mock Mongoose Model shape
 interface MockPredModel {
 	new (data: any): { save: jest.Mock; [key: string]: any };
 	find: jest.Mock;
@@ -228,7 +227,6 @@ describe('PredictionService', () => {
 		  const predWithNoPoints = { ...expectedPred1, options: { yes: 0, no: 15 }, save: jest.fn() };
 		  mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(predWithNoPoints) });
 
-		  // simulate no votes
 		  mockVoteModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
 
 		  await expect(predictionService.validatePrediction('p1', 'yes')).rejects.toThrow('Aucun point sur l’option gagnante');
@@ -236,7 +234,7 @@ describe('PredictionService', () => {
 
 
 		it('should distribute rewards correctly and update prediction', async () => {
-			const pred = { ...expectedPred1, save: jest.fn() }; // clone avec save
+			const pred = { ...expectedPred1, save: jest.fn() };
 			const fakeVotes = [
 			{ user_id: 'u1', option: 'yes', amount: 4 },
 			{ user_id: 'u2', option: 'no', amount: 5 },

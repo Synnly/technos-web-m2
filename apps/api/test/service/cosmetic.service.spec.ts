@@ -20,7 +20,6 @@ const expectedCosmetic2 = {
 
 const expectedCosmetics = [expectedCosmetic1, expectedCosmetic2];
 
-// Mock Mongoose Model shape
 interface MockCosmeticModel {
     new (data: any): { save: jest.Mock; [key: string]: any };
     find: jest.Mock;

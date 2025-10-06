@@ -38,7 +38,6 @@ const expectedVote1 = {
     date: new Date()
 } as Vote;
 
-// Mock Mongoose Model shape
 interface MockVoteModel {
     new (data: any): { save: jest.Mock; [key: string]: any };
     find: jest.Mock;
