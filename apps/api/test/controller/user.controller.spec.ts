@@ -24,7 +24,7 @@ const expectedUser1 = {
 	votes: [],
 	role: "user",
 	cosmeticsOwned: [],
-	currentCosmetic: null,
+	currentCosmetic: [],
 } as User;
 
 const expectedUser2 = {
@@ -37,7 +37,7 @@ const expectedUser2 = {
 	votes: [],
 	role: "user",
 	cosmeticsOwned: [],
-	currentCosmetic: null,
+	currentCosmetic: [],
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];

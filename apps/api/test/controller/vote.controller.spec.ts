@@ -18,7 +18,7 @@ const expectedUser1 = {
 	votes: [],
 	role: "user",
 	cosmeticsOwned: [],
-	currentCosmetic: null,
+	currentCosmetic: [],
 } as User;
 
 const expectedPred1 = {

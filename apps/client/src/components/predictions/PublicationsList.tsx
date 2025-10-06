@@ -330,25 +330,21 @@ export default function PublicationsList({
 										typeof node.user_id === "string"
 											? usersMap[node.user_id]
 											: "inconnu");
-									let appliedCosmetic: any = null;
+									let appliedColor: any = null;
+									let appliedBadge: any = null;
 									const userToCheck = resolvedUser;
-									if (
-										userToCheck &&
-										userToCheck.currentCosmetic
-									) {
-										if (
-											typeof userToCheck.currentCosmetic ===
-											"object"
-										)
-											appliedCosmetic =
-												userToCheck.currentCosmetic;
-										else
-											appliedCosmetic =
-												cosmeticsMap[
-													String(
-														userToCheck.currentCosmetic,
-													)
-												] || null;
+									if (userToCheck && userToCheck.currentCosmetic) {
+										if (Array.isArray(userToCheck.currentCosmetic)) {
+											const colorId = userToCheck.currentCosmetic[0];
+											const badgeId = userToCheck.currentCosmetic[1];
+											if (colorId) appliedColor = cosmeticsMap[String(colorId)] || null;
+											if (badgeId) appliedBadge = cosmeticsMap[String(badgeId)] || null;
+										} else if (typeof userToCheck.currentCosmetic === "object") {
+											if (userToCheck.currentCosmetic.type === "color") appliedColor = userToCheck.currentCosmetic;
+											else if (userToCheck.currentCosmetic.type === "badge") appliedBadge = userToCheck.currentCosmetic;
+										} else {
+											appliedColor = cosmeticsMap[String(userToCheck.currentCosmetic)] || null;
+										}
 									}
 									const hasChildren =
 										node.children &&
@@ -407,40 +403,18 @@ export default function PublicationsList({
 														{node.message}
 													</div>
 													<div className="text-xs text-gray-500">
-														Par:{" "}
-														{appliedCosmetic ? (
-															appliedCosmetic.type ===
-																"color" &&
-															appliedCosmetic.hexColor ? (
-																<span
-																	style={{
-																		color: appliedCosmetic.hexColor,
-																	}}
-																>
-																	{pubAuthor}
-																</span>
-															) : appliedCosmetic.type ===
-															  "badge" ? (
-																<span>
-																	{pubAuthor}{" "}
-																	{renderWithEmojis(
-																		appliedCosmetic.name,
-																	)}
-																</span>
+														Par: {appliedColor ? (
+															appliedColor.type === "color" && appliedColor.hexColor ? (
+																<span style={{ color: appliedColor.hexColor }}>{pubAuthor}</span>
 															) : (
-																<span>
-																	{pubAuthor}
-																</span>
+																<span>{pubAuthor}</span>
 															)
 														) : (
-															<span>
-																{pubAuthor}
-															</span>
-														)}{" "}
-														•{" "}
-														{new Date(
-															node.datePublication,
-														).toLocaleString()}
+															<span>{pubAuthor}</span>
+														)}
+														{appliedBadge ? (
+															<span> {renderWithEmojis(appliedBadge.name)}</span>
+														) : null} • {new Date(node.datePublication).toLocaleString()}
 													</div>
 												</div>
 												<div className="ml-2 flex items-center gap-2">

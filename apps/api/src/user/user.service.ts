@@ -102,10 +102,15 @@ export class UserService {
             }
             existingUser.points = user.points ?? existingUser.points;
             existingUser.dateDerniereRecompenseQuotidienne = user.dateDerniereRecompenseQuotidienne ?? existingUser.dateDerniereRecompenseQuotidienne;
-            // persist currentCosmetic if provided
             if (user.hasOwnProperty('currentCosmetic')) {
-                // @ts-ignore
-                existingUser.currentCosmetic = user.currentCosmetic ?? null;
+               
+                const normalize = (val: any): string[] => {
+                    if (!val) return [];
+                    if (Array.isArray(val)) return val.filter(Boolean).slice(0, 2).map(String);
+                    if (typeof val === 'object' && val._id) return [String(val._id)];
+                    return [String(val)];
+                };
+                existingUser.currentCosmetic = normalize(user.currentCosmetic);
             }
             
             return await existingUser.save();
@@ -117,10 +122,14 @@ export class UserService {
                 motDePasse: hash
             }
             const newUser = new this.userModel(reqBody);
-            // set currentCosmetic on creation if provided (unlikely on signup but safe)
             if (user.hasOwnProperty('currentCosmetic')) {
-                // @ts-ignore
-                newUser.currentCosmetic = user.currentCosmetic ?? null;
+                const normalize = (val: any): string[] => {
+                    if (!val) return [];
+                    if (Array.isArray(val)) return val.filter(Boolean).slice(0, 2).map(String);
+                    if (typeof val === 'object' && val._id) return [String(val._id)];
+                    return [String(val)];
+                };
+                newUser.currentCosmetic = normalize(user.currentCosmetic);
             }
             return await newUser.save();
         }
@@ -198,10 +207,20 @@ export class UserService {
         user.points -= cosmetic.cost;
         user.cosmeticsOwned.push(cosmetic._id);
 
-        //On met le cosmétique acheté comme cosmétique actuel si l'utilisateur n'en a pas déjà un
-        if (!user.currentCosmetic) {
-            user.currentCosmetic = cosmetic._id;
+        // On stocke les cosmétiques appliqués dans un tableau fixe de (max) 2 positions
+        // index 0 = COLOR, index 1 = BADGE
+        if (!user.currentCosmetic || !Array.isArray(user.currentCosmetic)) {
+            user.currentCosmetic = [];
         }
+
+        const slotForType = (type: any) => {
+            if (!type) return 0;
+            if (String(type).toLowerCase().includes('color')) return 0;
+            return 1;
+        };
+
+        const slot = slotForType((cosmetic as any).type);
+        user.currentCosmetic[slot] = cosmetic._id;
 
         await user.save();
         return user;

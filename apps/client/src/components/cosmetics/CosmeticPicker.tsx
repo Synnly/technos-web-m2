@@ -15,9 +15,20 @@ export default function CosmeticPicker({ username }: { username: string }) {
 	const { isAuthenticated } = useAuth();
 	const [allCosmetics, setAllCosmetics] = useState<Cosmetic[]>([]);
 	const [ownedIds, setOwnedIds] = useState<string[]>([]);
-	const [applied, setApplied] = useState<string | null>(
-		localStorage.getItem("appliedCosmetic"),
-	);
+	const parseStored = () => {
+		try {
+			const raw = localStorage.getItem("appliedCosmetics");
+			if (!raw) return [] as string[];
+			const parsed = JSON.parse(raw);
+			if (Array.isArray(parsed)) return parsed.map(String);
+			return [String(parsed)];
+		} catch (e) {
+			const raw = localStorage.getItem("appliedCosmetic");
+			if (raw) return [String(raw)];
+			return [] as string[];
+		}
+	};
+	const [applied, setApplied] = useState<string[]>(parseStored());
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +56,15 @@ export default function CosmeticPicker({ username }: { username: string }) {
 						),
 					);
 					if (user?.currentCosmetic) {
-						setApplied(String(user.currentCosmetic));
-						localStorage.setItem(
-							"appliedCosmetic",
-							String(user.currentCosmetic),
-						);
+						const normalize = (val: any): string[] => {
+							if (!val) return [];
+							if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0, 2);
+							if (typeof val === 'object' && val._id) return [String(val._id)];
+							return [String(val)];
+						};
+						const arr = normalize(user.currentCosmetic);
+						setApplied(arr);
+						localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
 					}
 				})
 				.catch(() => {
@@ -58,35 +73,43 @@ export default function CosmeticPicker({ username }: { username: string }) {
 		}
 	}, [username]);
 
-	const apply = async (id: string) => {
-		setError(null);
-		setApplied(id);
-		localStorage.setItem("appliedCosmetic", id);
-		const token = localStorage.getItem("token");
-		try {
-			const res = await axios.put(
-				`${API_URL}/user/${username}`,
-				{ currentCosmetic: id },
-				{ headers: token ? { Authorization: `Bearer ${token}` } : {} },
-			);
-			const updatedUser = res.data;
-			if (updatedUser?.currentCosmetic) {
-				setApplied(String(updatedUser.currentCosmetic));
-				localStorage.setItem(
-					"appliedCosmetic",
-					String(updatedUser.currentCosmetic),
+		const apply = async (id: string) => {
+			setError(null);
+			const cos = allCosmetics.find((c) => String(c._id) === String(id));
+			const slot = cos && cos.type && String(cos.type).toLowerCase().includes('color') ? 0 : 1;
+			const current = Array.isArray(applied) ? [...applied] : [];
+			current[slot] = id;
+			setApplied(current);
+			localStorage.setItem("appliedCosmetics", JSON.stringify(current));
+			const token = localStorage.getItem("token");
+			try {
+				const res = await axios.put(
+					`${API_URL}/user/${username}`,
+					{ currentCosmetic: current },
+					{ headers: token ? { Authorization: `Bearer ${token}` } : {} },
 				);
-			} else {
-				setApplied(id);
-				localStorage.setItem("appliedCosmetic", id);
+				const updatedUser = res.data;
+				if (updatedUser?.currentCosmetic) {
+					const normalize = (val: any): string[] => {
+						if (!val) return [];
+						if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0, 2);
+						if (typeof val === 'object' && val._id) return [String(val._id)];
+						return [String(val)];
+					};
+					const arr = normalize(updatedUser.currentCosmetic);
+					setApplied(arr);
+					localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
+				} else {
+					setApplied(current);
+					localStorage.setItem("appliedCosmetics", JSON.stringify(current));
+				}
+			} catch (err: any) {
+				setError(
+					err?.response?.data?.message ||
+						"Impossible d'appliquer sur le serveur",
+				);
 			}
-		} catch (err: any) {
-			setError(
-				err?.response?.data?.message ||
-					"Impossible d'appliquer sur le serveur",
-			);
-		}
-	};
+		};
 
 	const owned = allCosmetics.filter((c) => ownedIds.includes(String(c._id)));
 
@@ -124,10 +147,10 @@ export default function CosmeticPicker({ username }: { username: string }) {
 								</div>
 								<div>
 									<button
-										className={`px-3 py-1 rounded ${applied === String(c._id) ? "bg-green-600 text-white" : "bg-gray-200"}`}
+										className={`px-3 py-1 rounded ${applied.includes(String(c._id)) ? "bg-green-600 text-white" : "bg-gray-200"}`}
 										onClick={() => apply(String(c._id))}
 									>
-										{applied === String(c._id)
+										{applied.includes(String(c._id))
 											? "Appliqué"
 											: "Appliquer"}
 									</button>

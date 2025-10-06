@@ -88,10 +88,12 @@ export class User {
 
 	/**
 	 * Cosmétique actuellement appliqué par l'utilisateur (persisté).
-	 * Peut être null si aucun cosmétique n'est appliqué.
+	 * Représente jusqu'à deux cosmétiques appliqués par l'utilisateur.
+	 * - index 0 : cosmetic de type COLOR (ou undefined)
+	 * - index 1 : cosmetic de type BADGE (ou undefined)
 	 */
-	@Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic", default: null })
-	currentCosmetic: string | null;
+	@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic" }], default: [] })
+	currentCosmetic: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

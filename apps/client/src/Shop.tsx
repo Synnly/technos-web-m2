@@ -16,9 +16,20 @@ export default function Shop() {
 	const { isAuthenticated, username } = useAuth();
 	const [allCosmetics, setAllCosmetics] = useState<Cosmetic[]>([]);
 	const [ownedIds, setOwnedIds] = useState<string[]>([]);
-	const [currentApplied, setCurrentApplied] = useState<string | null>(
-		localStorage.getItem("appliedCosmetic"),
-	);
+	const parseStored = () => {
+		try {
+			const raw = localStorage.getItem("appliedCosmetics");
+			if (!raw) return [] as string[];
+			const parsed = JSON.parse(raw);
+			if (Array.isArray(parsed)) return parsed.map(String);
+			return [String(parsed)];
+		} catch (e) {
+			const raw = localStorage.getItem("appliedCosmetic");
+			if (raw) return [String(raw)];
+			return [] as string[];
+		}
+	};
+	const [currentApplied, setCurrentApplied] = useState<string[]>(parseStored());
 	const [loading, setLoading] = useState(false);
 	const [buyingId, setBuyingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -49,12 +60,16 @@ export default function Shop() {
 					);
 					setPoints(user?.points ?? null);
 					if (user?.currentCosmetic) {
-						setCurrentApplied(String(user.currentCosmetic));
-						localStorage.setItem(
-							"appliedCosmetic",
-							String(user.currentCosmetic),
-						);
-					}
+						const normalize = (val: any): string[] => {
+						if (!val) return [];
+						if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0,2);
+						if (typeof val === 'object' && val._id) return [String(val._id)];
+						return [String(val)];
+					};
+					const arr = normalize(user.currentCosmetic);
+					setCurrentApplied(arr);
+					localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
+				}
 				})
 				.catch(() => {
 					setOwnedIds([]);
@@ -102,11 +117,15 @@ export default function Shop() {
 			if (typeof updatedUser?.points === "number")
 				setPoints(updatedUser.points);
 			if (updatedUser?.currentCosmetic) {
-				setCurrentApplied(String(updatedUser.currentCosmetic));
-				localStorage.setItem(
-					"appliedCosmetic",
-					String(updatedUser.currentCosmetic),
-				);
+				const normalize = (val: any): string[] => {
+					if (!val) return [];
+					if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0,2);
+					if (typeof val === 'object' && val._id) return [String(val._id)];
+					return [String(val)];
+				};
+				const arr = normalize(updatedUser.currentCosmetic);
+				setCurrentApplied(arr);
+				localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
 			}
 
 			alert("Achat réussi");
@@ -202,8 +221,7 @@ export default function Shop() {
 									<div>
 										<div className="font-medium">
 											{c.name}{" "}
-											{currentApplied ===
-												String(c._id) && (
+												{currentApplied.includes(String(c._id)) && (
 												<span className="text-green-600 text-sm">
 													(Appliqué)
 												</span>
@@ -214,69 +232,37 @@ export default function Shop() {
 										</div>
 									</div>
 									<div className="mt-3">
-										{currentApplied === String(c._id) ? (
+										{currentApplied.includes(String(c._id)) ? (
 											<button className="px-3 py-1 bg-green-600 text-white rounded">
 												Appliqué
 											</button>
 										) : (
 											<button
 												onClick={async () => {
-													if (!username)
-														return setError(
-															"Utilisateur introuvable",
-														);
-													const token =
-														localStorage.getItem(
-															"token",
-														);
+													if (!username) return setError("Utilisateur introuvable");
+													const token = localStorage.getItem("token");
 													try {
-														const res =
-															await axios.put(
-																`${API_URL}/user/${username}`,
-																{
-																	currentCosmetic:
-																		c._id,
-																},
-																{
-																	headers:
-																		token
-																			? {
-																					Authorization: `Bearer ${token}`,
-																				}
-																			: {},
-																},
-															);
-														const updated =
-															res.data;
-														if (
-															updated?.currentCosmetic
-														) {
-															setCurrentApplied(
-																String(
-																	updated.currentCosmetic,
-																),
-															);
-															localStorage.setItem(
-																"appliedCosmetic",
-																String(
-																	updated.currentCosmetic,
-																),
-															);
-														} else {
-															setCurrentApplied(
-																String(c._id),
-															);
-															localStorage.setItem(
-																"appliedCosmetic",
-																String(c._id),
-															);
-														}
-													} catch (err: any) {
-														setError(
-															err?.response?.data
-																?.message ||
-																"Impossible d'appliquer",
+														const slot = c.type && String(c.type).toLowerCase().includes('color') ? 0 : 1;
+														const newArr = [...currentApplied];
+														newArr[slot] = String(c._id);
+
+														const res = await axios.put(
+															`${API_URL}/user/${username}`,
+															{ currentCosmetic: newArr },
+															{ headers: token ? { Authorization: `Bearer ${token}` } : {} },
 														);
+														const updated = res.data;
+														const normalize = (val: any): string[] => {
+															if (!val) return [];
+															if (Array.isArray(val)) return val.filter(Boolean).map(String).slice(0, 2);
+															if (typeof val === 'object' && val._id) return [String(val._id)];
+															return [String(val)];
+														};
+														const arr = normalize(updated?.currentCosmetic ?? newArr);
+														setCurrentApplied(arr);
+														localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
+													} catch (err: any) {
+														setError(err?.response?.data?.message || "Impossible d'appliquer");
 													}
 												}}
 												className="px-3 py-1 bg-gray-200 rounded"
