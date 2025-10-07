@@ -10,8 +10,6 @@ export const userService = {
 				headers: { Authorization: `Bearer ${token}` },
 			},
 		);
-		console.log("Je suis la réponse");
-		console.log(response.data);
 		return response.data;
 	},
 };
