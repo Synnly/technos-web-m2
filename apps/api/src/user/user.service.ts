@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { User, UserDocument } from "../user/user.schema";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { Cosmetic } from "../../src/cosmetic/cosmetic.schema";
 
 
 @Injectable()
@@ -101,6 +102,25 @@ export class UserService {
             }
             existingUser.points = user.points ?? existingUser.points;
             existingUser.dateDerniereRecompenseQuotidienne = user.dateDerniereRecompenseQuotidienne ?? existingUser.dateDerniereRecompenseQuotidienne;
+            if (user.hasOwnProperty('currentCosmetic')) {
+               
+                const normalize = (val: any): (string | null)[] => {
+                    const out: (string | null)[] = [null, null];
+                    if (!val) return out;
+                    if (Array.isArray(val)) {
+                        if (val[0]) out[0] = String(val[0]);
+                        if (val[1]) out[1] = String(val[1]);
+                        return out;
+                    }
+                    if (typeof val === 'object' && val._id) {
+                        out[0] = String(val._id);
+                        return out;
+                    }
+                    out[0] = String(val);
+                    return out;
+                };
+                existingUser.currentCosmetic = normalize(user.currentCosmetic);
+            }
             
             return await existingUser.save();
         } else {                // Crée un nouvel utilisateur
@@ -111,6 +131,24 @@ export class UserService {
                 motDePasse: hash
             }
             const newUser = new this.userModel(reqBody);
+            if (user.hasOwnProperty('currentCosmetic')) {
+                const normalize = (val: any): (string | null)[] => {
+                    const out: (string | null)[] = [null, null];
+                    if (!val) return out;
+                    if (Array.isArray(val)) {
+                        if (val[0]) out[0] = String(val[0]);
+                        if (val[1]) out[1] = String(val[1]);
+                        return out;
+                    }
+                    if (typeof val === 'object' && val._id) {
+                        out[0] = String(val._id);
+                        return out;
+                    }
+                    out[0] = String(val);
+                    return out;
+                };
+                newUser.currentCosmetic = normalize(user.currentCosmetic);
+            }
             return await newUser.save();
         }
     }
@@ -176,4 +214,34 @@ export class UserService {
         await user.save();
         return pointsToAdd; // Retourne le nombre de points ajoutés
     }   
+
+    /**
+     * Permet à un utilisateur d'acheter un cosmétique.
+     * @param user l'utilisateur achetant le cosmétique
+     * @param cosmetic le cosmétique à acheter
+     * @returns l'utilisateur mis à jour après l'achat
+     */
+    async buyCosmetic(user, cosmetic: Cosmetic): Promise<User> {
+        user.points -= cosmetic.cost;
+        user.cosmeticsOwned.push(cosmetic._id);
+
+        // On stocke les cosmétiques appliqués dans un tableau fixe de (max) 2 positions
+        // index 0 = COLOR, index 1 = BADGE
+        if (!user.currentCosmetic || !Array.isArray(user.currentCosmetic)) {
+            user.currentCosmetic = [null, null];
+        } else {
+            user.currentCosmetic = [user.currentCosmetic[0] ?? null, user.currentCosmetic[1] ?? null];
+        }
+        const slotForType = (type: any) => {
+            if (!type) return 0;
+            if (String(type).toLowerCase().includes('color')) return 0;
+            return 1;
+        };
+
+    const slot = slotForType((cosmetic as any).type);
+    user.currentCosmetic[slot] = cosmetic._id;
+
+        await user.save();
+        return user;
+    }
 }

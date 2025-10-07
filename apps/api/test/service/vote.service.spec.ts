@@ -13,7 +13,9 @@ const expectedUser1 = {
     dateDerniereRecompenseQuotidienne: null,
     predictions: [],
     votes: [],
-    role: 'user'
+    role: 'user',
+    cosmeticsOwned: [],
+    currentCosmetic: [],
 } as User;
 
 const expectedPred1 = {
@@ -36,7 +38,6 @@ const expectedVote1 = {
     date: new Date()
 } as Vote;
 
-// Mock Mongoose Model shape
 interface MockVoteModel {
     new (data: any): { save: jest.Mock; [key: string]: any };
     find: jest.Mock;

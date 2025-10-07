@@ -5,7 +5,7 @@ import {
 	Prediction,
 	PredictionStatus,
 } from '../../src/prediction/prediction.schema';
-import { User } from '../../src/user/user.schema';
+import { User, Role } from '../../src/user/user.schema';
 import { Vote } from '../../src/vote/vote.schema';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
@@ -17,9 +17,11 @@ const expectedUser1 = {
 	motDePasse: 'H@sh3dpassword',
 	points: 50,
 	dateDerniereRecompenseQuotidienne: null,
+	role: Role.USER,
 	predictions: [],
 	votes: [],
-	role: 'user',
+	cosmeticsOwned: [],
+	currentCosmetic: [],
 } as User;
 
 const expectedPred1 = {
@@ -48,7 +50,6 @@ const expectedPred2 = {
 
 const expectedPredictions = [expectedPred1, expectedPred2];
 
-// Mock Mongoose Model shape
 interface MockPredModel {
 	new (data: any): { save: jest.Mock; [key: string]: any };
 	find: jest.Mock;
@@ -377,7 +378,7 @@ describe('PredictionService', () => {
 		});
 
 		it('should distribute rewards correctly and update prediction', async () => {
-			const pred = { ...expectedPred1, save: jest.fn() }; // clone avec save
+			const pred = { ...expectedPred1, save: jest.fn() };
 			const fakeVotes = [
 				{ user_id: 'u1', option: 'yes', amount: 4 },
 				{ user_id: 'u2', option: 'no', amount: 5 },

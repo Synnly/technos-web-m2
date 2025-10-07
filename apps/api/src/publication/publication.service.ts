@@ -38,8 +38,17 @@ export class PublicationService {
      * @returns Une promesse avec un tableau de publications
      */
     async getAll(): Promise<Publication[]> {
-        const pubs = await this.publicationModel.find().populate('user_id', 'username').populate('prediction_id', 'title').exec();
-        return (pubs as any[]).map((d) => this.normalizePub(d));
+        const pubs = await this.publicationModel.find().exec();
+        let populated: any[] = pubs as any[];
+        try {
+            populated = await (this.publicationModel as any).populate(pubs, [
+                { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },
+                { path: 'prediction_id', select: 'title' }
+            ]);
+        } catch (e) {
+            populated = pubs as any[];
+        }
+        return (populated as any[]).map((d) => this.normalizePub(d));
     }
 
     /**
@@ -48,9 +57,17 @@ export class PublicationService {
      * @returns Une promesse avec la publication ou undefined si elle n'existe pas.
      */
     async getById(id: string): Promise<Publication | undefined> {
-        const pub = await this.publicationModel.findById(id).populate('user_id', 'username').populate('prediction_id', 'title').exec() ?? undefined;
-        if (!pub) return undefined;
-        return this.normalizePub(pub) as Publication;
+        const doc = await this.publicationModel.findById(id).exec();
+        if (!doc) return undefined;
+        try {
+            const populatedDoc = await (this.publicationModel as any).populate(doc, [
+                { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },
+                { path: 'prediction_id', select: 'title' }
+            ]);
+            return this.normalizePub(populatedDoc) as Publication;
+        } catch (e) {
+            return this.normalizePub(doc) as Publication;
+        }
     }
 
     /**
@@ -62,7 +79,15 @@ export class PublicationService {
         const safePub = { ...pub } as any;
         const newPub = new this.publicationModel(safePub);
         const created = await newPub.save();
-        return this.normalizePub(created) as Publication;
+        try {
+            const populated = await (this.publicationModel as any).populate(created, [
+                { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },
+                { path: 'prediction_id', select: 'title' }
+            ]);
+            return this.normalizePub(populated ?? created) as Publication;
+        } catch (e) {
+            return this.normalizePub(created) as Publication;
+        }
     }
 
     /**
@@ -80,12 +105,29 @@ export class PublicationService {
             existing.parentPublication_id = pub.parentPublication_id ?? existing.parentPublication_id;
             existing.user_id = pub.user_id ?? existing.user_id;
             existing.likes = pub.likes ?? existing.likes;
-            return await existing.save();
+            const saved = await existing.save();
+            try {
+                const populated = await (this.publicationModel as any).populate(saved, [
+                    { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },
+                    { path: 'prediction_id', select: 'title' }
+                ]);
+                return this.normalizePub(populated ?? saved) as Publication;
+            } catch (e) {
+                return this.normalizePub(saved) as Publication;
+            }
         } else {
             const toCreate = { ...pub } as any;
             const newPub = new this.publicationModel(toCreate);
             const created = await newPub.save();
-            return this.normalizePub(created) as Publication;
+            try {
+                const populated = await (this.publicationModel as any).populate(created, [
+                    { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },
+                    { path: 'prediction_id', select: 'title' }
+                ]);
+                return this.normalizePub(populated ?? created) as Publication;
+            } catch (e) {
+                return this.normalizePub(created) as Publication;
+            }
         }
     }
 
@@ -122,6 +164,14 @@ export class PublicationService {
         }
 
         await publication.save();
-        return this.normalizePub(publication) as Publication;
+        try {
+            const populated = await (this.publicationModel as any).populate(publication, [
+                { path: 'user_id', select: 'username currentCosmetic', populate: { path: 'currentCosmetic', model: 'Cosmetic' } },
+                { path: 'prediction_id', select: 'title' }
+            ]);
+            return this.normalizePub(populated ?? publication) as Publication;
+        } catch (e) {
+            return this.normalizePub(publication) as Publication;
+        }
     }
 }

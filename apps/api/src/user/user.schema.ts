@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 import { Prediction } from "../prediction/prediction.schema";
 import { Vote } from "../vote/vote.schema";
+import { Cosmetic } from "src/cosmetic/cosmetic.schema";
 export type UserDocument = User & Document;
 
 /**
@@ -76,6 +77,23 @@ export class User {
 	 */
 	@Prop({ type: String, enum: Role, required: true, default: Role.USER })
 	role: Role;
+
+
+	/**
+	 * Liste des cosmétiques possédés par l'utilisateur.
+	 * Ce champ est une liste de chaînes représentant les identifiants des cosmétiques.
+	 */
+	@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic" }], default: [] })
+	cosmeticsOwned: string[];
+
+	/**
+	 * Cosmétique actuellement appliqué par l'utilisateur (persisté).
+	 * Représente jusqu'à deux cosmétiques appliqués par l'utilisateur.
+	 * - index 0 : cosmetic de type COLOR ou vide
+	 * - index 1 : cosmetic de type BADGE ou vide
+	 */
+	@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cosmetic" }], default: [] })
+	currentCosmetic: (string | null)[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
