@@ -1,6 +1,7 @@
 import type { NavigationItemProps } from "../navigation-item/NavigationItem.interface";
 
 export interface NavigationSectionProps {
-    title: string;
-    items: NavigationItemProps[];
+	title: string;
+	collapsed?: boolean;
+	items: NavigationItemProps[];
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -139,7 +139,7 @@ function Index() {
 
 	const claimDailyReward = async (user: any) => {
 		if (!username) return;
-        
+
 		if (
 			user.dateDerniereRecompenseQuotidienne &&
 			new Date(user.dateDerniereRecompenseQuotidienne).toDateString() ===
@@ -172,95 +172,109 @@ function Index() {
 	}
 
 	return (
-		<div className="max-w-3xl mx-auto p-4">
-			<Sidebar />
-			<header className="flex items-center justify-between mb-4">
-				<h1 className="text-2xl font-bold">Publications</h1>
-				{isAuthenticated ? (
-					<div className="flex items-center gap-2">
-						<button
-							onClick={() => setShowOnlyMine((s) => !s)}
-							className={`px-3 py-1 ${showOnlyMine ? "bg-green-500 text-white" : "bg-white border"} rounded`}
-						>
-							{showOnlyMine
-								? "Toutes les prédictions"
-								: "Mes prédictions"}
-						</button>
-						<button
-							onClick={() => setShowForm((s) => !s)}
-							className="px-3 py-1 bg-blue-500 text-white rounded"
-						>
-							{showForm ? "Annuler" : "Créer une prédiction"}
-						</button>
-						<button
-							onClick={() => navigate("/shop")}
-							className="px-3 py-1 bg-indigo-500 text-white rounded"
-						>
-							Boutique
-						</button>
-						<button
-							onClick={handleLogout}
-							className="px-3 py-1 bg-gray-200 rounded"
-						>
-							Déconnexion
-						</button>
-					</div>
-				) : (
-					<div>
-						<p>
-							Veuillez vous connecter pour créer une prédiction.
-						</p>
-					</div>
-				)}
-			</header>
+		// <div className="max-w-3xl mx-auto p-4">
 
-			{showForm && isAuthenticated && (
-				<CreatePredictionForm
-					username={username}
-					fetchPredictions={fetchPredictions}
-					onClose={() => setShowForm(false)}
-					setToast={setToast as any}
-				/>
-			)}
+		// 	<header className="flex items-center justify-between mb-4">
+		// 		<h1 className="text-2xl font-bold">Publications</h1>
+		// 		{isAuthenticated ? (
+		// 			<div className="flex items-center gap-2">
+		// 				<button
+		// 					onClick={() => setShowOnlyMine((s) => !s)}
+		// 					className={`px-3 py-1 ${showOnlyMine ? "bg-green-500 text-white" : "bg-white border"} rounded`}
+		// 				>
+		// 					{showOnlyMine
+		// 						? "Toutes les prédictions"
+		// 						: "Mes prédictions"}
+		// 				</button>
+		// 				<button
+		// 					onClick={() => setShowForm((s) => !s)}
+		// 					className="px-3 py-1 bg-blue-500 text-white rounded"
+		// 				>
+		// 					{showForm ? "Annuler" : "Créer une prédiction"}
+		// 				</button>
+		// 				<button
+		// 					onClick={() => navigate("/shop")}
+		// 					className="px-3 py-1 bg-indigo-500 text-white rounded"
+		// 				>
+		// 					Boutique
+		// 				</button>
+		// 				<button
+		// 					onClick={handleLogout}
+		// 					className="px-3 py-1 bg-gray-200 rounded"
+		// 				>
+		// 					Déconnexion
+		// 				</button>
+		// 			</div>
+		// 		) : (
+		// 			<div>
+		// 				<p>
+		// 					Veuillez vous connecter pour créer une prédiction.
+		// 				</p>
+		// 			</div>
+		// 		)}
+		// 	</header>
 
-			<section>
-				{user && (
-					<div className="mb-4">Vous avez {user.points} points.</div>
-				)}
-				{user &&
-				(!user.dateDerniereRecompenseQuotidienne ||
-					new Date(
-						user.dateDerniereRecompenseQuotidienne,
-					).toDateString() !== new Date().toDateString()) ? (
-					<button
-						onClick={() => claimDailyReward(user)}
-						className="mb-4 px-3 py-1 bg-yellow-500 text-white rounded"
-					>
-						Réclamer la récompense quotidienne (+10 points)
-					</button>
-				) : null}
-			</section>
+		// 	{showForm && isAuthenticated && (
+		// 		<CreatePredictionForm
+		// 			username={username}
+		// 			fetchPredictions={fetchPredictions}
+		// 			onClose={() => setShowForm(false)}
+		// 			setToast={setToast as any}
+		// 		/>
+		// 	)}
 
-			<section>
-				{loading ? (
-					<div>Chargement...</div>
-				) : predictions.length === 0 ? (
-					<div>Aucune publication pour le moment.</div>
-				) : (
-					<PredictionsList
-						predictions={predictions}
-						usersMap={usersMap}
-						currentId={getCurrentUserId()}
-						onDelete={deletePrediction}
-						deletingId={deletingId}
-						showOnlyMine={showOnlyMine}
-					/>
-				)}
-			</section>
+		// 	<section>
+		// 		{user && (
+		// 			<div className="mb-4">Vous avez {user.points} points.</div>
+		// 		)}
+		// 		{user &&
+		// 		(!user.dateDerniereRecompenseQuotidienne ||
+		// 			new Date(
+		// 				user.dateDerniereRecompenseQuotidienne,
+		// 			).toDateString() !== new Date().toDateString()) ? (
+		// 			<button
+		// 				onClick={() => claimDailyReward(user)}
+		// 				className="mb-4 px-3 py-1 bg-yellow-500 text-white rounded"
+		// 			>
+		// 				Réclamer la récompense quotidienne (+10 points)
+		// 			</button>
+		// 		) : null}
+		// 	</section>
 
-			{/* confirmation uses native confirm() */}
+		// 	<section>
+		// 		{loading ? (
+		// 			<div>Chargement...</div>
+		// 		) : predictions.length === 0 ? (
+		// 			<div>Aucune publication pour le moment.</div>
+		// 		) : (
+		// 			<PredictionsList
+		// 				predictions={predictions}
+		// 				usersMap={usersMap}
+		// 				currentId={getCurrentUserId()}
+		// 				onDelete={deletePrediction}
+		// 				deletingId={deletingId}
+		// 				showOnlyMine={showOnlyMine}
+		// 			/>
+		// 		)}
+		// 	</section>
 
-			{/* Toast */}
+		// 	{/* confirmation uses native confirm() */}
+
+		// 	{/* Toast */}
+		// 	{toast && (
+		// 		<div className="fixed bottom-4 right-4 bg-black text-white px-3 py-2 rounded">
+		// 			{toast}
+		// 		</div>
+		// 	)}
+		// </div>
+		<div>
+			<Sidebar
+				user={user}
+				token={token!}
+				setUser={setUser}
+				setPoints={setPoints}
+				setToast={setToast}
+			/>
 			{toast && (
 				<div className="fixed bottom-4 right-4 bg-black text-white px-3 py-2 rounded">
 					{toast}

@@ -1,0 +1,29 @@
+import { userService } from "./user.service";
+
+export const userResolver = {
+	async claimDailyReward(user: any, token: string) {
+		if (
+			user.dateDerniereRecompenseQuotidienne &&
+			new Date(user.dateDerniereRecompenseQuotidienne).toDateString() ===
+				new Date().toDateString()
+		) {
+			return {
+				updatedUser: user,
+				newPoints: user.points,
+				message: "Récompense déjà réclamée aujourd'hui",
+			};
+		}
+
+		const updatedUser = await userService.claimDailyReward(
+			user.username,
+			token,
+		);
+
+		const newPoints = updatedUser.points || 0;
+		return {
+			updatedUser,
+			newPoints,
+			message: "Récompense quotidienne réclamée ! +10 points",
+		};
+	},
+};
