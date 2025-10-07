@@ -311,7 +311,7 @@ export class PredictionService {
 	 * @returns Une liste de 10 résumés de pages web correspondant à la recherche
 	 * @throws Error si la clé API LangSearch est absente
 	 */
-	private async queryWebSearch(title: string): Promise<String[]> {
+	async queryWebSearch(title: string): Promise<String[]> {
 		const LANGSEARCH_API_KEY =
 			this.configService.get<string>("LANGSEARCH_API_KEY");
 		if (!LANGSEARCH_API_KEY)
@@ -348,7 +348,7 @@ export class PredictionService {
 	 * @returns La liste réordonnée des 5 documents les plus pertinents
 	 * @throws Error si la clé API LangSearch est absente
 	 */
-	private async rerankDocuments(
+	async rerankDocuments(
 		title: string,
 		documents: String[],
 	): Promise<String[]> {
@@ -383,7 +383,7 @@ export class PredictionService {
 	 * @returns La requête générée
 	 * @throws Error si la clé API OpenAI est absente, ou si l'IA n'arrive pas à identifier deux mots clés
 	 */
-	private async getQueryFromTitle(title: string): Promise<string> {
+	async getQueryFromTitle(title: string): Promise<string> {
 		const OPENAI_API_KEY = this.configService.get<string>("OPENAI_API_KEY");
 		if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
 
@@ -435,12 +435,11 @@ export class PredictionService {
 				this.configService.get<string>("OPENAI_API_KEY");
 			if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
 		}
+		else return;
 
 		// Préparation des documents pour la prédiction de l'IA
 		const prediction = await this.getById(id);
 		if (!prediction) throw new Error("Prédiction non trouvée");
-
-		if (this.configService.get<string>("ENABLE_AI_PRONOSTICS") !== "true") return;
 
 		const query = await this.getQueryFromTitle(prediction.title);
 		const startTime = Date.now();
