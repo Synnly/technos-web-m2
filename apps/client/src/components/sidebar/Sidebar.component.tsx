@@ -8,6 +8,7 @@ import { userController } from "../../modules/user/user.controller";
 import type { SidebarProps } from "./Sidebar.interface";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import React from "react";
 
 const Sidebar: React.FC<SidebarProps> = ({
 	user,
@@ -16,9 +17,21 @@ const Sidebar: React.FC<SidebarProps> = ({
 	setPoints,
 	setToast,
 }) => {
-	const [collapsed, setCollapsed] = useState(false);
 	const navigate = useNavigate();
 	const { logout } = useAuth();
+
+	const [collapsed, setCollapsed] = React.useState(() => {
+		const saved = localStorage.getItem("sidebar-collapsed");
+		return saved ? JSON.parse(saved) : false;
+	});
+
+	React.useEffect(() => {
+		localStorage.setItem("sidebar-collapsed", JSON.stringify(collapsed));
+	}, [collapsed]);
+
+	const toggleSidebar = () => {
+		setCollapsed((prev : Boolean) => !prev);
+	};
 
 	const handleClick = () => {
 		userController.claimDailyReward(
@@ -43,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 			<div className="p-4 flex flex-col h-full">
 				<nav className="space-y-2 flex-1">
 					<div
-						onClick={() => setCollapsed(!collapsed)}
+						onClick={toggleSidebar}
 						className={
 							collapsed
 								? "text-gray-400 hover:text-white mb-4 flex justify-center"
