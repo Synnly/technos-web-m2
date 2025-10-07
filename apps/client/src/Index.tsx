@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CreatePredictionForm from "./components/predictions/CreatePredictionForm";
 import PredictionsList from "./components/predictions/PredictionsList";
+import Sidebar from "./components/sidebar/Sidebar.component";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -172,6 +173,7 @@ function Index() {
 
 	return (
 		<div className="max-w-3xl mx-auto p-4">
+			<Sidebar />
 			<header className="flex items-center justify-between mb-4">
 				<h1 className="text-2xl font-bold">Publications</h1>
 				{isAuthenticated ? (
