@@ -67,7 +67,7 @@ const DailyRewards: React.FC<{
 
 						{pointdejaRecup ? (
 							<span className="text-xs text-green-400 font-semibold">
-								Récompense déjà récupéré
+								Récompense déjà récupérée
 							</span>
 						) : (
 							<span className="text-xs text-yellow-300 font-semibold">

@@ -1,3 +1,4 @@
+import type { Toast } from "../../components/toast/Toast.interface";
 import type { User } from "./user.interface";
 import { userResolver } from "./user.resolver";
 
@@ -7,17 +8,17 @@ export const userController = {
 		token: string,
 		setUser: any,
 		setPoints: any,
-		setToast: any,
+		setToast : React.Dispatch<React.SetStateAction<Toast | null>>,
 	) {
 		try {
-			const { updatedUser, newPoints, message } =
+			const { updatedUser, newPoints, message, type } =
 				await userResolver.claimDailyReward(user, token);
 			setUser(updatedUser);
 			setPoints(newPoints);
-			setToast(message);
+			setToast({message, type});
 		} catch (err: any) {
 			const msg = err?.message || "Erreur lors de la réclamation";
-			setToast(msg);
+			setToast({message : msg,  type : "error"});
 		}
 	},
 };

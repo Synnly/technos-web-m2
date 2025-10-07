@@ -1,10 +1,12 @@
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CreatePredictionForm from "./components/predictions/CreatePredictionForm";
 import PredictionsList from "./components/predictions/PredictionsList";
 import Sidebar from "./components/sidebar/Sidebar.component";
+import ToastComponent from "./components/toast/Toast.component";
+import type { Toast } from "./components/toast/Toast.interface";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -80,11 +82,6 @@ function Index() {
 		}
 	}, [isAuthenticated]);
 
-	const handleLogout = () => {
-		logout();
-		navigate("/signin");
-	};
-
 	const getCurrentUserId = () => {
 		if (!username) return undefined;
 		const entry = Object.entries(usersMap).find(([, u]) => u === username);
@@ -92,7 +89,9 @@ function Index() {
 	};
 
 	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const [toast, setToast] = useState<string | null>(null);
+	const [toast, setToast] = useState<Toast | null>(null);
+
+	const clearToast = useCallback(() => setToast(null), []);
 
 	const deletePrediction = async (id: string) => {
 		if (!confirm("Supprimer cette prédiction ?")) return;
@@ -103,7 +102,7 @@ function Index() {
 			await axios.delete(`${API_URL}/prediction/${id}`, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
-			setToast("Prédiction supprimée");
+			setToast({message : "Prédiction supprimée", type : "success"});
 			await fetchPredictions();
 		} catch (err: any) {
 			console.error(err);
@@ -115,12 +114,6 @@ function Index() {
 			setDeletingId(null);
 		}
 	};
-
-	useEffect(() => {
-		if (!toast) return;
-		const t = setTimeout(() => setToast(null), 3000);
-		return () => clearTimeout(t);
-	}, [toast]);
 
 	const fetchUser = async (username: string) =>
 		setUser(
@@ -137,30 +130,6 @@ function Index() {
 		}
 	}, [username]);
 
-	const claimDailyReward = async (user: any) => {
-		if (!username) return;
-
-		if (
-			user.dateDerniereRecompenseQuotidienne &&
-			new Date(user.dateDerniereRecompenseQuotidienne).toDateString() ===
-				new Date().toDateString()
-		) {
-			return;
-		}
-		try {
-			const updatedUser = await axios.get(
-				`${API_URL}/user/${username}/daily-reward`,
-				{ headers: { Authorization: `Bearer ${token}` } },
-			);
-			setUser(updatedUser.data);
-			setPoints(updatedUser.data.points || 0);
-			setToast("Récompense quotidienne réclamée ! +10 points");
-		} catch (err: any) {
-			const msg =
-				err?.response?.data?.message || "Erreur lors de la réclamation";
-			setToast(msg);
-		}
-	};
 
 	if (!isAuthenticated) {
 		return (
@@ -276,9 +245,11 @@ function Index() {
 				setToast={setToast}
 			/>
 			{toast && (
-				<div className="fixed bottom-4 right-4 bg-black text-white px-3 py-2 rounded">
-					{toast}
-				</div>
+				<ToastComponent
+					message={toast.message!}
+					type={toast.type!}
+					onClose={clearToast}
+				/>
 			)}
 		</div>
 	);

@@ -1,3 +1,4 @@
+import type { ToastType } from "../../components/toast/Toast.interface";
 import { userService } from "./user.service";
 
 export const userResolver = {
@@ -11,6 +12,7 @@ export const userResolver = {
 				updatedUser: user,
 				newPoints: user.points,
 				message: "Récompense déjà réclamée aujourd'hui",
+				type: "info" as ToastType,
 			};
 		}
 
@@ -24,6 +26,7 @@ export const userResolver = {
 			updatedUser,
 			newPoints,
 			message: "Récompense quotidienne réclamée ! +10 points",
+			type: "success" as ToastType,
 		};
 	},
 };
