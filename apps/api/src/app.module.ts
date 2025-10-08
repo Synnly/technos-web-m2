@@ -2,12 +2,10 @@ import {
 	MiddlewareConsumer,
 	Module,
 	NestModule,
-	RequestMethod,
 } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { JwtModule } from "@nestjs/jwt";
 import { ConfigModule } from "@nestjs/config";
-import { isAuthenticated } from "./app.middleware";
 import { User, UserSchema } from "./user/user.schema";
 import { Prediction, PredictionSchema } from "./prediction/prediction.schema";
 import { Vote, VoteSchema } from "./vote/vote.schema";
@@ -43,17 +41,5 @@ import { Cosmetic, CosmeticSchema } from "./cosmetic/cosmetic.schema";
 	providers: [],
 })
 export class AppModule implements NestModule {
-	configure(consumer: MiddlewareConsumer) {
-		consumer
-			.apply(isAuthenticated)
-			.exclude({ path: "/api/user/login", method: RequestMethod.POST }) // Login
-			.exclude({ path: "/api/user", method: RequestMethod.POST }) // Create user
-			.forRoutes(
-				"/api/user",
-				"/api/vote",
-				"/api/prediction",
-				"/api/publication",
-				"/api/cosmetic",
-			);
-	}
+	configure(consumer: MiddlewareConsumer) {}
 }

@@ -4,6 +4,8 @@ import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
 import { Cosmetic, CosmeticType } from "../../src/cosmetic/cosmetic.schema";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Role } from "../../src/user/user.schema";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 
 const expectedCosmetic1: Cosmetic = {
 	_id: "c1",
@@ -45,6 +47,11 @@ describe("CosmeticController", () => {
 					provide: CosmeticService,
 					useValue: mockCosmeticService,
 				},
+				{
+					provide: JwtService,
+					useValue: { verify: jest.fn(), sign: jest.fn() },
+				},
+				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
 			],
 		}).compile();
 

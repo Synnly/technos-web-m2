@@ -12,6 +12,8 @@ import {
 	NotFoundException,
 } from "@nestjs/common/exceptions";
 import { HttpStatus } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 
 const expectedUser1 = {
 	_id: "1",
@@ -79,11 +81,16 @@ describe("PredictionController", () => {
 					provide: PredictionService,
 					useValue: mockPredictionService,
 				},
+				{
+					provide: JwtService,
+					useValue: { verify: jest.fn(), sign: jest.fn() },
+				},
+				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
 			],
 		}).compile();
 
-		predictionService = moduleRef.get(PredictionService);
 		predictionController = moduleRef.get(PredictionController);
+		predictionService = moduleRef.get(PredictionService);
 	});
 
 	describe("getPredictions", () => {

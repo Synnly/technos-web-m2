@@ -2,17 +2,18 @@ import { UserController } from "../../src/user/user.controller";
 import { UserService } from "../../src/user/user.service";
 import { Test } from "@nestjs/testing";
 import { Role, User } from "../../src/user/user.schema";
+import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import {
 	BadRequestException,
 	NotFoundException,
 	UnauthorizedException,
-    ForbiddenException,
+	ForbiddenException,
 } from "@nestjs/common";
 import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
 import { getModelToken } from "@nestjs/mongoose";
 import { CosmeticType } from "../../src/cosmetic/cosmetic.schema";
-import { Model } from 'mongoose';
+import { Model } from "mongoose";
 
 const expectedUser1 = {
 	_id: "1",
@@ -56,6 +57,7 @@ const mockUserService = {
 // Mock du JwtService
 const mockJwtService = {
 	sign: jest.fn().mockReturnValue("mock-jwt-token"),
+	verify: jest.fn(),
 };
 
 const mockCosmeticService = {
@@ -76,22 +78,31 @@ interface MockCosmeticModel {
 }
 
 const mockCosmeticModel = jest.fn().mockImplementation((data) => ({
-    ...data,
-    save: jest.fn().mockResolvedValue({
-        _id: '3',
-        ...data,
+	...data,
+	save: jest.fn().mockResolvedValue({
+		_id: "3",
+		...data,
 		owned: false,
-    })
+	}),
 })) as unknown as MockCosmeticModel;
 
 const mockUserModel = {
-	findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
-	findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
-	find: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedUser1, expectedUser2]) }),
-	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	findOne: jest
+		.fn()
+		.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	findById: jest
+		.fn()
+		.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	find: jest
+		.fn()
+		.mockReturnValue({
+			exec: jest.fn().mockResolvedValue([expectedUser1, expectedUser2]),
+		}),
+	findByIdAndUpdate: jest
+		.fn()
+		.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
 	create: jest.fn().mockResolvedValue(expectedUser1),
 } as any;
-
 
 describe("UserController", () => {
 	let userService: UserService;
@@ -128,6 +139,7 @@ describe("UserController", () => {
 					provide: getModelToken(User.name),
 					useValue: mockUserModel,
 				},
+				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
 			],
 		}).compile();
 
@@ -748,75 +760,126 @@ describe("UserController", () => {
 
 	describe("buyCosmetic", () => {
 		it("should buy a cosmetic when everything is valid", async () => {
-			const cosmeticId = 'cos1';
+			const cosmeticId = "cos1";
 			const username = expectedUser1.username;
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
-			mockCosmeticService.findById.mockResolvedValue({ _id: cosmeticId, cost: 10 });
-			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] } } as any;
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(expectedUser1),
+			});
+			mockCosmeticService.findById.mockResolvedValue({
+				_id: cosmeticId,
+				cost: 10,
+			});
+			const mockReq = {
+				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
+			} as any;
 			mockUserService.buyCosmetic.mockResolvedValue(expectedUser1);
 
 			await userController.buyCosmetic(cosmeticId, username, mockReq);
 
 			expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
-			expect(mockCosmeticService.findById).toHaveBeenCalledWith(cosmeticId);
-			expect(userService.buyCosmetic).toHaveBeenCalledWith(expectedUser1, expect.objectContaining({ _id: cosmeticId }));
+			expect(mockCosmeticService.findById).toHaveBeenCalledWith(
+				cosmeticId,
+			);
+			expect(userService.buyCosmetic).toHaveBeenCalledWith(
+				expectedUser1,
+				expect.objectContaining({ _id: cosmeticId }),
+			);
 		});
 
 		it("should throw NotFoundException when user not found", async () => {
-			const cosmeticId = 'cos1';
-			const username = 'unknown';
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
-			const mockReq = { user: { id: 'x', cosmeticsOwned: [] } } as any;
+			const cosmeticId = "cos1";
+			const username = "unknown";
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(null),
+			});
+			const mockReq = { user: { id: "x", cosmeticsOwned: [] } } as any;
 
-			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(NotFoundException);
+			await expect(
+				userController.buyCosmetic(cosmeticId, username, mockReq),
+			).rejects.toThrow(NotFoundException);
 		});
 
 		it("should throw BadRequestException when cosmeticId is missing", async () => {
-			const cosmeticId = '';
+			const cosmeticId = "";
 			const username = expectedUser1.username;
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
-			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] } } as any;
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(expectedUser1),
+			});
+			const mockReq = {
+				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
+			} as any;
 
-			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(BadRequestException);
+			await expect(
+				userController.buyCosmetic(cosmeticId, username, mockReq),
+			).rejects.toThrow(BadRequestException);
 		});
 
 		it("should throw ForbiddenException when request user id doesn't match search user", async () => {
-			const cosmeticId = 'cos1';
+			const cosmeticId = "cos1";
 			const username = expectedUser1.username;
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
-			const mockReq = { user: { id: 'otherId', cosmeticsOwned: [] } } as any;
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(expectedUser1),
+			});
+			const mockReq = {
+				user: { id: "otherId", cosmeticsOwned: [] },
+			} as any;
 
-			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(ForbiddenException);
+			await expect(
+				userController.buyCosmetic(cosmeticId, username, mockReq),
+			).rejects.toThrow(ForbiddenException);
 		});
 
 		it("should throw BadRequestException when user already owns cosmetic", async () => {
-			const cosmeticId = 'cos1';
+			const cosmeticId = "cos1";
 			const username = expectedUser1.username;
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
-			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [cosmeticId] } } as any;
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(expectedUser1),
+			});
+			const mockReq = {
+				user: {
+					id: (expectedUser1 as any)._id,
+					cosmeticsOwned: [cosmeticId],
+				},
+			} as any;
 
-			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(BadRequestException);
+			await expect(
+				userController.buyCosmetic(cosmeticId, username, mockReq),
+			).rejects.toThrow(BadRequestException);
 		});
 
 		it("should throw NotFoundException when cosmetic does not exist", async () => {
-			const cosmeticId = 'cos1';
+			const cosmeticId = "cos1";
 			const username = expectedUser1.username;
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(expectedUser1),
+			});
 			mockCosmeticService.findById.mockResolvedValue(null);
-			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] } } as any;
+			const mockReq = {
+				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
+			} as any;
 
-			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(NotFoundException);
+			await expect(
+				userController.buyCosmetic(cosmeticId, username, mockReq),
+			).rejects.toThrow(NotFoundException);
 		});
 
 		it("should throw BadRequestException when user has insufficient points", async () => {
-			const cosmeticId = 'cos1';
+			const cosmeticId = "cos1";
 			const username = expectedUser1.username;
-			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
-			mockCosmeticService.findById.mockResolvedValue({ _id: cosmeticId, cost: 9999 });
-			const mockReq = { user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] } } as any;
+			mockUserModel.findOne.mockReturnValue({
+				exec: jest.fn().mockResolvedValue(expectedUser1),
+			});
+			mockCosmeticService.findById.mockResolvedValue({
+				_id: cosmeticId,
+				cost: 9999,
+			});
+			const mockReq = {
+				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
+			} as any;
 
-			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(BadRequestException);
+			await expect(
+				userController.buyCosmetic(cosmeticId, username, mockReq),
+			).rejects.toThrow(BadRequestException);
 		});
 	});
 });
-

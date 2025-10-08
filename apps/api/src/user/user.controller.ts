@@ -13,6 +13,7 @@ import {
 	Req,
 	Res,
 	UnauthorizedException,
+	UseGuards,
 } from "@nestjs/common";
 import { Role, User, UserDocument } from "../user/user.schema";
 import { InjectModel } from '@nestjs/mongoose';
@@ -20,6 +21,7 @@ import { Model } from 'mongoose';
 import { UserService } from "./user.service";
 import { JwtService } from "@nestjs/jwt";
 import { CosmeticService } from "../cosmetic/cosmetic.service";
+import { AuthGuard } from "../guards/auth.guard";
 
 /**
  * Contrôleur pour gérer les opérations liées aux utilisateurs.
@@ -44,6 +46,7 @@ export class UserController {
 	 * Récupère tous les utilisateurs.
 	 * @returns La liste des utilisateurs
 	 */
+	@UseGuards(AuthGuard)
 	@Get("")
 	async getUsers(): Promise<User[]> {
 		const user = await this.userService.getAll();
@@ -57,6 +60,7 @@ export class UserController {
 	 * @throws {BadRequestException} si le nom d'utilisateur est manquant.
 	 * @throws {NotFoundException} si l'utilisateur n'existe pas.
 	 */
+	@UseGuards(AuthGuard)
 	@Get("/{:username}")
 	async getUserByUsername(@Param("username") username: string) {
 		if (username === undefined || username === null) {
@@ -141,6 +145,7 @@ export class UserController {
 	 * @returns Les données de l'utilisateur mis à jour.
 	 * @throws {BadRequestException} si le nom d'utilisateur ou les données de l'utilisateur sont invalides.
 	 */
+	@UseGuards(AuthGuard)
 	@Put("/{:username}")
 	async updateUserByUsername(
 		@Req() request,
@@ -184,6 +189,7 @@ export class UserController {
 	 * @throws {BadRequestException} si le nom d'utilisateur est invalide.
 	 * @throws {NotFoundException} si l'utilisateur n'existe pas.
 	 */
+	@UseGuards(AuthGuard)
 	@Delete("/{:username}")
 	async deleteUser(@Param("username") username: string) {
 		if (!username)
@@ -238,6 +244,7 @@ export class UserController {
 	 * @returns Un objet contenant la récompense quotidienne.
 	 * @throws {BadRequestException} si le nom d'utilisateur est invalide ou si la récupération de la récompense échoue.
 	 */
+	@UseGuards(AuthGuard)
 	@Get("/{:username}/daily-reward")
 	async getDailyReward(@Param("username") username: string) {
 		if (!username)
@@ -270,6 +277,7 @@ export class UserController {
 	 * @throws {NotFoundException} si le cosmétique n'existe pas.
 	 * @throws {ForbiddenException} si l'utilisateur authentifié ne correspond pas à l'acheteur.
 	 */
+	@UseGuards(AuthGuard)
 	@Post("/:username/buy/cosmetic/:cosmeticId")
 	async buyCosmetic(
 		@Param("cosmeticId") cosmeticId: string,

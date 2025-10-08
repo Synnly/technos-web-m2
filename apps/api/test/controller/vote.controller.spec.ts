@@ -7,6 +7,8 @@ import {
 import { User } from "../../src/user/user.schema";
 import { VoteService } from "../../src/vote/vote.service";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 
 const expectedUser1 = {
 	_id: "1",
@@ -63,6 +65,11 @@ describe("VoteController", () => {
 					provide: VoteService,
 					useValue: mockVoteService,
 				},
+				{
+					provide: JwtService,
+					useValue: { verify: jest.fn(), sign: jest.fn() },
+				},
+				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
 			],
 		}).compile();
 
@@ -99,9 +106,9 @@ describe("VoteController", () => {
 		it("should return 404 if no vote is found", async () => {
 			mockVoteService.getById.mockResolvedValue(null);
 
-			await expect(
-				voteController.getVoteById("1")
-			).rejects.toThrow(NotFoundException);
+			await expect(voteController.getVoteById("1")).rejects.toThrow(
+				NotFoundException,
+			);
 			expect(voteService.getById).toHaveBeenCalledWith("1");
 		});
 	});
@@ -131,9 +138,9 @@ describe("VoteController", () => {
 		it("should return 400 if the data is missing", async () => {
 			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, null)
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(req, null)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -143,7 +150,7 @@ describe("VoteController", () => {
 			const req = { user: null } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -155,7 +162,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -167,7 +174,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -179,7 +186,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -190,7 +197,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -202,7 +209,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -213,7 +220,7 @@ describe("VoteController", () => {
 			const req = { user: null } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
@@ -228,7 +235,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).toHaveBeenCalled();
@@ -243,7 +250,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.createVote(req, newVote)
+				voteController.createVote(req, newVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).toHaveBeenCalled();
@@ -274,7 +281,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -284,7 +291,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", null)
+				voteController.updateVote(req, "1", null),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -295,7 +302,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "", updatedVote)
+				voteController.updateVote(req, "", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -304,9 +311,9 @@ describe("VoteController", () => {
 		it("should return 400 if the user is missing", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			const req = { user: null } as any;
-			
+
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -318,7 +325,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -330,7 +337,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -342,7 +349,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -353,7 +360,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -368,7 +375,7 @@ describe("VoteController", () => {
 			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote)
+				voteController.updateVote(req, "1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).toHaveBeenCalled();
@@ -387,9 +394,9 @@ describe("VoteController", () => {
 		it("should return 404 if no vote is found to delete", async () => {
 			mockVoteService.deleteVote.mockResolvedValue(null);
 
-			await expect(
-				voteController.deleteVote("1")
-			).rejects.toThrow(NotFoundException);
+			await expect(voteController.deleteVote("1")).rejects.toThrow(
+				NotFoundException,
+			);
 
 			expect(voteService.deleteVote).toHaveBeenCalledWith("1");
 		});

@@ -10,14 +10,17 @@ import {
 	NotFoundException,
 	Req,
 	HttpCode,
+	UseGuards,
 } from "@nestjs/common";
 import { CosmeticService } from "./cosmetic.service";
 import { Cosmetic } from "./cosmetic.schema";
 import { Role, User } from "../user/user.schema";
+import { AuthGuard } from "../guards/auth.guard";
 
 /**
  * Contrôleur pour gérer les cosmétiques.
  */
+@UseGuards(AuthGuard)
 @Controller("/api/cosmetic")
 export class CosmeticController {
 	constructor(private readonly cosmeticService: CosmeticService) {}

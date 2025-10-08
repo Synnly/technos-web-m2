@@ -11,13 +11,16 @@ import {
 	Post,
 	Put,
 	Req,
+	UseGuards,
 } from "@nestjs/common";
 import { VoteService } from "../vote/vote.service";
+import { AuthGuard } from "../guards/auth.guard";
 
 /**
  * Contrôleur pour la gestion des votes sur les prédictions.
  * Fournit les endpoints CRUD pour les votes.
  */
+@UseGuards(AuthGuard)
 @Controller("/api/vote")
 export class VoteController {
 	constructor(private readonly voteService: VoteService) {}

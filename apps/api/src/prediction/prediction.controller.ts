@@ -10,13 +10,16 @@ import {
 	Req,
 	BadRequestException,
 	NotFoundException,
+	UseGuards,
 } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
+import { AuthGuard } from "../guards/auth.guard";
 
 /**
  * Contrôleur pour gérer les prédictions.
  */
+@UseGuards(AuthGuard)
 @Controller("/api/prediction")
 export class PredictionController {
 	constructor(private readonly predictionService: PredictionService) {}
