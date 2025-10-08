@@ -43,6 +43,13 @@ export class Prediction {
     status: PredictionStatus;
 
     /**
+     * Date de création de la prédiction.
+     * Ce champ a une valeur par défaut de la date actuelle.
+     */
+    @Prop({ type: Date, default: Date.now, immutable: true })
+    readonly createdAt: Date;
+
+    /**
      * Date de fin de la prédiction.
      * Ce champ est requis.
      */

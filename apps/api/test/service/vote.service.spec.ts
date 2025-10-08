@@ -23,6 +23,7 @@ const expectedPred1 = {
     title: 'Will it rain tomorrow?',
     description: 'Simple weather prediction',
     status: PredictionStatus.Waiting,
+	createdAt: new Date(),
     dateFin: new Date('3025-12-31'),
     options: { yes: 10, no: 5 },
     user_id: (expectedUser1 as any)._id,
