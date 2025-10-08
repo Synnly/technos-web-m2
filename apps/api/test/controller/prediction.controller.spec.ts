@@ -67,6 +67,7 @@ const mockPredictionService = {
 	getPredictionsByStatus: jest.fn(),
 	getExpiredPredictions: jest.fn(),
 	getValidPredictions: jest.fn(),
+	getPredictionTimeline: jest.fn(),
 };
 
 describe("PredictionController", () => {
@@ -669,6 +670,81 @@ describe("PredictionController", () => {
 			expect(
 				mockPredictionService.getValidPredictions,
 			).toHaveBeenCalled();
+		});
+	});
+
+	describe("getPredictionTimeline", () => {
+		it("should call service and return timeline when params are valid", async () => {
+			const expectedTimeline = [
+				{ date: new Date("2024-01-01"), options: { yes: 1 } },
+			];
+			mockPredictionService.getPredictionTimeline.mockResolvedValue(
+				expectedTimeline,
+			);
+
+			const result = await predictionController.getPredictionTimeline(
+				expectedPred1._id!,
+				5,
+				true,
+				false,
+			);
+
+			expect(
+				mockPredictionService.getPredictionTimeline,
+			).toHaveBeenCalledWith(expectedPred1._id, 5, true, false);
+			expect(result).toBe(expectedTimeline);
+		});
+
+		it("should throw 400 when id is missing", async () => {
+			await expect(
+				predictionController.getPredictionTimeline("", 5, false, false),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it("should throw 400 when intervalMinutes is missing or <= 0", async () => {
+			await expect(
+				predictionController.getPredictionTimeline(expectedPred1._id!, 0, false, false),
+			).rejects.toThrow(BadRequestException);
+
+			await expect(
+				predictionController.getPredictionTimeline(expectedPred1._id!, -5 as any, false, false),
+			).rejects.toThrow(BadRequestException);
+
+			await expect(
+				// interval undefined
+				(predictionController.getPredictionTimeline as any)(expectedPred1._id!),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it("should use default values for votesAsPercentage and fromStart when omitted", async () => {
+			const expectedTimeline = [{ date: new Date("2024-01-01"), options: {} }];
+			mockPredictionService.getPredictionTimeline.mockResolvedValue(expectedTimeline);
+
+			// Appel avec seulement id et intervalMinutes
+			const result = await predictionController.getPredictionTimeline(
+				expectedPred1._id!,
+				10 as any,
+			);
+
+			expect(
+				mockPredictionService.getPredictionTimeline,
+			).toHaveBeenCalledWith(expectedPred1._id, 10, false, false);
+			expect(result).toBe(expectedTimeline);
+		});
+
+		it("should throw BadRequestException when underlying service throws", async () => {
+			mockPredictionService.getPredictionTimeline.mockRejectedValue(
+				new Error("service failure"),
+			);
+
+			await expect(
+				predictionController.getPredictionTimeline(
+					expectedPred1._id!,
+					5,
+					false,
+					false,
+				),
+			).rejects.toThrow(BadRequestException);
 		});
 	});
 });

@@ -434,8 +434,7 @@ export class PredictionService {
 			const OPENAI_API_KEY =
 				this.configService.get<string>("OPENAI_API_KEY");
 			if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
-		}
-		else return;
+		} else return;
 
 		// Préparation des documents pour la prédiction de l'IA
 		const prediction = await this.getById(id);
@@ -510,5 +509,92 @@ export class PredictionService {
 
 		prediction.pronostics_ia = parsedResponse;
 		await this.predictionModel.findByIdAndUpdate(id, prediction);
+	}
+
+	/**
+	 * Génère une timeline des votes pour une prédiction donnée, en regroupant
+	 * les votes par intervalles de temps spécifiés. Chaque point de la timeline
+	 * indique le nombre de votes (ou le pourcentage de votes) pour chaque
+	 * option à ce moment-là.
+	 * @param predictionId L'identifiant de la prédiction pour laquelle générer
+	 * la timeline
+	 * @param intervalMinutes La durée en minutes de chaque intervalle de temps
+	 * @param votesAsPercentage Si true, les valeurs des options sont exprimées
+	 * en pourcentage du total des votes allant du début du vote à chaque intervalle
+	 * @param fromStart Si true, chaque intervalle inclut tous les votes depuis
+	 * le début de la prédiction jusqu'à ce point dans le temps. Si false, chaque
+	 * intervalle ne compte que les votes survenus pendant cet intervalle.
+	 * @returns Une liste d'objets représentant la timeline, chaque objet
+	 * contenant une date et un dictionnaire des options avec leurs valeurs
+	 * @throws Error si la prédiction n'est pas trouvée
+	 */
+	async getPredictionTimeline(
+		predictionId: string,
+		intervalMinutes: number,
+		votesAsPercentage: boolean = false,
+		fromStart: boolean = false,
+	): Promise<{ date: Date; options: { [option: string]: number } }[]> {
+		const prediction = await this.predictionModel
+			.findById(predictionId)
+			.exec();
+		if (!prediction) throw new Error("Prédiction introuvable");
+
+		// Récupérer tous les votes liés
+		const votes = await this.voteModel
+			.find({ prediction_id: predictionId })
+			.exec();
+
+		// Déterminer le début et la fin de la timeline
+		const startTime = prediction.createdAt;
+		const endTime = new Date();
+
+		// Créer des intervalles de temps
+		const intervals: Date[] = [];
+		for (
+			let currentTime = new Date(startTime);
+			currentTime <= endTime;
+			currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes)
+		) {
+			intervals.push(new Date(currentTime));
+		}
+
+		// Calculer le total des votes à chaque intervalle
+		const timeline = intervals.map((interval) => {
+			const optionsCount: { [option: string]: number } = {};
+			let totalVotes = 0;
+
+			votes.forEach((vote) => {
+				if (
+					(!fromStart || vote.date >= interval) &&
+					vote.date <
+						new Date(interval.getTime() + intervalMinutes * 60000)
+				) {
+					optionsCount[vote.option] =
+						(optionsCount[vote.option] || 0) + vote.amount;
+					totalVotes += vote.amount;
+				}
+			});
+
+			const optionsData: { [option: string]: number } = {};
+			if (votesAsPercentage) {
+				// Convertir en pourcentages
+				for (const option in optionsCount) {
+					optionsData[option] =
+						(optionsCount[option] / totalVotes) * 100;
+				}
+			} else {
+				// Garder les comptes bruts
+				for (const option in optionsCount) {
+					optionsData[option] = optionsCount[option];
+				}
+			}
+
+			return {
+				date: interval,
+				options: optionsData,
+			};
+		});
+
+		return timeline;
 	}
 }

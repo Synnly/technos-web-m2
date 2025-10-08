@@ -11,6 +11,7 @@ import {
 	BadRequestException,
 	NotFoundException,
 	UseGuards,
+	Query,
 } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
@@ -235,6 +236,33 @@ export class PredictionController {
 				winningOption,
 			);
 			return result;
+		} catch (error) {
+			throw new BadRequestException(error.message);
+		}
+	}
+
+	@Get("/:id/timeline")
+	async getPredictionTimeline(
+		@Param("id") id: string,
+		@Query("intervalMinutes") intervalMinutes: number,
+		@Query("votesAsPercentage") votesAsPercentage: boolean = false,
+		@Query("fromStart") fromStart: boolean = false,
+	): Promise<any> {
+		if (!id) throw new BadRequestException("L'identifiant est requis");
+		if (!intervalMinutes || intervalMinutes <= 0) {
+			throw new BadRequestException(
+				"L'intervalle en minutes doit être un nombre positif"
+			);
+		}
+
+		try {
+			const timeline = await this.predictionService.getPredictionTimeline(
+				id,
+				intervalMinutes,
+				votesAsPercentage,
+				fromStart
+			);
+			return timeline;
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
