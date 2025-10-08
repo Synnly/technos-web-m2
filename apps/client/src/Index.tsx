@@ -7,6 +7,12 @@ import PredictionsList from "./components/predictions/PredictionsList";
 import Sidebar from "./components/sidebar/Sidebar.component";
 import ToastComponent from "./components/toast/Toast.component";
 import type { Toast } from "./components/toast/Toast.interface";
+import Modal from "./components/modal/modal.component";
+import type { FormField } from "./components/modal/modal.interface";
+import GenericForm from "./components/form/Form.component";
+import { InputText } from "./components/inputs/InputText.component";
+import { DatePicker } from "antd";
+import InputOptions from "./components/input/Options/InputOptions.component";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,7 +23,7 @@ export interface Prediction {
 	dateFin: string;
 	status: string;
 	options: Record<string, number>;
-	results: string;
+	result: string;
 }
 /**
  * Composant principal de l'application.
@@ -37,8 +43,16 @@ function Index() {
 	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 	const [_, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
+	  const [open, setOpen] = useState(false);
 
 	const [, setError] = useState<string | null>(null);
+
+	 const fields: FormField[] = [
+   	{ name: 'title', label: 'Titre', component: InputText, componentProps: { placeholder: 'Titre' }, formItemProps: { rules: [{ required: true }] } },
+   	{ name: 'description', label: 'Description', component: InputText, componentProps: { placeholder: 'Description' } },
+   	{ name: 'date de fin', label: 'Date de fin', component: DatePicker, componentProps : { placeholder: ''}, formItemProps: {rules: [{required: true}]}},
+   	{ name: 'options', label: 'Options', component: InputOptions, formItemProps: {rules: [{required: true}]}}
+ ];
 
 	const fetchPredictions = async () => {
 		setLoading(true);
@@ -141,101 +155,6 @@ function Index() {
 	}
 
 	return (
-		// <div className="max-w-3xl mx-auto p-4">
-
-		// 	<header className="flex items-center justify-between mb-4">
-		// 		<h1 className="text-2xl font-bold">Publications</h1>
-		// 		{isAuthenticated ? (
-		// 			<div className="flex items-center gap-2">
-		// 				<button
-		// 					onClick={() => setShowOnlyMine((s) => !s)}
-		// 					className={`px-3 py-1 ${showOnlyMine ? "bg-green-500 text-white" : "bg-white border"} rounded`}
-		// 				>
-		// 					{showOnlyMine
-		// 						? "Toutes les prédictions"
-		// 						: "Mes prédictions"}
-		// 				</button>
-		// 				<button
-		// 					onClick={() => setShowForm((s) => !s)}
-		// 					className="px-3 py-1 bg-blue-500 text-white rounded"
-		// 				>
-		// 					{showForm ? "Annuler" : "Créer une prédiction"}
-		// 				</button>
-		// 				<button
-		// 					onClick={() => navigate("/shop")}
-		// 					className="px-3 py-1 bg-indigo-500 text-white rounded"
-		// 				>
-		// 					Boutique
-		// 				</button>
-		// 				<button
-		// 					onClick={handleLogout}
-		// 					className="px-3 py-1 bg-gray-200 rounded"
-		// 				>
-		// 					Déconnexion
-		// 				</button>
-		// 			</div>
-		// 		) : (
-		// 			<div>
-		// 				<p>
-		// 					Veuillez vous connecter pour créer une prédiction.
-		// 				</p>
-		// 			</div>
-		// 		)}
-		// 	</header>
-
-		// 	{showForm && isAuthenticated && (
-		// 		<CreatePredictionForm
-		// 			username={username}
-		// 			fetchPredictions={fetchPredictions}
-		// 			onClose={() => setShowForm(false)}
-		// 			setToast={setToast as any}
-		// 		/>
-		// 	)}
-
-		// 	<section>
-		// 		{user && (
-		// 			<div className="mb-4">Vous avez {user.points} points.</div>
-		// 		)}
-		// 		{user &&
-		// 		(!user.dateDerniereRecompenseQuotidienne ||
-		// 			new Date(
-		// 				user.dateDerniereRecompenseQuotidienne,
-		// 			).toDateString() !== new Date().toDateString()) ? (
-		// 			<button
-		// 				onClick={() => claimDailyReward(user)}
-		// 				className="mb-4 px-3 py-1 bg-yellow-500 text-white rounded"
-		// 			>
-		// 				Réclamer la récompense quotidienne (+10 points)
-		// 			</button>
-		// 		) : null}
-		// 	</section>
-
-		// 	<section>
-		// 		{loading ? (
-		// 			<div>Chargement...</div>
-		// 		) : predictions.length === 0 ? (
-		// 			<div>Aucune publication pour le moment.</div>
-		// 		) : (
-		// 			<PredictionsList
-		// 				predictions={predictions}
-		// 				usersMap={usersMap}
-		// 				currentId={getCurrentUserId()}
-		// 				onDelete={deletePrediction}
-		// 				deletingId={deletingId}
-		// 				showOnlyMine={showOnlyMine}
-		// 			/>
-		// 		)}
-		// 	</section>
-
-		// 	{/* confirmation uses native confirm() */}
-
-		// 	{/* Toast */}
-		// 	{toast && (
-		// 		<div className="fixed bottom-4 right-4 bg-black text-white px-3 py-2 rounded">
-		// 			{toast}
-		// 		</div>
-		// 	)}
-		// </div>
 		<div>
 			<Sidebar
 				user={user}
@@ -243,6 +162,7 @@ function Index() {
 				setUser={setUser}
 				setPoints={setPoints}
 				setToast={setToast}
+				setModalOpen={setOpen}
 			/>
 			{toast && (
 				<ToastComponent
@@ -251,6 +171,9 @@ function Index() {
 					onClose={clearToast}
 				/>
 			)}
+			<Modal isOpen={open} onClose={() => setOpen(false)}>
+				<GenericForm fields={fields} onFinish={values => console.log(values)} />
+			</Modal>
 		</div>
 	);
 }

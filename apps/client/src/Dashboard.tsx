@@ -27,7 +27,7 @@ interface Prediction {
 	dateFin: string;
 	status: string;
 	options: Record<string, number>;
-	results: string;
+	result: string;
 }
 
 function Dashboard() {

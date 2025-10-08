@@ -1,8 +1,7 @@
-import { useState } from "react";
 import DailyRewards from "./navigation/navigation-daily-reward/DailyRewards.component";
 import NavigationItemComponent from "./navigation/navigation-item/NavigationItem.component";
 import NavigationSectionComponent from "./navigation/navigation-section/NavigationSection.component";
-import Actions from "./Sidebar.action";
+import { getActions } from "./Sidebar.action";
 import { ArrowBigLeft, ArrowBigRight, LogOut } from "lucide-react";
 import { userController } from "../../modules/user/user.controller";
 import type { SidebarProps } from "./Sidebar.interface";
@@ -16,10 +15,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 	setUser,
 	setPoints,
 	setToast,
+	setModalOpen,
 }) => {
 	const navigate = useNavigate();
 	const { logout } = useAuth();
-
+  	const Actions = getActions(() => setModalOpen(true));
 	const [collapsed, setCollapsed] = React.useState(() => {
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
