@@ -43,6 +43,13 @@ export class Prediction {
     status: PredictionStatus;
 
     /**
+     * Date de création de la prédiction.
+     * Ce champ a une valeur par défaut de la date actuelle.
+     */
+    @Prop({ type: Date, default: Date.now, immutable: true })
+    readonly createdAt: Date;
+
+    /**
      * Date de fin de la prédiction.
      * Ce champ est requis.
      */
@@ -72,6 +79,18 @@ export class Prediction {
      */
     @Prop({ type: String, default: '' })
     results: string;
+
+    /**
+     * Pronostics de l'IA pour cette prédiction.
+     * La clé est le nom de l'option et la valeur est la probabilité (entre 0 et 1)
+     * que cette option soit correcte selon l'IA.
+     * Si les pronostics de l'IA ne sont pas disponibles, ce champ peut être absent.
+     * Ce champ est optionnel et a une valeur par défaut d'un objet vide.
+     *  
+     * Note : Si l'option ENABLE_AI_PRONOSTICS est désactivée, les pronostics de l'IA ne seront pas mises à jour.
+     */
+    @Prop({ type: Object, of: Number, default: {} })
+    pronostics_ia?: Record<string, number>;
 }
 
 export const PredictionSchema = SchemaFactory.createForClass(Prediction);

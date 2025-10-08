@@ -1,6 +1,7 @@
-import { Injectable, HttpStatus } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import axios from "axios";
 import {
 	Prediction,
 	PredictionDocument,
@@ -8,6 +9,8 @@ import {
 } from "./prediction.schema";
 import { User, UserDocument } from "../user/user.schema";
 import { Vote, VoteDocument } from "../vote/vote.schema";
+import OpenAI from "openai";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 /**
@@ -28,6 +31,7 @@ export class PredictionService {
 		private predictionModel: Model<PredictionDocument>,
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
 		@InjectModel(Vote.name) private voteModel: Model<VoteDocument>,
+		private configService: ConfigService,
 	) {}
 
 	/**
@@ -299,5 +303,298 @@ export class PredictionService {
 				dateFin: { $gt: now }, // uniquement les non-expirées
 			})
 			.exec();
+	}
+
+	/**
+	 * Effectue une recherche web pour un titre donné en utilisant l'API LangSearch.
+	 * @param title Le titre à rechercher
+	 * @returns Une liste de 10 résumés de pages web correspondant à la recherche
+	 * @throws Error si la clé API LangSearch est absente
+	 */
+	async queryWebSearch(title: string): Promise<String[]> {
+		const LANGSEARCH_API_KEY =
+			this.configService.get<string>("LANGSEARCH_API_KEY");
+		if (!LANGSEARCH_API_KEY)
+			throw new Error("Clé API LangSearch manquante");
+
+		const result = await axios.post(
+			"https://api.langsearch.com/v1/web-search",
+			{
+				query: title,
+				freshness: "onemonth",
+				summary: true,
+				count: 10,
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${LANGSEARCH_API_KEY}`,
+					"Content-Type": "application/json",
+				},
+			},
+		);
+
+		if (result.data.data.webPages.value === null)
+			throw new Error("Aucune recherche ne correspond aux mots clés");
+
+		return result.data.data.webPages.value.map((page: any) =>
+			page.summary.replace(/\\n/g, " ").replace(/\s+/g, " ").trim(),
+		);
+	}
+
+	/**
+	 * Réordonne une liste de documents en fonction de leur pertinence par rapport à un titre donné. Utilise l'API LangSearch.
+	 * @param title Le titre à utiliser comme requête
+	 * @param documents La liste de documents à réordonner
+	 * @returns La liste réordonnée des 5 documents les plus pertinents
+	 * @throws Error si la clé API LangSearch est absente
+	 */
+	async rerankDocuments(
+		title: string,
+		documents: String[],
+	): Promise<String[]> {
+		const LANGSEARCH_API_KEY =
+			this.configService.get<string>("LANGSEARCH_API_KEY");
+		if (!LANGSEARCH_API_KEY)
+			throw new Error("Clé API LangSearch manquante");
+
+		const result = await axios.post(
+			"https://api.langsearch.com/v1/rerank",
+			{
+				model: "langsearch-reranker-v1",
+				query: title,
+				documents: documents,
+				top_n: 5,
+				return_documents: true,
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${LANGSEARCH_API_KEY}`,
+					"Content-Type": "application/json",
+				},
+			},
+		);
+
+		return result.data.results.map((res: any) => res.document.text);
+	}
+
+	/**
+	 * Génère une requête à rechercher à partir d'un titre en utilisant l'API OpenAI.
+	 * @param title Le titre à utiliser pour générer la requête
+	 * @returns La requête générée
+	 * @throws Error si la clé API OpenAI est absente, ou si l'IA n'arrive pas à identifier deux mots clés
+	 */
+	async getQueryFromTitle(title: string): Promise<string> {
+		const OPENAI_API_KEY = this.configService.get<string>("OPENAI_API_KEY");
+		if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
+
+		const client = new OpenAI();
+		const response = await client.responses.create({
+			model: "gpt-5-nano",
+			input: [
+				{
+					role: "developer",
+					content: `Génère entre 2 et 10 mots-clés pertinents pour effectuer une recherche sur internet sur 
+					les dernières actualités afin de répondre à la question donnée. Chaque mot-clé doit être un mot pertinent
+					pour la recherche et pas une concaténation de plusieurs mots clés ensemble (ex: 'VCT2025' au lieu de
+					'VCT 2025'). Adapte les dates des mots clés sachant que la date d'aujourd'hui (au format ISO) est 
+					${new Date().toISOString()}.
+
+					- Si la question ne permet pas d’identifier au moins 2 mots-clés (par exemple, si elle est vide ou 
+					dénuée de sens), retourne une chaine vide.
+					- Si plus de 10 mots-clés sont trouvés, sélectionne les 10 plus importants.
+					- Classe les mots-clés par ordre d'importance décroissante pour répondre à la question.
+
+					### Format de sortie
+					Retourne le résultat au format suivant :
+					"motclé1 motclé2 ..."
+					Chaque élément doit être une chaîne représentant un mot-clé pertinent.`,
+				},
+				{
+					role: "user",
+					content: title,
+				},
+			],
+			text: { verbosity: "low" },
+		});
+
+		if (response.output_text === "")
+			throw new Error("L'IA n'a pas pu identifier au moins 2 mots clés");
+
+		return response.output_text || "";
+	}
+
+	/**
+	 * Modifie les pronostics pour une prédiction donnée. Utilise les API LangSearch et OpenAI pour rechercher
+	 * des documents pertinents. Si l'option ENABLE_AI_PRONOSTICS est désactivée, la méthode ne fait rien.
+	 * @param id L'identifiant de la prédiction pour laquelle générer les options
+	 * @throws Error si la clé API OpenAI est absente, ou si aucune option n'es passée à l'IA
+	 */
+	async updatePronosticsByAI(id: string) {
+		if (this.configService.get<string>("ENABLE_AI_PRONOSTICS") === "true") {
+			const OPENAI_API_KEY =
+				this.configService.get<string>("OPENAI_API_KEY");
+			if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
+		} else return;
+
+		// Préparation des documents pour la prédiction de l'IA
+		const prediction = await this.getById(id);
+		if (!prediction) throw new Error("Prédiction non trouvée");
+
+		const query = await this.getQueryFromTitle(prediction.title);
+		const startTime = Date.now();
+		const documents = await this.queryWebSearch(query);
+
+		// S'assurer qu'au moins une seconde s'ecoule entre les appels à l'API LangSearch
+		await new Promise((resolve) =>
+			setTimeout(resolve, Math.max(3000 - (Date.now() - startTime), 0)),
+		);
+		const rankedDocuments = await this.rerankDocuments(
+			prediction.title,
+			documents,
+		);
+
+		const client = new OpenAI();
+		const response = await client.responses.create({
+			model: "gpt-5-nano",
+			input: [
+				{
+					role: "developer",
+					content: `En te basant sur les documents fournis, attribue à chaque option une probabilité comprise 
+					entre 0 et 100, de façon à ce que la somme totale des probabilités soit exactement 100. Chaque 
+					probabilité doit être donnée au format nombre flottant, avec un maximum de deux décimales, et 
+					représenter la probabilité que l'option réponde correctement à la question posée.
+
+					Avant de commencer, établis une checklist concise (3 à 5 points) pour t'assurer que toutes les étapes 
+					requises sont prises en compte : (1) identifier les options, (2) analyser les documents, (3) évaluer 
+					chaque option, (4) attribuer les probabilités, (5) vérifier que la somme fait bien 100.
+					
+					Après avoir attribué les probabilités ou généré une erreur, vérifie brièvement la structure et la 
+					validité de la sortie (format, somme des probabilités, présence ou absence d’options), puis indique 
+					si une correction est nécessaire ou si le résultat est prêt.
+
+					## Format de sortie
+					- Si des options sont présentes :
+					\`\`\`json
+					{
+					"option1": nombre, // Probabilité de 0 à 100 (flottant possible)
+					"option2": nombre,
+					...
+					}
+					\`\`\`
+					- Si aucune option n'est fournie :
+					\`\`\`json
+					{
+					"error": "Aucune option fournie."
+					}
+					\`\`\`
+					- Si tu ne peux pas répondre à la question avec les documents fournis :
+					\`\`\`json
+					{
+					"error": "Impossible de répondre à la question avec les documents fournis."
+					}
+					TU NE DOIS RÉPONDRE QUE PAR L'OBJECT JSON, RIEN D'AUTRE, PAS MEME DE STYLAGE MARKDOWN. LA REPONSE 
+					DOIT POUVOIR ETRE PARSÉE DIRECTEMENT EN JSON. SI TU NE PEUX PAS RÉPONDRE, UTILISE LE FORMAT D'ERREUR
+					CI-DESSUS. REMPLACE LA CLEF "option1", "option2", ... PAR LES OPTIONS RÉELLES QUI TE SONT FOURNIES.
+					\`\`\``,
+				},
+				{
+					role: "user",
+					content: `Documents : ${rankedDocuments.join("\n\n")}\n\nQuestion : ${prediction.title}\n\nOptions : ${Object.keys(prediction.options).join(", ")}`,
+				},
+			],
+			text: { verbosity: "low" },
+		});
+		const parsedResponse = JSON.parse(response.output_text) || {};
+		if (parsedResponse.error) throw new Error(parsedResponse.error);
+
+		prediction.pronostics_ia = parsedResponse;
+		await this.predictionModel.findByIdAndUpdate(id, prediction);
+	}
+
+	/**
+	 * Génère une timeline des votes pour une prédiction donnée, en regroupant
+	 * les votes par intervalles de temps spécifiés. Chaque point de la timeline
+	 * indique le nombre de votes (ou le pourcentage de votes) pour chaque
+	 * option à ce moment-là.
+	 * @param predictionId L'identifiant de la prédiction pour laquelle générer
+	 * la timeline
+	 * @param intervalMinutes La durée en minutes de chaque intervalle de temps
+	 * @param votesAsPercentage Si true, les valeurs des options sont exprimées
+	 * en pourcentage du total des votes allant du début du vote à chaque intervalle
+	 * @param fromStart Si true, chaque intervalle inclut tous les votes depuis
+	 * le début de la prédiction jusqu'à ce point dans le temps. Si false, chaque
+	 * intervalle ne compte que les votes survenus pendant cet intervalle.
+	 * @returns Une liste d'objets représentant la timeline, chaque objet
+	 * contenant une date et un dictionnaire des options avec leurs valeurs
+	 * @throws Error si la prédiction n'est pas trouvée
+	 */
+	async getPredictionTimeline(
+		predictionId: string,
+		intervalMinutes: number,
+		votesAsPercentage: boolean = false,
+		fromStart: boolean = false,
+	): Promise<{ date: Date; options: { [option: string]: number } }[]> {
+		const prediction = await this.predictionModel
+			.findById(predictionId)
+			.exec();
+		if (!prediction) throw new Error("Prédiction introuvable");
+
+		// Récupérer tous les votes liés
+		const votes = await this.voteModel
+			.find({ prediction_id: predictionId })
+			.exec();
+
+		// Déterminer le début et la fin de la timeline
+		const startTime = prediction.createdAt;
+		const endTime = new Date();
+
+		// Créer des intervalles de temps
+		const intervals: Date[] = [];
+		for (
+			let currentTime = new Date(startTime);
+			currentTime <= endTime;
+			currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes)
+		) {
+			intervals.push(new Date(currentTime));
+		}
+
+		// Calculer le total des votes à chaque intervalle
+		const timeline = intervals.map((interval) => {
+			const optionsCount: { [option: string]: number } = {};
+			let totalVotes = 0;
+
+			votes.forEach((vote) => {
+				if (
+					(!fromStart || vote.date >= interval) &&
+					vote.date <
+						new Date(interval.getTime() + intervalMinutes * 60000)
+				) {
+					optionsCount[vote.option] =
+						(optionsCount[vote.option] || 0) + vote.amount;
+					totalVotes += vote.amount;
+				}
+			});
+
+			const optionsData: { [option: string]: number } = {};
+			if (votesAsPercentage) {
+				// Convertir en pourcentages
+				for (const option in optionsCount) {
+					optionsData[option] =
+						(optionsCount[option] / totalVotes) * 100;
+				}
+			} else {
+				// Garder les comptes bruts
+				for (const option in optionsCount) {
+					optionsData[option] = optionsCount[option];
+				}
+			}
+
+			return {
+				date: interval,
+				options: optionsData,
+			};
+		});
+
+		return timeline;
 	}
 }

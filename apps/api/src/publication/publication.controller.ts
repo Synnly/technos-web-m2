@@ -10,13 +10,16 @@ import {
 	Param,
 	Post,
 	Put,
+	UseGuards,
 } from "@nestjs/common";
 import { Publication } from "./publication.schema";
 import { PublicationService } from "../publication/publication.service";
+import { AuthGuard } from "../guards/auth.guard";
 
 /**
  * Contrôleur pour gérer les opérations liées aux publications.
  */
+@UseGuards(AuthGuard)
 @Controller("/api/publication")
 export class PublicationController {
 	/**

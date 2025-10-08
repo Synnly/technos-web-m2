@@ -13,6 +13,7 @@ jest.mock('bcrypt', () => ({
 }));
 
 import * as bcrypt from 'bcrypt';
+import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
 
 const expectedUser1 = { 
     _id: '1', 
@@ -22,7 +23,9 @@ const expectedUser1 = {
     dateDerniereRecompenseQuotidienne: null,
     predictions : [],
     votes : [],
-    role: 'user'
+    role: 'user',
+    cosmeticsOwned: [],
+    currentCosmetic: [],
 } as User;
 
 const expectedUser2 = {
@@ -33,7 +36,9 @@ const expectedUser2 = {
     dateDerniereRecompenseQuotidienne: new Date(),
     predictions : [],
     votes : [],
-    role: 'user'
+    role: 'user',
+    cosmeticsOwned: [],
+    currentCosmetic: [],
 } as User;
 
 const expectedUsers = [expectedUser1, expectedUser2];
@@ -61,6 +66,13 @@ const mockUserModel = jest.fn().mockImplementation((data) => ({
         dateDerniereRecompenseQuotidienne: null
     })
 })) as unknown as MockUserModel;
+
+const mockCosmeticService = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    create: jest.fn(),
+};
+
 
 // Ajouter les méthodes statiques
 mockUserModel.findOne = jest.fn();
@@ -96,6 +108,10 @@ describe("UserService", () => {
                 {
                     provide: JwtService,
                     useValue: mockJwtService,
+                },
+                {
+                    provide: CosmeticService,
+                    useValue: mockCosmeticService,
                 }
             ],
         })
@@ -441,6 +457,43 @@ describe("UserService", () => {
 
             expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
             expect(userWithTodayReward.save).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('buyCosmetic', () => {
+        it('should deduct cost, add cosmetic id to user and save', async () => {
+            const user: any = {
+                ...expectedUser1,
+                points: 50,
+                cosmeticsOwned: [],
+                save: jest.fn().mockResolvedValue({
+                    ...expectedUser1,
+                    points: 40,
+                    cosmeticsOwned: ['cos1']
+                })
+            };
+
+            const cosmetic: any = { _id: 'cos1', cost: 10 };
+
+            const result = await userService.buyCosmetic(user, cosmetic);
+
+            expect(user.save).toHaveBeenCalled();
+            expect(result.points).toEqual(40);
+            expect(result.cosmeticsOwned).toContain('cos1');
+        });
+
+        it('should propagate error when save fails', async () => {
+            const user: any = {
+                ...expectedUser1,
+                points: 50,
+                cosmeticsOwned: [],
+                save: jest.fn().mockRejectedValue(new Error('save failed'))
+            };
+
+            const cosmetic: any = { _id: 'cos2', cost: 10 };
+
+            await expect(userService.buyCosmetic(user, cosmetic)).rejects.toEqual(new Error('save failed'));
+            expect(user.save).toHaveBeenCalled();
         });
     });
 });

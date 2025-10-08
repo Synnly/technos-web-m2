@@ -8,6 +8,7 @@ import Index from "./Index";
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from './Dashboard';
 import Prediction from './Prediction';
+import Shop from './Shop';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -25,6 +26,12 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/prediction/:id" element={
                     <ProtectedRoute>
                         <Prediction />
+                    </ProtectedRoute>
+                } />
+
+                <Route path="/shop" element={
+                    <ProtectedRoute>
+                        <Shop />
                     </ProtectedRoute>
                 } />
 

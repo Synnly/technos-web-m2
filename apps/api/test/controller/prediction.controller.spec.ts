@@ -12,6 +12,8 @@ import {
 	NotFoundException,
 } from "@nestjs/common/exceptions";
 import { HttpStatus } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 
 const expectedUser1 = {
 	_id: "1",
@@ -22,6 +24,8 @@ const expectedUser1 = {
 	predictions: [],
 	votes: [],
 	role: "user",
+	cosmeticsOwned: [],
+	currentCosmetic: [],
 } as User;
 
 const expectedPred1 = {
@@ -29,6 +33,7 @@ const expectedPred1 = {
 	title: "Will it rain tomorrow?",
 	description: "Simple weather prediction",
 	status: PredictionStatus.Waiting,
+	createdAt: new Date(),
 	dateFin: new Date("3025-12-31"),
 	options: { yes: 10, no: 5 },
 	user_id: (expectedUser1 as any)._id,
@@ -40,6 +45,7 @@ const expectedPred2 = {
 	title: "Will team A win?",
 	description: "Match outcome",
 	status: PredictionStatus.Valid,
+	createdAt: new Date(),
 	dateFin: new Date("3025-11-30"),
 	options: { teamA: 3, teamB: 7 },
 	user_id: (expectedUser1 as any)._id,
@@ -61,6 +67,7 @@ const mockPredictionService = {
 	getPredictionsByStatus: jest.fn(),
 	getExpiredPredictions: jest.fn(),
 	getValidPredictions: jest.fn(),
+	getPredictionTimeline: jest.fn(),
 };
 
 describe("PredictionController", () => {
@@ -77,11 +84,16 @@ describe("PredictionController", () => {
 					provide: PredictionService,
 					useValue: mockPredictionService,
 				},
+				{
+					provide: JwtService,
+					useValue: { verify: jest.fn(), sign: jest.fn() },
+				},
+				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
 			],
 		}).compile();
 
-		predictionService = moduleRef.get(PredictionService);
 		predictionController = moduleRef.get(PredictionController);
+		predictionService = moduleRef.get(PredictionService);
 	});
 
 	describe("getPredictions", () => {
@@ -658,6 +670,81 @@ describe("PredictionController", () => {
 			expect(
 				mockPredictionService.getValidPredictions,
 			).toHaveBeenCalled();
+		});
+	});
+
+	describe("getPredictionTimeline", () => {
+		it("should call service and return timeline when params are valid", async () => {
+			const expectedTimeline = [
+				{ date: new Date("2024-01-01"), options: { yes: 1 } },
+			];
+			mockPredictionService.getPredictionTimeline.mockResolvedValue(
+				expectedTimeline,
+			);
+
+			const result = await predictionController.getPredictionTimeline(
+				expectedPred1._id!,
+				5,
+				true,
+				false,
+			);
+
+			expect(
+				mockPredictionService.getPredictionTimeline,
+			).toHaveBeenCalledWith(expectedPred1._id, 5, true, false);
+			expect(result).toBe(expectedTimeline);
+		});
+
+		it("should throw 400 when id is missing", async () => {
+			await expect(
+				predictionController.getPredictionTimeline("", 5, false, false),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it("should throw 400 when intervalMinutes is missing or <= 0", async () => {
+			await expect(
+				predictionController.getPredictionTimeline(expectedPred1._id!, 0, false, false),
+			).rejects.toThrow(BadRequestException);
+
+			await expect(
+				predictionController.getPredictionTimeline(expectedPred1._id!, -5 as any, false, false),
+			).rejects.toThrow(BadRequestException);
+
+			await expect(
+				// interval undefined
+				(predictionController.getPredictionTimeline as any)(expectedPred1._id!),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it("should use default values for votesAsPercentage and fromStart when omitted", async () => {
+			const expectedTimeline = [{ date: new Date("2024-01-01"), options: {} }];
+			mockPredictionService.getPredictionTimeline.mockResolvedValue(expectedTimeline);
+
+			// Appel avec seulement id et intervalMinutes
+			const result = await predictionController.getPredictionTimeline(
+				expectedPred1._id!,
+				10 as any,
+			);
+
+			expect(
+				mockPredictionService.getPredictionTimeline,
+			).toHaveBeenCalledWith(expectedPred1._id, 10, false, false);
+			expect(result).toBe(expectedTimeline);
+		});
+
+		it("should throw BadRequestException when underlying service throws", async () => {
+			mockPredictionService.getPredictionTimeline.mockRejectedValue(
+				new Error("service failure"),
+			);
+
+			await expect(
+				predictionController.getPredictionTimeline(
+					expectedPred1._id!,
+					5,
+					false,
+					false,
+				),
+			).rejects.toThrow(BadRequestException);
 		});
 	});
 });

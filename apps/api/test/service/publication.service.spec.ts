@@ -25,7 +25,6 @@ const expectedPub2 = {
 
 const expectedPublications = [expectedPub1, expectedPub2];
 
-// Mock Mongoose Model shape
 interface MockPubModel {
     new (data: any): { save: jest.Mock; [key: string]: any };
     find: jest.Mock;

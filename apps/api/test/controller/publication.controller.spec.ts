@@ -8,6 +8,8 @@ import {
 	HttpStatus,
 	NotFoundException,
 } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 
 const expectedPub1 = {
 	_id: "507f1f77bcf86cd799439011",
@@ -51,6 +53,11 @@ describe("PublicationController", () => {
 					provide: PublicationService,
 					useValue: mockPublicationService,
 				},
+				{
+					provide: JwtService,
+					useValue: { verify: jest.fn(), sign: jest.fn() },
+				},
+				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
 			],
 		}).compile();
 

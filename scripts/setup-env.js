@@ -7,7 +7,11 @@ const envFiles = [
         content: `PORT=3000
 CLIENT_URL=http://localhost:5173
 DATABASE_URL=mongodb://localhost/nest
-JWT_SECRET=REPLACE_WITH_YOUR_OWN_SECRET`,
+JWT_SECRET=REPLACE_WITH_YOUR_OWN_SECRET
+LANGSEARCH_API_KEY=REPLACE_WITH_YOUR_OWN_KEY
+OPENAI_API_KEY=REPLACE_WITH_YOUR_OWN_KEY
+ENABLE_AI_PRONOSTICS=false
+`,
     },
     {
         filePath: path.resolve(__dirname, '../apps/client/.env'),
