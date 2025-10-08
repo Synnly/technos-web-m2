@@ -84,7 +84,7 @@ export default function CreatePredictionForm({
 				description,
 				dateFin: new Date(dateFin).toISOString(),
 				status: "waiting",
-				results: "",
+				result: "",
 				options,
 			};
 			if (user_id) payload.user_id = user_id;

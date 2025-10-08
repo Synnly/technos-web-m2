@@ -22,7 +22,7 @@ export const InputText: React.FC<InputProps> = ({
 					placeholder={placeholder}
 					min={min}
 					{...(register ? register(name, rules) : {})}
-					value={value}
+					value={value ?? ""}
 					onChange={onChange}
 					className={
 						error
