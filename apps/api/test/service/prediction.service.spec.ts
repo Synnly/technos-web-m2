@@ -26,7 +26,7 @@ const expectedPred1 = {
 	dateFin: new Date('3025-12-31'),
 	options: { yes: 10, no: 5 },
 	user_id: (expectedUser1 as any)._id,
-	results: ''
+	result: ''
 } as Prediction;
 
 const expectedPred2 = {
@@ -37,7 +37,7 @@ const expectedPred2 = {
 	dateFin: new Date('3025-11-30'),
 	options: { teamA: 3, teamB: 7 },
 	user_id: (expectedUser1 as any)._id,
-	results: ''
+	result: ''
 } as Prediction;
 
 const expectedPredictions = [expectedPred1, expectedPred2];
@@ -261,7 +261,7 @@ describe('PredictionService', () => {
 			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('u3', { $inc: { points: expect.any(Number) } }, { new: true });
 
 			expect(pred.status).toBe(PredictionStatus.Valid);
-			expect(pred.results).toBe('yes');
+			expect(pred.result).toBe('yes');
 			expect(pred.save).toHaveBeenCalled();
 		});
 	});
@@ -277,7 +277,7 @@ describe('PredictionService', () => {
 
   	    expect(mockPredModel.find).toHaveBeenCalledWith({
   	      dateFin: { $lte: expect.any(Date) },
-  	      results: '',
+  	      result: '',
   	      status: PredictionStatus.Valid,
   	    });
   	    expect(result).toEqual([expired]);
@@ -285,14 +285,14 @@ describe('PredictionService', () => {
   	});
 
   	describe('getWaitingPredictions', () => {
-  	  it('should return waiting predictions with no results', async () => {
+  	  it('should return waiting predictions with no result', async () => {
   	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedPred1]) });
 
   	    const result = await predictionService.getWaitingPredictions();
 
   	    expect(mockPredModel.find).toHaveBeenCalledWith({
   	      status: PredictionStatus.Waiting,
-  	      results: '',
+  	      result: '',
   	    });
   	    expect(result).toEqual([expectedPred1]);
   	  });
