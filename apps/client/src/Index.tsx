@@ -172,7 +172,7 @@ function Index() {
 				/>
 			)}
 			<Modal isOpen={open} onClose={() => setOpen(false)}>
-				<GenericForm fields={fields} onFinish={values => console.log(values)} />
+				<GenericForm title="Création d'une prédiction"  fields={fields} onFinish={values => console.log(values)} />
 			</Modal>
 		</div>
 	);
