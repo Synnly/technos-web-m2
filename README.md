@@ -183,10 +183,11 @@ npm run start
 - [x] Récupérer les points quotidiens
 - [x] Répondre à une publication
 - [x] Liker une publication
-- [ ] Changer de cosmétique
-- [ ] Acheter un cosmétique pour son profil
+- [x] Changer de cosmétique
+- [x] Acheter un cosmétique pour son profil
 - [x] Valider une prédiction
-- [ ] Afficher les probabilités de la prédiction par IA
+- [x] Afficher les probabilités de la prédiction par IA
+- [ ] Refonte de l'UI
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
