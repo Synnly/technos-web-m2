@@ -10,6 +10,7 @@ import { Vote } from "../../src/vote/vote.schema";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import OpenAI from "openai";
+import { log } from "console";
 
 const expectedUser1 = {
 	_id: "1",
@@ -117,7 +118,7 @@ describe("PredictionService", () => {
 		MockedOpenAI.mockImplementation(() => mockOpenAIInstance);
 
 		const moduleRef = await Test.createTestingModule({
-			providers: [				
+			providers: [
 				PredictionService,
 				{
 					provide: getModelToken(Prediction.name),
@@ -899,7 +900,7 @@ describe("PredictionService", () => {
 
 			expect(Array.isArray(timeline)).toBe(true);
 			expect(timeline.length).toBe(1);
-			expect(timeline[0].options).toEqual({});
+			expect(timeline[0].options).toEqual({ no: 0, yes: 0 });
 		});
 
 		it("should compute cumulative counts when fromStart is true ", async () => {
@@ -936,8 +937,8 @@ describe("PredictionService", () => {
 			);
 
 			expect(timeline.length).toBeGreaterThanOrEqual(2);
-			expect(timeline[0].options).toEqual({ yes: 2 });
-			expect(timeline[1].options).toEqual({ no: 3 });
+			expect(timeline[0].options).toEqual({ no: 0, yes: 2 });
+			expect(timeline[1].options).toEqual({ no: 3, yes: 2 });
 		});
 
 		it("should compute per-interval counts when fromStart is false", async () => {
@@ -972,8 +973,8 @@ describe("PredictionService", () => {
 				false,
 				false,
 			);
-			expect(timeline[0].options).toEqual({ yes: 2 });
-			expect(timeline[1].options).toEqual({ yes: 2, no: 3 });
+			expect(timeline[0].options).toEqual({ yes: 2, no: 0 });
+			expect(timeline[1].options).toEqual({ yes: 0, no: 3 });
 		});
 
 		it("should include votes on the interval start boundary (>= interval) and exclude at end (< end)", async () => {
@@ -1010,11 +1011,11 @@ describe("PredictionService", () => {
 				pred._id,
 				5,
 				false,
-				true, // per-interval check
+				false, // per-interval check
 			);
 
-			expect(timeline[0].options).toEqual({ yes: 1 });
-			expect(timeline[1].options).toEqual({ no: 1 });
+			expect(timeline[0].options).toEqual({ no: 0, yes: 1 });
+			expect(timeline[1].options).toEqual({ no: 1, yes: 0 });
 		});
 
 		it("should return percentages when votesAsPercentage is true", async () => {
@@ -1046,13 +1047,13 @@ describe("PredictionService", () => {
 
 			const timeline = await predictionService.getPredictionTimeline(
 				pred._id,
-				10,
-				true, // votesAsPercentage
+				12,
+				true,
 				true,
 			);
 
 			// Single interval expected; total = 5 => A = 40%, B = 60%
-			expect(timeline.length).toBeGreaterThanOrEqual(1);
+			expect(timeline.length).toBe(1);
 			const options = timeline[0].options;
 			expect(options.A).toBeCloseTo((2 / 5) * 100, 5);
 			expect(options.B).toBeCloseTo((3 / 5) * 100, 5);
@@ -1069,13 +1070,13 @@ describe("PredictionService", () => {
 
 			const v1 = {
 				user_id: "u1",
-				option: "x",
+				option: "no",
 				amount: 1,
 				date: new Date(start.getTime() + 5 * 60000),
 			};
 			const v2 = {
 				user_id: "u2",
-				option: "y",
+				option: "yes",
 				amount: 2,
 				date: new Date(start.getTime() + 15 * 60000),
 			};
@@ -1092,7 +1093,7 @@ describe("PredictionService", () => {
 			);
 			// Only one interval should exist (since interval >> span)
 			expect(timeline.length).toBe(1);
-			expect(timeline[0].options).toEqual({ x: 1, y: 2 });
+			expect(timeline[0].options).toEqual({ no: 1, yes: 2 });
 		});
 	});
 });

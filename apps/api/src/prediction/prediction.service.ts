@@ -11,6 +11,7 @@ import { User, UserDocument } from "../user/user.schema";
 import { Vote, VoteDocument } from "../vote/vote.schema";
 import OpenAI from "openai";
 import { ConfigService } from "@nestjs/config";
+import { log } from "console";
 
 @Injectable()
 /**
@@ -534,6 +535,15 @@ export class PredictionService {
 		votesAsPercentage: boolean = false,
 		fromStart: boolean = false,
 	): Promise<{ date: Date; options: { [option: string]: number } }[]> {
+		// S'assurer que les paramètres booléens sont bien des booléens
+		// car ils viennent en string de la requête HTTP
+		if (typeof votesAsPercentage !== "boolean") {
+			votesAsPercentage = (votesAsPercentage as unknown) == "true";
+		}
+		if (typeof fromStart !== "boolean") {
+			fromStart = (fromStart as unknown) == "true";
+		}
+
 		const prediction = await this.predictionModel
 			.findById(predictionId)
 			.exec();
@@ -550,24 +560,32 @@ export class PredictionService {
 
 		// Créer des intervalles de temps
 		const intervals: Date[] = [];
-		for (
-			let currentTime = new Date(startTime);
-			currentTime <= endTime;
-			currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes)
-		) {
+		let currentTime = new Date(startTime);
+		while (currentTime <= endTime) {
 			intervals.push(new Date(currentTime));
+			// javascript de con, pq intervalMinutes est un string et pas un number
+			currentTime.setMinutes(
+				currentTime.getMinutes() + Number(intervalMinutes),
+			);
 		}
 
 		// Calculer le total des votes à chaque intervalle
 		const timeline = intervals.map((interval) => {
+			// on initialise un compteur pour chaque option
 			const optionsCount: { [option: string]: number } = {};
+			for (const opt of Object.keys(prediction.options)) {
+				optionsCount[opt] = 0;
+			}
 			let totalVotes = 0;
 
 			votes.forEach((vote) => {
 				if (
-					(!fromStart || vote.date >= interval) &&
+					(fromStart || vote.date >= interval) &&
 					vote.date <
-						new Date(interval.getTime() + intervalMinutes * 60000)
+						new Date(
+							interval.getTime() +
+								Number(intervalMinutes) * 60000,
+						)
 				) {
 					optionsCount[vote.option] =
 						(optionsCount[vote.option] || 0) + vote.amount;
@@ -577,10 +595,17 @@ export class PredictionService {
 
 			const optionsData: { [option: string]: number } = {};
 			if (votesAsPercentage) {
-				// Convertir en pourcentages
+				// Convertir en pourcentages (protéger contre la division par zéro) et arrondir à 1 décimale
 				for (const option in optionsCount) {
 					optionsData[option] =
-						(optionsCount[option] / totalVotes) * 100;
+						totalVotes > 0
+							? Number(
+									(
+										((optionsCount[option] / totalVotes) *
+											100) as number
+									).toFixed(1),
+								)
+							: 0;
 				}
 			} else {
 				// Garder les comptes bruts
