@@ -32,7 +32,7 @@ export interface Prediction {
  * - Si l'utilisateur est authentifié, affiche un bouton pour ouvrir un petit formulaire
  *   (utilise `InputText` et `InputSubmit`) afin de créer une nouvelle prédiction.
  */
-import { Form } from 'antd';
+import { Form } from "antd";
 
 function Index() {
 	const [form] = Form.useForm();
@@ -47,16 +47,38 @@ function Index() {
 	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 	const [_, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
-	  const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(false);
 
 	const [, setError] = useState<string | null>(null);
 
-	 const fields: FormField[] = [
-   	{ name: 'title', label: 'Titre', component: InputText, componentProps: { placeholder: 'Titre' }, formItemProps: { rules: [{ required: true }] } },
-   	{ name: 'description', label: 'Description', component: InputText, componentProps: { placeholder: 'Description' } },
-   	{ name: 'date de fin', label: 'Date de fin', component: DatePicker, componentProps : { placeholder: ''}, formItemProps: {rules: [{required: true}]}},
-   	{ name: 'options', label: 'Options', component: InputOptions, formItemProps: {rules: [{required: true}]}}
- ];
+	const fields: FormField[] = [
+		{
+			name: "title",
+			label: "Titre",
+			component: InputText,
+			componentProps: { placeholder: "Titre" },
+			formItemProps: { rules: [{ required: true }] },
+		},
+		{
+			name: "description",
+			label: "Description",
+			component: InputText,
+			componentProps: { placeholder: "Description" },
+		},
+		{
+			name: "date de fin",
+			label: "Date de fin",
+			component: DatePicker,
+			componentProps: { placeholder: "" },
+			formItemProps: { rules: [{ required: true }] },
+		},
+		{
+			name: "options",
+			label: "Options",
+			component: InputOptions,
+			formItemProps: { rules: [{ required: true }] },
+		},
+	];
 
 	const fetchPredictions = async () => {
 		setLoading(true);
@@ -120,7 +142,7 @@ function Index() {
 			await axios.delete(`${API_URL}/prediction/${id}`, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
-			setToast({message : "Prédiction supprimée", type : "success"});
+			setToast({ message: "Prédiction supprimée", type: "success" });
 			await fetchPredictions();
 		} catch (err: any) {
 			console.error(err);
@@ -148,7 +170,6 @@ function Index() {
 		}
 	}, [username]);
 
-
 	if (!isAuthenticated) {
 		return (
 			<div>
@@ -159,7 +180,7 @@ function Index() {
 	}
 
 	return (
-		<div>
+		<div className="bg-gray-900 mx-auto px-6 py-8 w-full h-screen">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -181,8 +202,11 @@ function Index() {
 					title="Création d'une prédiction"
 					fields={fields}
 					onFinish={async (values: any) => {
-						const rawDate = values['date de fin'] ?? values.dateFin;
-						const dateFin = rawDate && typeof rawDate.toISOString === 'function' ? rawDate.toISOString() : rawDate;
+						const rawDate = values["date de fin"] ?? values.dateFin;
+						const dateFin =
+							rawDate && typeof rawDate.toISOString === "function"
+								? rawDate.toISOString()
+								: rawDate;
 
 						const payload = {
 							title: values.title,
@@ -191,13 +215,22 @@ function Index() {
 							options: values.options,
 						};
 
-						const result = await PredictionController.createPrediction(payload, {
-							username,
-							fetchPredictions,
-							onClose: () => setOpen(false),
-							setToast: (msg: string) => setToast({ message: msg, type: 'success' }),
-							setLocalError: (m: string | null) => setError(m),
-						});
+						const result =
+							await PredictionController.createPrediction(
+								payload,
+								{
+									username,
+									fetchPredictions,
+									onClose: () => setOpen(false),
+									setToast: (msg: string) =>
+										setToast({
+											message: msg,
+											type: "success",
+										}),
+									setLocalError: (m: string | null) =>
+										setError(m),
+								},
+							);
 
 						if (result.success) {
 							form.resetFields();
@@ -205,6 +238,28 @@ function Index() {
 					}}
 				/>
 			</Modal>
+			<main className="flex-1 ml-72 p-8">
+				<div className=" bg-gradient-to-r from-gray-800 to-gray-750 rounded-2xl p-8 border border-gray-700">
+					<div className="flex items-center justify-between">
+						<div>
+							<h2 className="text-3xl font-bold mb-2 text-white">
+								Bienvenue {username} !
+							</h2>
+							<p className="text-gray-400 text-lg">
+								Prêt à prédire l'avenir ?
+							</p>
+						</div>
+						<div className="text-right">
+							<div className="text-2xl font-bold text-yellow-400">
+								{user && <span>{user.points}</span>}
+							</div>
+							<div className="text-sm text-gray-400">
+								Total Points
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
 		</div>
 	);
 }

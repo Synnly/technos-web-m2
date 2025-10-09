@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 						/>
 					)}
 
-					<div className="pt-4 border-t border-gray-700">
+					<div className="pt-4 border-t border-gray-700 absolute bottom-5">
 						<NavigationItemComponent
 							id="disconnect"
 							icon={<LogOut className="w-5 h-5" />}
