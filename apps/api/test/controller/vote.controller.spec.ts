@@ -116,30 +116,25 @@ describe("VoteController", () => {
 
 	describe("createVote", () => {
 		it("should create and return a new vote", async () => {
-			const newVote = { ...expectedVote1, _id: "1" };
-
 			mockVoteService.createVote.mockResolvedValue({
 				...expectedVote1,
 				_id: "1",
 			});
 
-			const mockRequest = { user: { _id: "1" } } as any;
-			await voteController.createVote(mockRequest, newVote);
+			await voteController.createVote(expectedVote1);
 
 			expect(voteService.createVote).toHaveBeenCalledWith(
 				expect.objectContaining({
-					prediction_id: newVote.prediction_id,
-					option: newVote.option,
-					amount: newVote.amount,
-					date: newVote.date,
+					prediction_id: expectedVote1.prediction_id,
+					option: expectedVote1.option,
+					amount: expectedVote1.amount,
+					date: expectedVote1.date,
 				}),
 			);
 		});
 
 		it("should return 400 if the data is missing", async () => {
-			const req = { user: { _id: "1" } } as any;
-
-			await expect(voteController.createVote(req, null)).rejects.toThrow(
+			await expect(voteController.createVote(null)).rejects.toThrow(
 				BadRequestException,
 			);
 
@@ -147,12 +142,11 @@ describe("VoteController", () => {
 		});
 
 		it("should return 400 if the user is missing", async () => {
-			const newVote = { ...expectedVote1, _id: undefined };
-			const req = { user: null } as any;
+			const newVote = { ...expectedVote1, user_id: undefined };
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -160,11 +154,10 @@ describe("VoteController", () => {
 		it("should return 400 if the prediction_id is missing", async () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).prediction_id;
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -172,11 +165,10 @@ describe("VoteController", () => {
 		it("should return 400 if the option is missing", async () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).option;
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -184,22 +176,20 @@ describe("VoteController", () => {
 		it("should return 400 if the amount is missing", async () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).amount;
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
 
 		it("should return 400 if the amount is less than 1", async () => {
 			const newVote = { ...expectedVote1, _id: undefined, amount: 0 };
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -207,22 +197,10 @@ describe("VoteController", () => {
 		it("should return 400 if the date is missing", async () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).date;
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
-
-			expect(voteService.createVote).not.toHaveBeenCalled();
-		});
-
-		it("should return 400 if the user is not authenticated", async () => {
-			const newVote = { ...expectedVote1, _id: undefined };
-			const req = { user: null } as any;
-
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -233,11 +211,10 @@ describe("VoteController", () => {
 			mockVoteService.createVote.mockRejectedValue(
 				new Error("Service error"),
 			);
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).toHaveBeenCalled();
 		});
@@ -248,11 +225,10 @@ describe("VoteController", () => {
 			mockVoteService.createVote.mockRejectedValue(
 				new Error("Points insuffisants"),
 			);
-			const req = { user: { _id: "1" } } as any;
 
-			await expect(
-				voteController.createVote(req, newVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createVote).toHaveBeenCalled();
 		});
@@ -263,11 +239,11 @@ describe("VoteController", () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 
 			mockVoteService.createOrUpdateVote.mockResolvedValue(updatedVote);
-			const req = { user: { _id: "1" } } as any;
 
-			await voteController.updateVote(req, "1", updatedVote);
+			await voteController.updateVote("1", updatedVote);
 
 			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", {
+				_id: "1",
 				user_id: "1",
 				prediction_id: updatedVote.prediction_id,
 				option: updatedVote.option,
@@ -279,42 +255,41 @@ describe("VoteController", () => {
 		it("should return 400 if the user_id is missing from vote data", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).user_id;
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
 
 		it("should return 400 if the data is missing", async () => {
-			const req = { user: { _id: "1" } } as any;
-
-			await expect(
-				voteController.updateVote(req, "1", null),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", null)).rejects.toThrow(
+				BadRequestException,
+			);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
 
 		it("should return 400 if the id is missing", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "", updatedVote),
+				voteController.updateVote("", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
 
 		it("should return 400 if the user is missing", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			const req = { user: null } as any;
+			const updatedVote = {
+				...expectedVote1,
+				amount: 20,
+				user_id: undefined,
+			};
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -323,10 +298,9 @@ describe("VoteController", () => {
 		it("should return 400 if the prediction_id is missing", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).prediction_id;
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -335,10 +309,9 @@ describe("VoteController", () => {
 		it("should return 400 if the option is missing", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).option;
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -347,10 +320,9 @@ describe("VoteController", () => {
 		it("should return 400 if the amount is missing", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).amount;
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -358,10 +330,9 @@ describe("VoteController", () => {
 
 		it("should return 400 if the amount is less than 1", async () => {
 			const updatedVote = { ...expectedVote1, amount: 0 };
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
@@ -373,10 +344,9 @@ describe("VoteController", () => {
 			mockVoteService.createOrUpdateVote.mockRejectedValue(
 				new Error("Service error"),
 			);
-			const req = { user: { _id: "1" } } as any;
 
 			await expect(
-				voteController.updateVote(req, "1", updatedVote),
+				voteController.updateVote("1", updatedVote),
 			).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).toHaveBeenCalled();

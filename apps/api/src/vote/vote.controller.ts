@@ -52,14 +52,13 @@ export class VoteController {
 
 	/**
 	 * Crée un nouveau vote pour une prédiction.
-	 * @param req Objet de requête HTTP contenant les informations d'authentification
 	 * @param vote Données du vote à créer (user_id, prediction_id, option, amount, date)
 	 * @returns Le vote créé avec statut
 	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
 	 */
 	@Post("")
     @HttpCode(201)
-	async createVote(@Req() req: any, @Body() vote) {
+	async createVote(@Body() vote) {
 		if (!vote) throw new BadRequestException("Les données du vote sont requises");
 
 		const missing = [
@@ -67,17 +66,17 @@ export class VoteController {
 			!vote.option && "Le choix est requis",
 			vote.amount === undefined && "Le montant est requis",
 			!vote.date && "La date est requise",
-			!req.user?._id && "L'utilisateur authentifié est requis",
+			!vote.user_id && "L'utilisateur est requis",
 		].filter(Boolean)[0];
 
 		if (missing) throw new BadRequestException(missing);
 		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
 
-		const { _id, ...payload } = vote as any;
-		if (req.user?._id) payload.user_id = req.user._id;
+		// const { _id, ...payload } = vote as any;
+		// if (req.user?._id) payload.user_id = req.user._id;
 
 		try {
-			const created = await this.voteService.createVote(payload);
+			const created = await this.voteService.createVote(vote);
 			return created;
 		} catch (error) {
 			throw new BadRequestException(
@@ -88,7 +87,6 @@ export class VoteController {
 
 	/**
 	 * Met à jour un vote existant.
-	 * @param req Objet de requête HTTP contenant les informations d'authentification
 	 * @param id Identifiant unique du vote à mettre à jour
 	 * @param vote Données du vote à mettre à jour (user_id, prediction_id, option, amount, date)
 	 * @returns Le vote mis à jour
@@ -97,7 +95,6 @@ export class VoteController {
 	 */
 	@Put("/:id")
 	async updateVote(
-		@Req() req: any,
 		@Param("id") id: string,
 		@Body() vote,
 	) {
@@ -110,21 +107,17 @@ export class VoteController {
 			!vote.prediction_id && "L'identifiant de la prédiction est requis",
 			!vote.option && "Le choix est requis",
 			vote.amount === undefined && "Le montant est requis",
-			!req.user?._id && "L'utilisateur authentifié est requis",
+			!vote.user_id && "L'utilisateur est requis",
 		].filter(Boolean)[0];
 
 		if (missing) throw new BadRequestException(missing);
 		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
 
 		try {
-			// Préparer payload
-			const { _id, ...payload } = vote as any;
-			if (req.user?._id) payload.user_id = req.user._id;
-
 			// Créer ou mettre à jour le vote
 			const updated = await this.voteService.createOrUpdateVote(
 				id,
-				payload,
+				vote,
 			);
 			return updated;
 		} catch (error) {

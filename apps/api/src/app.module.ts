@@ -1,19 +1,12 @@
-import {
-	MiddlewareConsumer,
-	Module,
-	NestModule,
-} from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { JwtModule } from "@nestjs/jwt";
 import { ConfigModule } from "@nestjs/config";
-import { User, UserSchema } from "./user/user.schema";
-import { Prediction, PredictionSchema } from "./prediction/prediction.schema";
-import { Vote, VoteSchema } from "./vote/vote.schema";
-import {
-	Publication,
-	PublicationSchema,
-} from "./publication/publication.schema";
-import { Cosmetic, CosmeticSchema } from "./cosmetic/cosmetic.schema";
+import { UserModule } from "./user/user.module";
+import { PredictionModule } from "./prediction/prediction.module";
+import { VoteModule } from "./vote/vote.module";
+import { PublicationModule } from "./publication/publication.module";
+import { CosmeticModule } from "./cosmetic/cosmetic.module";
+import { JwtModule } from "@nestjs/jwt";
 
 /**
  * Module principal de l'application.
@@ -25,15 +18,14 @@ import { Cosmetic, CosmeticSchema } from "./cosmetic/cosmetic.schema";
 			isGlobal: true, // Permet d'utiliser ConfigModule dans toute l'application sans le réimporter
 		}),
 		MongooseModule.forRoot(process.env.DATABASE_URL!),
-		MongooseModule.forFeature([
-			{ name: User.name, schema: UserSchema },
-			{ name: Prediction.name, schema: PredictionSchema },
-			{ name: Vote.name, schema: VoteSchema },
-			{ name: Publication.name, schema: PublicationSchema },
-			{ name: Cosmetic.name, schema: CosmeticSchema },
-		]),
+		UserModule,
+		PredictionModule,
+		VoteModule,
+		PublicationModule,
+		CosmeticModule,
 		JwtModule.register({
-			secret: process.env.JWT_SECRET!,
+			global: true,
+			secret: process.env.JWT_SECRET!, // <-- nécessaire
 			signOptions: { expiresIn: "2h" },
 		}),
 	],
