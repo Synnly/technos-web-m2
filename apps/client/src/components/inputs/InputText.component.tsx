@@ -21,9 +21,9 @@ export const InputText: React.FC<InputProps> = ({
 					type={type}
 					placeholder={placeholder}
 					min={min}
+					name={name}
 					{...(register ? register(name, rules) : {})}
-					value={value ?? ""}
-					onChange={onChange}
+					{...(!register ? { value: value ?? "", onChange } : {})}
 					className={
 						error
 							? "input-error w-full bg-neutral-200 placeholder:text-neutral-600 text-neutral-800 text-sm rounded-md px-3 py-2"

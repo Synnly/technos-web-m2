@@ -13,6 +13,7 @@ import GenericForm from "./components/form/Form.component";
 import { InputText } from "./components/inputs/InputText.component";
 import { DatePicker } from "antd";
 import InputOptions from "./components/input/Options/InputOptions.component";
+import PredictionController from "./modules/prediction/prediction.controller";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,7 +32,10 @@ export interface Prediction {
  * - Si l'utilisateur est authentifié, affiche un bouton pour ouvrir un petit formulaire
  *   (utilise `InputText` et `InputSubmit`) afin de créer une nouvelle prédiction.
  */
+import { Form } from 'antd';
+
 function Index() {
+	const [form] = Form.useForm();
 	const { isAuthenticated, logout, username } = useAuth();
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
@@ -172,7 +176,34 @@ function Index() {
 				/>
 			)}
 			<Modal isOpen={open} onClose={() => setOpen(false)}>
-				<GenericForm title="Création d'une prédiction"  fields={fields} onFinish={values => console.log(values)} />
+				<GenericForm
+					form={form}
+					title="Création d'une prédiction"
+					fields={fields}
+					onFinish={async (values: any) => {
+						const rawDate = values['date de fin'] ?? values.dateFin;
+						const dateFin = rawDate && typeof rawDate.toISOString === 'function' ? rawDate.toISOString() : rawDate;
+
+						const payload = {
+							title: values.title,
+							description: values.description,
+							dateFin,
+							options: values.options,
+						};
+
+						const result = await PredictionController.createPrediction(payload, {
+							username,
+							fetchPredictions,
+							onClose: () => setOpen(false),
+							setToast: (msg: string) => setToast({ message: msg, type: 'success' }),
+							setLocalError: (m: string | null) => setError(m),
+						});
+
+						if (result.success) {
+							form.resetFields();
+						}
+					}}
+				/>
 			</Modal>
 		</div>
 	);
