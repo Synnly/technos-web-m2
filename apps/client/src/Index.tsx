@@ -1,9 +1,7 @@
-import { use, useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import CreatePredictionForm from "./components/predictions/CreatePredictionForm";
-import PredictionsList from "./components/predictions/PredictionsList";
 import Sidebar from "./components/sidebar/Sidebar.component";
 import ToastComponent from "./components/toast/Toast.component";
 import type { Toast } from "./components/toast/Toast.interface";
@@ -14,42 +12,93 @@ import { InputText } from "./components/inputs/InputText.component";
 import { DatePicker } from "antd";
 import InputOptions from "./components/input/Options/InputOptions.component";
 import PredictionController from "./modules/prediction/prediction.controller";
+import { Form } from "antd";
+import Header from "./components/home/Header";
+import StatsGrid from "./components/home/StatsGrid";
+import XPSection from "./components/home/XPSection";
+import PredictionsSection from "./components/home/PredictionsSection";
+import type { Prediction } from "./modules/prediction/prediction.interface";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export interface Prediction {
-	_id: string;
-	title: string;
-	description?: string;
-	dateFin: string;
-	status: string;
-	options: Record<string, number>;
-	result: string;
-}
-/**
- * Composant principal de l'application.
- * - Affiche la liste des prédictions (publications).
- * - Si l'utilisateur est authentifié, affiche un bouton pour ouvrir un petit formulaire
- *   (utilise `InputText` et `InputSubmit`) afin de créer une nouvelle prédiction.
- */
-import { Form } from "antd";
+
 
 function Index() {
 	const [form] = Form.useForm();
-	const { isAuthenticated, logout, username } = useAuth();
+	const { username } = useAuth();
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
+	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
 	const [predictions, setPredictions] = useState<any[]>([]);
-	const [loading, setLoading] = useState(false);
-	const [showForm, setShowForm] = useState(false);
-	const [showOnlyMine, setShowOnlyMine] = useState(false);
-	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
-	const [_, setPoints] = useState<number>(0);
+	const [__, setLoading] = useState(false);
+	const [usersMap, _setUsersMap] = useState<Record<string, string>>({});
+	const [_, _setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
 	const [open, setOpen] = useState(false);
 
 	const [, setError] = useState<string | null>(null);
+
+	const [toast, setToast] = useState<Toast | null>(null);
+
+	const clearToast = () => setToast(null);
+
+	const fetchPredictions = async () => {
+		setLoading(true);
+		try {
+			const resp = await axios.get<Prediction[]>(
+				`${API_URL}/prediction`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				},
+			);
+			setPredictions(resp.data);
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const fetchUsers = async () => {
+		try {
+			const res = await axios.get(`${API_URL}/user`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const map: Record<string, string> = {};
+			(res.data || []).forEach((u: any) => {
+				if (u && u._id && u.username) map[u._id] = u.username;
+			});
+			_setUsersMap(map);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const fetchUser = async (username: string) => {
+		setUser(
+			(
+				await axios.get(`${API_URL}/user/${username}`, {
+					headers: { Authorization: `Bearer ${token}` },
+				})
+			).data,
+		);
+	};
+	useEffect(() => {
+		fetchUsers();
+		fetchPredictions();
+	}, [token]);
+
+	useEffect(() => {
+		if (username) {
+			fetchUser(username);
+			_setPoints(user?.points || 0);
+		}
+	}, [username]);
+
+	const handlePredictionClick = (id: string) => {
+		navigate(`/prediction/${id}`);
+	};
 
 	const fields: FormField[] = [
 		{
@@ -66,128 +115,29 @@ function Index() {
 			componentProps: { placeholder: "Description" },
 		},
 		{
-			name: "date de fin",
+			name: "dateFin",
 			label: "Date de fin",
 			component: DatePicker,
-			componentProps: { placeholder: "" },
-			formItemProps: { rules: [{ required: true }] },
 		},
 		{
 			name: "options",
 			label: "Options",
 			component: InputOptions,
-			formItemProps: { rules: [{ required: true }] },
 		},
 	];
 
-	const fetchPredictions = async () => {
-		setLoading(true);
-		try {
-			const res = await axios.get<Prediction[]>(
-				`${API_URL}/prediction/valid`,
-				{
-					headers: { Authorization: `Bearer ${token}` },
-				},
-			);
-			setPredictions(res.data);
-		} catch (err) {
-			console.error(
-				"Erreur lors de la récupération des prédictions :",
-				err,
-			);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const fetchUsers = async () => {
-		try {
-			const res = await axios.get(`${API_URL}/user`, {
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			const map: Record<string, string> = {};
-			(res.data || []).forEach((u: any) => {
-				if (u && u._id) map[u._id] = u.username;
-			});
-			setUsersMap(map);
-		} catch (e) {
-			console.error(e);
-		}
-	};
-
-	useEffect(() => {
-		if (isAuthenticated) {
-			fetchPredictions();
-			fetchUsers();
-		}
-	}, [isAuthenticated]);
-
-	const getCurrentUserId = () => {
-		if (!username) return undefined;
-		const entry = Object.entries(usersMap).find(([, u]) => u === username);
-		return entry ? entry[0] : undefined;
-	};
-
-	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const [toast, setToast] = useState<Toast | null>(null);
-
-	const clearToast = useCallback(() => setToast(null), []);
-
-	const deletePrediction = async (id: string) => {
-		if (!confirm("Supprimer cette prédiction ?")) return;
-		const token = localStorage.getItem("token");
-		if (!token) return setError("Utilisateur non authentifié");
-		setDeletingId(id);
-		try {
-			await axios.delete(`${API_URL}/prediction/${id}`, {
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			setToast({ message: "Prédiction supprimée", type: "success" });
-			await fetchPredictions();
-		} catch (err: any) {
-			console.error(err);
-			const msg =
-				err?.response?.data?.message || "Erreur lors de la suppression";
-			setError(msg);
-			setToast(msg);
-		} finally {
-			setDeletingId(null);
-		}
-	};
-
-	const fetchUser = async (username: string) =>
-		setUser(
-			(
-				await axios.get(`${API_URL}/user/${username}`, {
-					headers: { Authorization: `Bearer ${token}` },
-				})
-			).data,
-		);
-	useEffect(() => {
-		if (username) {
-			fetchUser(username!);
-			setPoints(user?.points || 0);
-		}
-	}, [username]);
-
-	if (!isAuthenticated) {
-		return (
-			<div>
-				<h1>Bienvenue sur notre application</h1>
-				<p>Veuillez vous connecter ou vous inscrire pour continuer.</p>
-			</div>
-		);
-	}
-
 	return (
-		<div className="bg-gray-900 mx-auto px-6 py-8 w-full h-screen">
+		<div className="bg-gray-900 mx-auto px-6 py-8 w-full min-h-screen  flex flex-col">
 			<Sidebar
 				user={user}
 				token={token!}
 				setUser={setUser}
-				setPoints={setPoints}
+				setPoints={_setPoints}
 				setToast={setToast}
 				setModalOpen={setOpen}
+				onCollapsedChange={(value: boolean) =>
+					setSidebarCollapsed(value)
+				}
 			/>
 			{toast && (
 				<ToastComponent
@@ -238,27 +188,21 @@ function Index() {
 					}}
 				/>
 			</Modal>
-			<main className="flex-1 ml-72 p-8">
-				<div className=" bg-gradient-to-r from-gray-800 to-gray-750 rounded-2xl p-8 border border-gray-700">
-					<div className="flex items-center justify-between">
-						<div>
-							<h2 className="text-3xl font-bold mb-2 text-white">
-								Bienvenue {username} !
-							</h2>
-							<p className="text-gray-400 text-lg">
-								Prêt à prédire l'avenir ?
-							</p>
-						</div>
-						<div className="text-right">
-							<div className="text-2xl font-bold text-yellow-400">
-								{user && <span>{user.points}</span>}
-							</div>
-							<div className="text-sm text-gray-400">
-								Total Points
-							</div>
-						</div>
-					</div>
-				</div>
+			<main
+				className={
+					sidebarCollapsed
+						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
+				}
+			>
+				<Header username={username} user={user} />
+				<StatsGrid user={user} />
+				<XPSection user={user} />
+				<PredictionsSection
+					predictions={predictions}
+					usersMap={usersMap}
+					onPredictionClick={handlePredictionClick}
+				/>
 			</main>
 		</div>
 	);

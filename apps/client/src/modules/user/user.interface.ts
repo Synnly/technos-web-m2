@@ -8,8 +8,8 @@ export interface User {
 	motDePasse?: string;
 	points: number;
 	dateDerniereRecompenseQuotidienne: string | null;
-	predictions?: string[] | any[];
-	votes?: string[] | any[];
+	predictions?: string[];
+	votes?: string[];
 	role: Role;
 	cosmeticsOwned: string[];
 	currentCosmetic: Array<string | Cosmetic | null>;
