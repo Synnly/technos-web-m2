@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
+      - name: Pull latest changes
+        run: git pull origin main
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -23,10 +26,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Deploy frontend
+        run: cp -r /home/deploy/technos-web-m2/apps/client/dist/* /var/www/html/
+
       - name: Install PM2
         run: |
           npm install -g pm2
           pm2 -v
+
+      - name: Delelete all PM2 processes
+        run: pm2 delete all || true
       
-      - name: Redémarrer services
-        run: pm2 start /home/deploy/technos-web-m2/apps/api/dist/main.js
+      - name: Restart API
+        run: cd /home/deploy/technos-web-m2/apps/api && pm2 start "node --env-file=.env dist/main.js"

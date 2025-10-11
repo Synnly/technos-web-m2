@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { UserModule } from "./user/user.module";
 import { PredictionModule } from "./prediction/prediction.module";
 import { VoteModule } from "./vote/vote.module";
@@ -17,7 +17,13 @@ import { JwtModule } from "@nestjs/jwt";
 		ConfigModule.forRoot({
 			isGlobal: true, // Permet d'utiliser ConfigModule dans toute l'application sans le réimporter
 		}),
-		MongooseModule.forRoot(process.env.DATABASE_URL!),
+		MongooseModule.forRootAsync({
+			imports: [ConfigModule],
+			useFactory: async (configService: ConfigService) => ({
+				uri: configService.get<string>("DATABASE_URL"),
+			}),
+			inject: [ConfigService],
+		}),
 		UserModule,
 		PredictionModule,
 		VoteModule,
