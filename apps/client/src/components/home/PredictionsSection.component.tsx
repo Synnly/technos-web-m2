@@ -15,7 +15,6 @@ export default function PredictionsSection({
 		.reverse()
 		.slice(predictions.length - 3, predictions.length)
 		.reverse();
-	console.log(firstThree);
 	return (
 		<div className="my-8">
 			<div className="flex items-center justify-between mb-4">

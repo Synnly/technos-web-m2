@@ -12,4 +12,21 @@ export const userService = {
 		);
 		return response.data;
 	},
+	async getUsersMap(token: string) {
+		const res = await axios.get(`${API_URL}/user`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+		const map: Record<string, string> = {};
+		(res.data || []).forEach((u: any) => {
+			if (u && u._id && u.username) map[u._id] = u.username;
+		});
+		return map;
+	},
+
+	async getUserByUsername(username: string, token: string) {
+		const res = await axios.get(`${API_URL}/user/${username}`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+		return res.data;
+	},
 };

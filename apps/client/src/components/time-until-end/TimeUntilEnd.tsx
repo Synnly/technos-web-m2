@@ -13,7 +13,7 @@ interface TimeUntilProps {
 	endDate: string;
 }
 
-const TimeUntilGaming: React.FC<TimeUntilProps> = ({ endDate }) => {
+const TimeUntilEnd: React.FC<TimeUntilProps> = ({ endDate }) => {
 	const [text, setText] = useState("");
 	const [color, setColor] = useState("text-green-400");
 	const [intervalDelay, setIntervalDelay] = useState(60000);
@@ -143,4 +143,4 @@ const TimeUntilGaming: React.FC<TimeUntilProps> = ({ endDate }) => {
 	);
 };
 
-export default TimeUntilGaming;
+export default TimeUntilEnd;

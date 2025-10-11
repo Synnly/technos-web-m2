@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PredictionPayload } from "./prediction.interface";
+import type { Prediction, PredictionPayload } from "./prediction.interface";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,6 +23,13 @@ export const PredictionService = {
 		} catch (err) {
 			return undefined;
 		}
+	},
+
+	async getAllPredictions(token: string): Promise<Prediction[]> {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+		return resp.data || [];
 	},
 };
 

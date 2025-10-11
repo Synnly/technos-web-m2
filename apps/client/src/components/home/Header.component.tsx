@@ -1,11 +1,9 @@
-import React from "react";
-
 type Props = {
 	username?: string | null;
 	user?: any;
 };
 
-export default function Header({ username, user }: Props) {
+function Header({ username, user }: Props) {
 	return (
 		<div className="bg-gradient-to-r from-gray-800 to-gray-750 rounded-2xl p-4 md:p-6 border border-gray-700 mb-6">
 			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -28,3 +26,5 @@ export default function Header({ username, user }: Props) {
 		</div>
 	);
 }
+
+export default Header;

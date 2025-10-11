@@ -29,6 +29,10 @@ export const PredictionResolver = {
 		const res = await PredictionService.createPrediction(payload, token);
 		return res.data;
 	},
+	async getAllPredictions(token: string) {
+		const data = await PredictionService.getAllPredictions(token);
+		return data;
+	},
 };
 
 export default PredictionResolver;

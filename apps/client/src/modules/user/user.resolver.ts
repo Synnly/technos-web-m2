@@ -29,4 +29,12 @@ export const userResolver = {
 			type: "success" as ToastType,
 		};
 	},
+
+	async getUsersMap(token: string) {
+		return userService.getUsersMap(token);
+	},
+
+	async getUserByUsername(username: string, token: string) {
+		return userService.getUserByUsername(username, token);
+	},
 };
