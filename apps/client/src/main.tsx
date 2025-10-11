@@ -1,10 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./Login";
+import Login from "./pages/Login";
 import Register from "./Registration";
-import Index from "./Index";
+import Index from "./pages/Index";
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from './Dashboard';
 import Prediction from './Prediction';

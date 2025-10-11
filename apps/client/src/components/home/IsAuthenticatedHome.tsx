@@ -8,10 +8,10 @@ import Modal from "../../components/modal/modal.component";
 import GenericForm from "../../components/form/Form.component";
 import type { FormField } from "../../components/modal/modal.interface";
 import { InputText } from "../../components/inputs/InputText.component";
-import { DatePicker } from "antd";
 import InputOptions from "../../components/input/Options/InputOptions.component";
 import { PredictionController } from "../../modules/prediction/prediction.controller";
 import type { AuthenticatedHomeProps } from "./types";
+import InputDatePicker from "../input/DatePicker/InputDatePicker.component";
 
 export default function IsAuthenticatedHome({
 	user,
@@ -49,7 +49,7 @@ export default function IsAuthenticatedHome({
 		{
 			name: "dateFin",
 			label: "Date de fin",
-			component: DatePicker,
+			component: InputDatePicker,
 		},
 		{
 			name: "options",

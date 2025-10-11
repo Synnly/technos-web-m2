@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "./hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import type { Toast } from "./components/toast/Toast.interface";
-import PredictionController from "./modules/prediction/prediction.controller";
+import type { Toast } from "../components/toast/Toast.interface";
+import PredictionController from "../modules/prediction/prediction.controller";
 import { Form } from "antd";
 
-import IsNotAuthenticatedHome from "./components/home/IsNotAuthenticatedHome";
-import IsAuthenticatedHome from "./components/home/IsAuthenticatedHome";
-import { userController } from "./modules/user/user.controller";
+import IsNotAuthenticatedHome from "../components/home/IsNotAuthenticatedHome";
+import IsAuthenticatedHome from "../components/home/IsAuthenticatedHome";
+import { userController } from "../modules/user/user.controller";
 
 function Index() {
 	const [form] = Form.useForm();
