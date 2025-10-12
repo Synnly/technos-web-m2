@@ -65,4 +65,47 @@ export const userController = {
 			}
 		}
 	},
+
+	async login(
+		username: string,
+		password: string,
+		setError?: React.Dispatch<React.SetStateAction<string | null>>,
+	) {
+		try {
+			return await userResolver.login(username, password);
+		} catch (err: any) {
+			const msg =
+				err?.response?.data?.message || "Erreur lors de la connexion";
+			if (setError) setError(msg);
+			return null;
+		}
+	},
+
+	async register(
+		username: string,
+		password: string,
+		setError?: React.Dispatch<React.SetStateAction<string | null>>,
+	) {
+		console.log("Registering user:", username.trim() === "");
+		if (username.trim() === "") {
+			if (setError)
+				setError("Le nom d'utilisateur ne peut pas être vide");
+			return null;
+		}
+		if (password.trim() === "") {
+			if (setError) setError("Le mot de passe ne peut pas être vide");
+			return null;
+		}
+		try {
+			return await userResolver.register(
+				username.trim(),
+				password.trim(),
+			);
+		} catch (err: any) {
+			const msg =
+				err?.response?.data?.message || "Erreur lors de l'inscription";
+			if (setError) setError(msg);
+			return null;
+		}
+	},
 };

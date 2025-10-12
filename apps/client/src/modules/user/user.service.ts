@@ -29,4 +29,19 @@ export const userService = {
 		});
 		return res.data;
 	},
+
+	async login(username: string, password: string) {
+		const response = await axios.post(`${API_URL}/user/login`, {
+			username,
+			password,
+		});
+		return response.data.token.token;
+	},
+	async register(username: string, password: string) {
+		const response = await axios.post(`${API_URL}/user`, {
+			username,
+			motDePasse: password,
+		});
+		return response.data;
+	},
 };
