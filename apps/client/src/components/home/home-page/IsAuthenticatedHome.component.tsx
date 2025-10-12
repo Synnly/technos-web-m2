@@ -1,17 +1,18 @@
-import Header from "./Header.component";
-import StatsGrid from "./StatsGrid.component";
-import XPSection from "./XPSection.component";
-import PredictionsSection from "./PredictionsSection.component";
-import Sidebar from "../../components/sidebar/Sidebar.component";
-import ToastComponent from "../../components/toast/Toast.component";
-import Modal from "../../components/modal/modal.component";
-import GenericForm from "../../components/form/Form.component";
-import type { FormField } from "../../components/modal/modal.interface";
-import { InputText } from "../../components/inputs/InputText.component";
-import InputOptions from "../../components/input/Options/InputOptions.component";
-import { PredictionController } from "../../modules/prediction/prediction.controller";
-import type { AuthenticatedHomeProps } from "./types";
-import InputDatePicker from "../input/DatePicker/InputDatePicker.component";
+import Header from "../header/Header.component";
+import StatsGrid from "../statistics/StatsGrid.component";
+import XPSection from "../statistics/XPSection.component";
+import PredictionsSection from "../predictions/PredictionsSection.component";
+import Sidebar from "../../sidebar/Sidebar.component";
+import ToastComponent from "../../toast/Toast.component";
+import Modal from "../../modal/modal.component";
+import GenericForm from "../../form/Form.component";
+import type { FormField } from "../../modal/modal.interface";
+import { InputText } from "../../inputs/InputText.component";
+import InputOptions from "../../input/Options/InputOptions.component";
+import { PredictionController } from "../../../modules/prediction/prediction.controller";
+
+import InputDatePicker from "../../input/DatePicker/InputDatePicker.component";
+import type { AuthenticatedHomeProps } from "../types/AuthenticatedHome.type";
 
 export default function IsAuthenticatedHome({
 	user,

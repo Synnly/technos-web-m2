@@ -1,16 +1,12 @@
-import PredictionCard from "../predictions/PredictionCard";
+import PredictionCard from "../../predictions/PredictionCard";
+import type { PredictionSectionProps } from "../types/PredictionSection.type";
 
-type Props = {
-	predictions: any[];
-	usersMap: Record<string, string>;
-	onPredictionClick: (id: string) => void;
-};
 
 export default function PredictionsSection({
 	predictions,
 	usersMap,
 	onPredictionClick,
-}: Props) {
+}: PredictionSectionProps) {
 	const firstThree = (predictions || [])
 		.reverse()
 		.slice(predictions.length - 3, predictions.length)
@@ -37,7 +33,7 @@ export default function PredictionsSection({
 						comments={prediction.nbPublications}
 						percentLabel={"0"}
 						percent={10}
-						endsIn={prediction.dateFin}
+						endsIn={prediction.dateFin.toString()}
 						onClick={onPredictionClick}
 					/>
 				))}

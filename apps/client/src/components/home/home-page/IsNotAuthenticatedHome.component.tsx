@@ -1,5 +1,5 @@
 import { Button } from "antd";
-import type { UnauthenticatedHomeProps } from "./types";
+import type { UnauthenticatedHomeProps } from "../types/UnauthenticatedHome.type";
 
 export default function IsNotAuthenticatedHome({ onSignIn, onSignUp }: UnauthenticatedHomeProps) {
   return (
