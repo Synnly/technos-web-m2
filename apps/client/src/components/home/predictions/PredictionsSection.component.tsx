@@ -1,5 +1,6 @@
 import PredictionCard from "../../predictions/PredictionCard";
 import type { PredictionSectionProps } from "../types/PredictionSection.type";
+import { useNavigate } from "react-router-dom";
 
 
 export default function PredictionsSection({
@@ -7,17 +8,22 @@ export default function PredictionsSection({
 	usersMap,
 	onPredictionClick,
 }: PredictionSectionProps) {
+	const navigate = useNavigate();
 	const firstThree = (predictions || [])
 		.reverse()
 		.slice(predictions.length - 3, predictions.length)
 		.reverse();
+
+	const navigateAllPredictions = () => {
+		navigate("/predictions");
+	}
 	return (
 		<div className="my-8">
 			<div className="flex items-center justify-between mb-4">
 				<h1 className="text-xl font-bold text-white mb-6">
 					Prédictions
 				</h1>
-				<span className="text-gray-400 cursor-pointer underline underline-offset-4">
+				<span className="text-gray-400 cursor-pointer underline underline-offset-4" onClick={navigateAllPredictions}>
 					Tout voir
 				</span>
 			</div>
