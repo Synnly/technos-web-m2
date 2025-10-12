@@ -5,8 +5,8 @@ import type { Toast } from "../components/toast/Toast.interface";
 import PredictionController from "../modules/prediction/prediction.controller";
 import { Form } from "antd";
 
-import IsNotAuthenticatedHome from "../components/home/IsNotAuthenticatedHome";
-import IsAuthenticatedHome from "../components/home/IsAuthenticatedHome";
+import IsNotAuthenticatedHome from "../components/home/home-page/IsNotAuthenticatedHome.component";
+import IsAuthenticatedHome from "../components/home/home-page/IsAuthenticatedHome.component";
 import { userController } from "../modules/user/user.controller";
 
 function Index() {

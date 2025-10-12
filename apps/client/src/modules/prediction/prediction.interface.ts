@@ -1,3 +1,6 @@
+import type { Publication } from "../publication/publication.interface";
+import type { Vote } from "../vote/vote.interface";
+
 export interface PredictionFormValues {
 	title: string;
 	description?: string;
@@ -32,4 +35,14 @@ export interface Prediction {
 	options: Record<string, number>;
 	user_id: string;
 	result: string;
+}
+
+export interface PredictionWithThisNbOfVotesAndNbOfPublications extends Prediction {
+	nbVotes: number;
+	nbPublications: number;
+}
+
+export interface PredictionWithThisVotesAndPublications extends Prediction {
+	votes: Vote[];
+	publications: Publication[];
 }
