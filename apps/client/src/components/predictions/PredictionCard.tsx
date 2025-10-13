@@ -18,7 +18,7 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 	return (
 		<div
 			className={`group bg-gray-800 backdrop-blur-sm rounded-xl p-5 border border-gray-800 shadow-md
-        transition-all duration-300 hover:scale-[1.05] hover:shadow-xl hover:border-gray-600 cursor-pointer flex flex-col justify-between ${className}`}
+        transition-all duration-300 hover:scale-[1.025] hover:shadow-xl hover:border-gray-600 cursor-pointer flex flex-col justify-between ${className}`}
 			role="button"
 			onClick={() => onClick && onClick(id)}
 			tabIndex={0}

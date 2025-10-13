@@ -12,7 +12,7 @@ import React from "react";
 import Modal from "../modal/modal.component";
 import GenericForm from "../form/Form.component";
 import InputDatePicker from "../input/DatePicker/InputDatePicker.component";
-import { InputText } from "../inputs/InputText.component";
+import InputText  from "../input/Text/InputText.component";
 import InputOptions from "../input/Options/InputOptions.component";
 import { PredictionController } from "../../modules/prediction/prediction.controller";
 

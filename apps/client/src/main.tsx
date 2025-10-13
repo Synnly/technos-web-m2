@@ -9,6 +9,7 @@ import Dashboard from "./Dashboard";
 import Prediction from "./Prediction";
 import Shop from "./Shop";
 import AllPredictions from "./pages/AllPredictions";
+import "./App.css";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
