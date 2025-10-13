@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { InputText } from "../components/input/Text/InputText.component";
+import InputText from "../components/input/Text/InputText.component";
 import InputPassword from "../components/input/Password/InputPassword.component";
 import GenericForm from "../components/form/Form.component";
 import type { FormField } from "../components/modal/modal.interface";

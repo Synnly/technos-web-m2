@@ -41,7 +41,7 @@ function Modal({ isOpen, onClose, title, children }: ModalProps) {
 				role="dialog"
 				aria-modal="true"
 				aria-label="Modal dialog"
-				className="bg-white rounded-lg shadow-lg max-w-md w-full p-6"
+				className="rounded-lg shadow-lg max-w-md w-full p-6 bg-gray-800"
 				onMouseDown={(e) => e.stopPropagation()}
 			>
 				{title && (

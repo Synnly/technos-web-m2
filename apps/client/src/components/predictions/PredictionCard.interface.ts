@@ -4,7 +4,7 @@ export interface PredictionCardProps {
 	author?: string;
 	votes?: string | number;
 	comments?: string | number;
-	percentLabel?: string; 
+	percentLabel?: string;
 	percent?: number;
 	endsIn?: string;
 	onClick?: (id: string) => void;

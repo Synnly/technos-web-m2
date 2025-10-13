@@ -29,10 +29,16 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 			<div className="flex items-start justify-between mb-4">
 				<div className="flex items-center space-x-3">
 					<div>
-						<p className="font-medium text-white group-hover:text-green-300 transition-colors" contentEditable={false}>
+						<p
+							className="font-medium text-white group-hover:text-green-300 transition-colors"
+							contentEditable={false}
+						>
 							{title}
 						</p>
-						<p className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors" contentEditable={false}>
+						<p
+							className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors"
+							contentEditable={false}
+						>
 							by {author}
 						</p>
 					</div>
@@ -62,7 +68,8 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 					className="text-lg font-bold text-green-400 group-hover:text-green-300 transition-colors"
 					contentEditable={false}
 				>
-					{percentLabel ?? (percent !== undefined ? `${percent}%` : "")}
+					{percentLabel ??
+						(percent !== undefined ? `${percent}%` : "")}
 				</div>
 				{endsIn && (
 					<div

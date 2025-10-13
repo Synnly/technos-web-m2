@@ -42,10 +42,15 @@ const InputOptions: React.FC<InputOptionsProps> = ({
 						onPressEnter={handleAdd}
 					/>
 					<Button
-						type="primary"
+						type="default"
 						icon={<PlusOutlined />}
 						onClick={handleAdd}
 						disabled={!canAdd}
+						style={{
+							backgroundColor: "#fff",
+							borderColor: "#d9d9d9",
+							color: "#111827",
+						}}
 					>
 						Ajouter
 					</Button>
@@ -58,10 +63,11 @@ const InputOptions: React.FC<InputOptionsProps> = ({
 						bordered
 						locale={{ emptyText: "Aucune option" }}
 						dataSource={items}
+						style={{ backgroundColor: "#fff" }}
 						renderItem={(item) => {
 							const [k, _] = item as [string, number];
 							return (
-								<List.Item>
+								<List.Item style={{ backgroundColor: "#fff" }}>
 									<Space
 										style={{
 											width: "100%",

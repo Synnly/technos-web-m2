@@ -1,9 +1,8 @@
-import React from "react";
 import XPBar from "../../experience-bar/XPBar";
 import type { User } from "../../../modules/user/user.interface";
 
 type Props = {
-	user:  User;
+	user: User;
 };
 
 export default function XPSection({ user }: Props) {

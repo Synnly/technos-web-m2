@@ -2,7 +2,7 @@ import React from "react";
 import { Input } from "antd";
 import type { InputTextProps } from "./InputText.interface";
 
-export const InputText: React.FC<InputTextProps> = ({
+const InputText: React.FC<InputTextProps> = ({
 	value,
 	onChange,
 	placeholder,

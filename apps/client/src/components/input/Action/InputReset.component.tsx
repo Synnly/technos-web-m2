@@ -16,7 +16,12 @@ const InputReset: React.FC<InputResetProps> = ({
 	};
 
 	return (
-		<Button onClick={handleReset} className={className}>
+		<Button
+			onClick={handleReset}
+			className={className}
+			color="red"
+			variant="solid"
+		>
 			{text}
 		</Button>
 	);
