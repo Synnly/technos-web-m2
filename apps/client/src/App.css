@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+.search-bar .ant-input::placeholder,
+.ant-input::placeholder,
+.ant-picker input::placeholder {
+	color: #000 !important;
+	opacity: 1 !important;
+}
+
+.search-bar .ant-input,
+.ant-input,
+.ant-picker input {
+	color: #000 !important;
+}
+
+.ant-picker .ant-picker-input input {
+	color: #000 !important;
+}

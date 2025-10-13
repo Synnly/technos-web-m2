@@ -9,7 +9,6 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 	author = "unknown",
 	votes = "0",
 	comments = "0",
-	percentLabel,
 	percent,
 	endsIn,
 	onClick,
@@ -68,8 +67,7 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 					className="text-lg font-bold text-green-400 group-hover:text-green-300 transition-colors"
 					contentEditable={false}
 				>
-					{percentLabel ??
-						(percent !== undefined ? `${percent}%` : "")}
+					{percent !== undefined ? `${percent}%` : ""}
 				</div>
 				{endsIn && (
 					<div

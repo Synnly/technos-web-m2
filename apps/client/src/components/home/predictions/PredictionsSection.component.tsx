@@ -39,7 +39,6 @@ export default function PredictionsSection({
 						author={usersMap[prediction.user_id]}
 						votes={prediction.nbVotes}
 						comments={prediction.nbPublications}
-						percentLabel={"0"}
 						percent={10}
 						endsIn={prediction.dateFin.toString()}
 						onClick={onPredictionClick}
