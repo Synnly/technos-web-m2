@@ -1,6 +1,6 @@
 import React from "react";
 import { Tabs } from "antd";
-import type { AccountTabsProps } from "./AccountTabs.interface";
+import type { AccountTabsProps } from "./interfaces/AccountTabs.interface";
 import makeAccountInfoTab from "./AccountInfoTab";
 import makeCosmeticsTab from "./CosmeticsTab";
 import makeSettingsTab from "./SettingsTab";

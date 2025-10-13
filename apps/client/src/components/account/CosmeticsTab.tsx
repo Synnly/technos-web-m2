@@ -1,5 +1,5 @@
 import { Package2 } from "lucide-react";
-import type { AccountTabItem } from "./types/AccountTabItem.interface";
+import type { AccountTabItem } from "./interfaces/AccountTabItem.interface";
 
 export function makeCosmeticsTab(): AccountTabItem {
 	return {
