@@ -9,17 +9,25 @@ import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
+import Modal from "../modal/modal.component";
+import GenericForm from "../form/Form.component";
+import InputDatePicker from "../input/DatePicker/InputDatePicker.component";
+import { InputText } from "../inputs/InputText.component";
+import InputOptions from "../input/Options/InputOptions.component";
+import { PredictionController } from "../../modules/prediction/prediction.controller";
+
 const Sidebar: React.FC<SidebarProps> = ({
 	user,
 	token,
 	setUser,
 	setPoints,
 	setToast,
-	setModalOpen,
+	onPredictionCreated,
 	onCollapsedChange,
 }) => {
 	const navigate = useNavigate();
 	const { logout } = useAuth();
+	const [modalOpen, setModalOpen] = React.useState(false);
 	const Actions = getActions(() => setModalOpen(true));
 	const [collapsed, setCollapsed] = React.useState(() => {
 		const saved = localStorage.getItem("sidebar-collapsed");
@@ -94,6 +102,80 @@ const Sidebar: React.FC<SidebarProps> = ({
 							)}
 						/>
 					)}
+
+					<Modal
+						isOpen={modalOpen}
+						onClose={() => setModalOpen(false)}
+					>
+						<GenericForm
+							form={undefined}
+							title="Création d'une prédiction"
+							fields={[
+								{
+									name: "title",
+									label: "Titre",
+									component: InputText,
+									componentProps: { placeholder: "Titre" },
+									formItemProps: {
+										rules: [{ required: true }],
+									},
+								},
+								{
+									name: "description",
+									label: "Description",
+									component: InputText,
+									componentProps: {
+										placeholder: "Description",
+									},
+								},
+								{
+									name: "dateFin",
+									label: "Date de fin",
+									component: InputDatePicker,
+								},
+								{
+									name: "options",
+									label: "Options",
+									component: InputOptions,
+								},
+							]}
+							onFinish={async (values: any) => {
+								const rawDate =
+									values["date de fin"] ?? values.dateFin;
+								const dateFin =
+									rawDate &&
+									typeof rawDate.toISOString === "function"
+										? rawDate.toISOString()
+										: rawDate;
+								const payload = {
+									title: values.title,
+									description: values.description,
+									dateFin,
+									options: values.options,
+								};
+								const result =
+									await PredictionController.createPrediction(
+										payload,
+										{
+											username: user?.username,
+											setToast: (msg: string) =>
+												setToast({
+													message: msg,
+													type: "success",
+												}),
+											onClose: () => setModalOpen(false),
+											fetchPredictions:
+												onPredictionCreated
+													? async () =>
+															onPredictionCreated()
+													: undefined,
+										},
+									);
+								if (result.success && onPredictionCreated)
+									onPredictionCreated();
+							}}
+						/>
+					</Modal>
 
 					<div className=" absolute bottom-5 ">
 						<NavigationItemComponent

@@ -37,9 +37,12 @@ export interface Prediction {
 	result: string;
 }
 
-export interface PredictionWithThisNbOfVotesAndNbOfPublications extends Prediction {
+export interface PredictionWithThisNbOfVotesAndNbOfPublications
+	extends Prediction {
 	nbVotes: number;
 	nbPublications: number;
+	percent: number;
+	mostVotedOption: string;
 }
 
 export interface PredictionWithThisVotesAndPublications extends Prediction {

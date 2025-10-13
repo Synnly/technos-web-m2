@@ -10,14 +10,15 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 	votes = "0",
 	comments = "0",
 	percent,
+	mostVotedOption,
 	endsIn,
 	onClick,
 	className = "",
 }) => {
 	return (
 		<div
-			className={`group bg-gray-800 rounded-xl p-4 border border-gray-700 transition-colors ${className} \
-				motion-safe:transform-gpu motion-safe:transition-transform motion-safe:duration-200 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-lg`}
+			className={`group bg-gray-800 backdrop-blur-sm rounded-xl p-5 border border-gray-800 shadow-md
+        transition-all duration-300 hover:scale-[1.05] hover:shadow-xl hover:border-gray-600 cursor-pointer flex flex-col justify-between ${className}`}
 			role="button"
 			onClick={() => onClick && onClick(id)}
 			tabIndex={0}
@@ -25,59 +26,56 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 				if (e.key === "Enter" || e.key === " ") onClick && onClick(id);
 			}}
 		>
-			<div className="flex items-start justify-between mb-4">
-				<div className="flex items-center space-x-3">
-					<div>
-						<p
-							className="font-medium text-white group-hover:text-green-300 transition-colors"
-							contentEditable={false}
-						>
-							{title}
-						</p>
-						<p
-							className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors"
-							contentEditable={false}
-						>
-							by {author}
-						</p>
-					</div>
-				</div>
+			<div className="flex flex-col gap-1 overflow-hidden text-center mb-2">
+				<p className="font-medium text-white text-base sm:text-lg truncate">
+					{title}
+				</p>
+				<p className="text-xs sm:text-sm text-gray-400 truncate">
+					de : {author}
+				</p>
 			</div>
 
-			<div className="flex items-center justify-between">
-				<div className="flex items-center space-x-4 text-sm text-gray-400">
-					<span
-						className="flex items-center gap-1 group-hover:text-white transition-colors"
-						contentEditable={false}
-					>
-						<Users className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-						{votes}
-					</span>
-					<span
-						className="flex items-center gap-1 group-hover:text-white transition-colors"
-						contentEditable={false}
-					>
-						<MessageSquare className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-						{comments} comments
-					</span>
-				</div>
-			</div>
-			<div className="flex items-center justify-between mt-4">
-				<div
-					className="text-lg font-bold text-green-400 group-hover:text-green-300 transition-colors"
-					contentEditable={false}
+			<div className="flex items-center justify-start sm:justify-start mt-4">
+				<span
+					className="flex items-center gap-1 px-1 py-1 rounded-full text-xs sm:text-sm font-medium
+     text-gray-200"
 				>
-					{percent !== undefined ? `${percent}%` : ""}
-				</div>
-				{endsIn && (
-					<div
-						className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors"
-						contentEditable={false}
-					>
-						<TimeUntilEnd endDate={endsIn} />
-					</div>
-				)}
+					<Users className="w-4 h-4 text-pink-400" />
+					{votes}
+				</span>
+
+				<span
+					className="flex items-center gap-1 px-1 py-1 rounded-full text-xs sm:text-sm font-medium
+     text-gray-200"
+				>
+					<MessageSquare className="w-4 h-4 text-blue-400" />
+					{comments}
+				</span>
 			</div>
+
+			{percent !== undefined && (
+				<div className="w-full">
+					<div className="flex justify-between items-center mb-1">
+						<span className="text-green-400 font-semibold text-sm sm:text-base truncate max-w-[65%] group-hover:text-green-300 transition-colors">
+							{mostVotedOption} à {percent}%
+						</span>
+						{endsIn && (
+							<span className="text-gray-400 text-xs sm:text-sm font-medium">
+								<TimeUntilEnd endDate={endsIn} />
+							</span>
+						)}
+					</div>
+					<div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+						<div
+							className="h-2 rounded-full transition-all duration-500"
+							style={{
+								width: `${percent}%`,
+								background: `linear-gradient(90deg, #22c55e, #16a34a)`,
+							}}
+						/>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

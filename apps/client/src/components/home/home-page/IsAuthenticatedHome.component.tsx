@@ -4,14 +4,6 @@ import XPSection from "../statistics/XPSection.component";
 import PredictionsSection from "../predictions/PredictionsSection.component";
 import Sidebar from "../../sidebar/Sidebar.component";
 import ToastComponent from "../../toast/Toast.component";
-import Modal from "../../modal/modal.component";
-import GenericForm from "../../form/Form.component";
-import type { FormField } from "../../modal/modal.interface";
-import { InputText } from "../../inputs/InputText.component";
-import InputOptions from "../../input/Options/InputOptions.component";
-import { PredictionController } from "../../../modules/prediction/prediction.controller";
-
-import InputDatePicker from "../../input/DatePicker/InputDatePicker.component";
 import type { AuthenticatedHomeProps } from "../types/AuthenticatedHome.type";
 
 export default function IsAuthenticatedHome({
@@ -20,54 +12,26 @@ export default function IsAuthenticatedHome({
 	token,
 	sidebarCollapsed,
 	setSidebarCollapsed,
-	form,
-	open,
-	setOpen,
 	toast,
 	setToast,
 	predictions,
 	usersMap,
 	handlePredictionClick,
 	fetchAllPredictions,
-	setError,
+	setPoints,
+	setUser,
 }: AuthenticatedHomeProps) {
 	const clearToast = () => setToast(null);
-
-	const fields: FormField[] = [
-		{
-			name: "title",
-			label: "Titre",
-			component: InputText,
-			componentProps: { placeholder: "Titre" },
-			formItemProps: { rules: [{ required: true }] },
-		},
-		{
-			name: "description",
-			label: "Description",
-			component: InputText,
-			componentProps: { placeholder: "Description" },
-		},
-		{
-			name: "dateFin",
-			label: "Date de fin",
-			component: InputDatePicker,
-		},
-		{
-			name: "options",
-			label: "Options",
-			component: InputOptions,
-		},
-	];
 
 	return (
 		<div className="bg-gray-900 mx-auto px-6 py-8 w-full min-h-screen  flex flex-col">
 			<Sidebar
 				user={user}
 				token={token!}
-				setUser={() => {}}
-				setPoints={() => {}}
+				setUser={setUser}
+				setPoints={setPoints}
 				setToast={setToast}
-				setModalOpen={setOpen}
+				onPredictionCreated={fetchAllPredictions}
 				onCollapsedChange={(value: boolean) =>
 					setSidebarCollapsed(value)
 				}
@@ -79,48 +43,6 @@ export default function IsAuthenticatedHome({
 					onClose={clearToast}
 				/>
 			)}
-			<Modal isOpen={open} onClose={() => setOpen(false)}>
-				<GenericForm
-					form={form}
-					title="Création d'une prédiction"
-					fields={fields}
-					onFinish={async (values: any) => {
-						const rawDate = values["date de fin"] ?? values.dateFin;
-						const dateFin =
-							rawDate && typeof rawDate.toISOString === "function"
-								? rawDate.toISOString()
-								: rawDate;
-
-						const payload = {
-							title: values.title,
-							description: values.description,
-							dateFin,
-							options: values.options,
-						};
-
-						const result =
-							await PredictionController.createPrediction(
-								payload,
-								{
-									username,
-									fetchPredictions: fetchAllPredictions,
-									onClose: () => setOpen(false),
-									setToast: (msg: string) =>
-										setToast({
-											message: msg,
-											type: "success",
-										}),
-									setLocalError: (m: string | null) =>
-										setError(m),
-								},
-							);
-
-						if (result.success) {
-							form.resetFields();
-						}
-					}}
-				/>
-			</Modal>
 
 			<main
 				className={

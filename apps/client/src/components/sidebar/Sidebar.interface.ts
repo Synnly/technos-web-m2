@@ -7,6 +7,6 @@ export interface SidebarProps {
 	setUser: (user: User) => void;
 	setPoints: (points: number) => void;
 	setToast: React.Dispatch<React.SetStateAction<Toast | null>>;
-	setModalOpen: any;
+	onPredictionCreated?: () => void;
 	onCollapsedChange?: (collapsed: boolean) => void;
 }

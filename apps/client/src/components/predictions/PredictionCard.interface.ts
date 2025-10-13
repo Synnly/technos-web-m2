@@ -5,6 +5,7 @@ export interface PredictionCardProps {
 	votes?: string | number;
 	comments?: string | number;
 	percent?: number;
+	mostVotedOption?: string;
 	endsIn?: string;
 	onClick?: (id: string) => void;
 	className?: string;

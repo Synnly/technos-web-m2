@@ -7,18 +7,31 @@ import type { Toast } from "../components/toast/Toast.interface";
 import PredictionCard from "../components/predictions/PredictionCard";
 import { PredictionController } from "../modules/prediction/prediction.controller";
 import { userController } from "../modules/user/user.controller";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 function AllPredictions() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-	const [user, ___] = useState<any>(null);
-	const [_, setToast] = useState<Toast | null>(null);
-	const [____, setOpen] = useState(false);
+	const [user, setUser] = useState<any>(null);
+	const [_, setToast] = useState<Toast | null>(null);	
+	const [___, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
 	const [predictions, setPredictions] = useState<any[]>([]);
 	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 	const [search, setSearch] = useState<string>("");
 	const [filters, setFilters] = useState<FiltersState>({ dateRange: null });
 	const [__, setLoading] = useState(false);
+	const navigate = useNavigate();
+	const { username } = useAuth();
+
+	const fetchUserByUsername = async (username: string) => {
+		const u = await userController.getUserByUsername(
+			username,
+			token,
+			setToast,
+		);
+		setUser(u);
+	};
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
@@ -34,10 +47,21 @@ function AllPredictions() {
 		setUsersMap(map);
 	};
 
+	const navToPrediction = (id: string) => {
+		navigate(`/prediction/${id}`);
+	};
+
 	useEffect(() => {
 		fetchAllUsers();
 		fetchAllPredictions();
 	}, [token]);
+
+	useEffect(() => {
+		if (username) {
+			fetchUserByUsername(username);
+			setPoints(user?.points || 0);
+		}
+	}, [username]);
 
 	const filtered = React.useMemo(() => {
 		const q = (search || "").trim().toLowerCase();
@@ -57,46 +81,45 @@ function AllPredictions() {
 
 			return true;
 		});
-	}, [predictions, search, filters]);
+	}, [predictions.reverse(), search, filters]);
 
 	return (
 		<>
 			<Sidebar
 				user={user}
 				token={token!}
-				setUser={() => {}}
-				setPoints={() => {}}
+				setUser={setUser}
+				setPoints={setPoints}
 				setToast={setToast}
-				setModalOpen={setOpen}
+				onPredictionCreated={fetchAllPredictions}
 				onCollapsedChange={(value: boolean) =>
 					setSidebarCollapsed(value)
 				}
 			/>
 			<main
-				className={
-					sidebarCollapsed
-						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all bg-gray-900 h-screen"
-						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-80 bg-gray-900 h-screen"
-				}
+				className={`flex-1 transition-all h-screen bg-gray-900 backdrop-blur-sm
+    ${sidebarCollapsed ? "ml-20 p-6 sm:p-8 md:p-10" : "ml-0 lg:ml-80 p-6 sm:p-8 md:p-10"}`}
 			>
-				<div className="mb-4">
-					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-						<div className="flex-1 mr-2">
+				<div className="mb-8">
+					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+						<div className="flex-1">
 							<SearchBar
 								value={search}
 								onSearch={(v) => setSearch(v)}
+								className="bg-gray-800 text-white placeholder-gray-400 rounded-xl shadow-sm hover:shadow-md focus:ring-2 focus:ring-green-400 transition-all duration-300"
 							/>
 						</div>
-						<div>
+						<div className="mt-2 sm:mt-0">
 							<PredictionFilters
 								value={filters}
 								onChange={(s) => setFilters(s)}
+								className="bg-gray-800 text-white rounded-xl shadow-sm p-2 hover:shadow-md transition-all duration-300"
 							/>
 						</div>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-white cursor-pointer">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 					{filtered.map((prediction) => (
 						<PredictionCard
 							key={prediction._id}
@@ -105,9 +128,10 @@ function AllPredictions() {
 							author={usersMap[prediction.user_id]}
 							votes={prediction.nbVotes}
 							comments={prediction.nbPublications}
-							percent={10}
+							percent={prediction.percent}
+							mostVotedOption={prediction.mostVotedOption}
 							endsIn={prediction.dateFin.toString()}
-							onClick={() => {}}
+							onClick={() => navToPrediction(prediction._id)}
 						/>
 					))}
 				</div>

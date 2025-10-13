@@ -1,4 +1,3 @@
-// Définition du type pour un input
 export interface InputProps {
 	label?: string;
 	type?: string;

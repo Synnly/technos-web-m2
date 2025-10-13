@@ -1,4 +1,5 @@
 import type { PredictionWithThisNbOfVotesAndNbOfPublications } from "../../../modules/prediction/prediction.interface";
+import type { User } from "../../../modules/user/user.interface";
 
 export type AuthenticatedHomeProps = {
 	user: any;
@@ -16,4 +17,6 @@ export type AuthenticatedHomeProps = {
 	handlePredictionClick: (id: string) => void;
 	fetchAllPredictions: () => Promise<void>;
 	setError: (m: string | null) => void;
+	setPoints: (points: number) => void;
+	setUser: (user: User) => void;
 };

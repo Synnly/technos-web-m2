@@ -20,7 +20,7 @@ function Index() {
 	const [predictions, setPredictions] = useState<any[]>([]);
 	const [__, setLoading] = useState(false);
 	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
-	const [_, _setPoints] = useState<number>(0);
+	const [_, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
 	const [open, setOpen] = useState(false);
 
@@ -60,7 +60,7 @@ function Index() {
 	useEffect(() => {
 		if (username) {
 			fetchUserByUsername(username);
-			_setPoints(user?.points || 0);
+			setPoints(user?.points || 0);
 		}
 	}, [username]);
 
@@ -85,6 +85,8 @@ function Index() {
 			handlePredictionClick={handlePredictionClick}
 			fetchAllPredictions={fetchAllPredictions}
 			setError={(m: string | null) => setError(m)}
+			setPoints={setPoints}
+			setUser={setUser}
 		/>
 	) : (
 		<IsNotAuthenticatedHome
