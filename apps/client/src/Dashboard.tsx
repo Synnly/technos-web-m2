@@ -3,6 +3,7 @@ import GenericForm from "./components/form/Form.component";
 import type { FormField } from "./components/modal/modal.interface";
 import InputText from "./components/input/Text/InputText.component";
 import InputPassword from "./components/input/Password/InputPassword.component";
+import AccountTabs from "./components/account/AccountTabs";
 import { useAuth } from "./hooks/useAuth";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 import CosmeticPicker from "./components/cosmetics/CosmeticPicker";
@@ -279,7 +280,9 @@ function Dashboard() {
 
 			{/* Partie utilisateur normal */}
 			{role !== "admin" && (
-				<div>
+				<div className="space-y-6">
+					<AccountTabs />
+
 					<GenericForm
 						title={`Compte - ${username}`}
 						initialValues={{ username }}
