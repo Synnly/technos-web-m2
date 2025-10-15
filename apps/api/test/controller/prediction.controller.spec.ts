@@ -37,7 +37,7 @@ const expectedPred1 = {
 	dateFin: new Date("3025-12-31"),
 	options: { yes: 10, no: 5 },
 	user_id: (expectedUser1 as any)._id,
-	results: "",
+	result: "",
 } as Prediction;
 
 const expectedPred2 = {
@@ -49,7 +49,7 @@ const expectedPred2 = {
 	dateFin: new Date("3025-11-30"),
 	options: { teamA: 3, teamB: 7 },
 	user_id: (expectedUser1 as any)._id,
-	results: "",
+	result: "",
 } as Prediction;
 
 const expectedPredictions = [expectedPred1, expectedPred2];
@@ -319,10 +319,10 @@ describe("PredictionController", () => {
 			).rejects.toThrow(BadRequestException);
 		});
 
-		it("should return 400 when results is not empty", async () => {
+		it("should return 400 when result is not empty", async () => {
 			const badPred = {
 				...expectedPred1,
-				results: "yes",
+				result: "yes",
 			} as unknown as Prediction;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
@@ -364,10 +364,10 @@ describe("PredictionController", () => {
 			expect(result).toBe(expectedPred1);
 		});
 
-		it("should return 400 when results is not empty", async () => {
+		it("should return 400 when result is not empty", async () => {
 			const badPred = {
 				...expectedPred1,
-				results: "yes",
+				result: "yes",
 			} as unknown as Prediction;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },

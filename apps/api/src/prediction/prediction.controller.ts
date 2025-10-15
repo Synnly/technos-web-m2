@@ -113,7 +113,7 @@ export class PredictionController {
 			!req.user?._id &&
 				!pred?.user_id &&
 				"L'utilisateur authentifié est requis",
-			pred?.results !== "" &&
+			pred?.result !== "" &&
 				"On ne peut voter pour une prédiction déjà validée",
 		].filter(Boolean)[0];
 
@@ -168,7 +168,7 @@ export class PredictionController {
 			!req.user?._id &&
 				!pred?.user_id &&
 				"L'utilisateur authentifié est requis",
-			pred?.results !== "" &&
+			pred?.result !== "" &&
 				"On ne peut voter pour une prédiction déjà validée",
 		].filter(Boolean)[0];
 

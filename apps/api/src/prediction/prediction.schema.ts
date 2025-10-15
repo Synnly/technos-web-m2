@@ -78,7 +78,7 @@ export class Prediction {
      * Chaîne vide si la prédiction n'est pas encore validée par un administrateur.
      */
     @Prop({ type: String, default: '' })
-    results: string;
+    result: string;
 
     /**
      * Pronostics de l'IA pour cette prédiction.

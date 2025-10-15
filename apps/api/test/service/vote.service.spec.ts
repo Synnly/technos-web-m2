@@ -27,7 +27,7 @@ const expectedPred1 = {
     dateFin: new Date('3025-12-31'),
     options: { yes: 10, no: 5 },
     user_id: (expectedUser1 as any)._id,
-    results: ''
+    result: ''
 } as Prediction;
 
 const expectedVote1 = {

@@ -34,7 +34,7 @@ const expectedPred1 = {
 	dateFin: new Date("3025-12-31"),
 	options: { yes: 10, no: 5 },
 	user_id: (expectedUser1 as any)._id,
-	results: "",
+	result: "",
 	pronostics_ia: {},
 } as Prediction;
 
@@ -47,7 +47,7 @@ const expectedPred2 = {
 	dateFin: new Date("3025-11-30"),
 	options: { teamA: 3, teamB: 7 },
 	user_id: (expectedUser1 as any)._id,
-	results: "",
+	result: "",
 	pronostics_ia: {},
 } as Prediction;
 
@@ -424,7 +424,7 @@ describe("PredictionService", () => {
 			);
 
 			expect(pred.status).toBe(PredictionStatus.Valid);
-			expect(pred.results).toBe("yes");
+			expect(pred.result).toBe('yes');
 			expect(pred.save).toHaveBeenCalled();
 		});
 	});
@@ -443,30 +443,28 @@ describe("PredictionService", () => {
 
 			const result = await predictionService.getExpiredPredictions();
 
-			expect(mockPredModel.find).toHaveBeenCalledWith({
-				dateFin: { $lte: expect.any(Date) },
-				results: "",
-				status: PredictionStatus.Valid,
-			});
-			expect(result).toEqual([expired]);
-		});
-	});
+  	    expect(mockPredModel.find).toHaveBeenCalledWith({
+  	      dateFin: { $lte: expect.any(Date) },
+  	      result: '',
+  	      status: PredictionStatus.Valid,
+  	    });
+  	    expect(result).toEqual([expired]);
+  	  });
+  	});
 
-	describe("getWaitingPredictions", () => {
-		it("should return waiting predictions with no results", async () => {
-			mockPredModel.find.mockReturnValue({
-				exec: jest.fn().mockResolvedValue([expectedPred1]),
-			});
+  	describe('getWaitingPredictions', () => {
+  	  it('should return waiting predictions with no result', async () => {
+  	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedPred1]) });
 
 			const result = await predictionService.getWaitingPredictions();
 
-			expect(mockPredModel.find).toHaveBeenCalledWith({
-				status: PredictionStatus.Waiting,
-				results: "",
-			});
-			expect(result).toEqual([expectedPred1]);
-		});
-	});
+  	    expect(mockPredModel.find).toHaveBeenCalledWith({
+  	      status: PredictionStatus.Waiting,
+  	      result: '',
+  	    });
+  	    expect(result).toEqual([expectedPred1]);
+  	  });
+  	});
 
 	describe("getValidPredictions", () => {
 		it("should return only predictions with status Valid and dateFin in the future", async () => {

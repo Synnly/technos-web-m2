@@ -1,8 +1,11 @@
 import axios from "axios";
-import { useForm } from "react-hook-form";
+import GenericForm from "./components/form/Form.component";
+import type { FormField } from "./components/modal/modal.interface";
+import InputText from "./components/input/Text/InputText.component";
+import InputPassword from "./components/input/Password/InputPassword.component";
+import AccountTabs from "./components/account/AccountTabs";
 import { useAuth } from "./hooks/useAuth";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
-import PasswordWithConfirmationInput from "./PasswordWithConfirmationInput";
 import CosmeticPicker from "./components/cosmetics/CosmeticPicker";
 import CreateCosmeticForm from "./components/cosmetics/CreateCosmeticForm";
 import { useNavigate } from "react-router-dom";
@@ -15,11 +18,6 @@ interface TokenJwtPayload extends JwtPayload {
 	role: string;
 }
 
-type FormData = {
-	username: string;
-	password: string;
-};
-
 interface Prediction {
 	_id: string;
 	title: string;
@@ -27,7 +25,7 @@ interface Prediction {
 	dateFin: string;
 	status: string;
 	options: Record<string, number>;
-	results: string;
+	result: string;
 }
 
 function Dashboard() {
@@ -49,7 +47,7 @@ function Dashboard() {
 		}
 	}
 
-	const { register, handleSubmit, watch } = useForm<FormData>();
+	// AntD GenericForm will be used instead of react-hook-form
 	const [expiredPrediction, setExpiredPrediction] = useState<Prediction[]>(
 		[],
 	);
@@ -138,24 +136,7 @@ function Dashboard() {
 		}
 	}, [role]);
 
-	const onSubmit = (data: FormData) => {
-		const updatedUser = {
-			username: data.username,
-			motDePasse: data.password,
-		};
-
-		axios.put(`${API_URL}/user/${username}`, updatedUser).then(() => {
-			axios
-				.post(`${API_URL}/user/login`, {
-					username: data.username,
-					password: data.password,
-				})
-				.then((response) => {
-					localStorage.setItem("token", response.data.token.token);
-					window.location.reload();
-				});
-		});
-	};
+	// account update handled in GenericForm onFinish
 
 	const confirmAccountDeletionHandler = () => {
 		if (!token) return;
@@ -299,32 +280,58 @@ function Dashboard() {
 
 			{/* Partie utilisateur normal */}
 			{role !== "admin" && (
-				<div>
-					<form className="App" onSubmit={handleSubmit(onSubmit)}>
-						<input
-							type="text"
-							{...register("username", {
-								required: "Champ requis",
-								minLength: {
-									value: 3,
-									message:
-										"Le nom d'utilisateur doit contenir au moins 3 caractères",
-								},
-							})}
-							placeholder="Nom d'utilisateur"
-							defaultValue={username}
-						/>
+				<div className="space-y-6">
+					<AccountTabs />
 
-						<PasswordWithConfirmationInput
-							register={register}
-							watch={watch}
-						/>
+					<GenericForm
+						title={`Compte - ${username}`}
+						initialValues={{ username }}
+						fields={([
+							{
+								name: "username",
+								label: "Nom d'utilisateur",
+								component: InputText,
+								componentProps: { placeholder: "Nom d'utilisateur" },
+								formItemProps: { rules: [{ required: true, min: 3 }] },
+							},
+							{
+								name: "password",
+								label: "Mot de passe",
+								component: InputPassword,
+								componentProps: { placeholder: "Mot de passe" },
+							},
+							{
+								name: "passwordConfirm",
+								label: "Confirmer le mot de passe",
+								component: InputPassword,
+								componentProps: { placeholder: "Confirmer le mot de passe" },
+							},
+						] as FormField[])}
+						onFinish={async (values: any) => {
+							// validate passwords match
+							if (values.password && values.password !== values.passwordConfirm) {
+								alert("Les mots de passe ne correspondent pas");
+								return;
+							}
 
-						<input
-							type="submit"
-							style={{ backgroundColor: "#a1eafb" }}
-						/>
-					</form>
+							const updatedUser = {
+								username: values.username,
+								motDePasse: values.password,
+							};
+
+							try {
+								await axios.put(`${API_URL}/user/${username}`, updatedUser);
+								const response = await axios.post(`${API_URL}/user/login`, {
+									username: values.username,
+									password: values.password,
+								});
+								localStorage.setItem("token", response.data.token.token);
+								window.location.reload();
+							} catch (err) {
+								console.error(err);
+							}
+						}}
+					/>
 
 					<button onClick={confirmAccountDeletionHandler}>
 						Supprimer le compte
@@ -338,3 +345,6 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+
+

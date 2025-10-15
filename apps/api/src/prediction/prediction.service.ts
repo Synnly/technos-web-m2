@@ -251,7 +251,7 @@ export class PredictionService {
 
 		// Mettre à jour la prédiction comme validée
 		prediction.status = PredictionStatus.Valid;
-		prediction.results = winningOption;
+		prediction.result = winningOption;
 		await prediction.save();
 
 		return {
@@ -272,7 +272,7 @@ export class PredictionService {
 		return this.predictionModel
 			.find({
 				dateFin: { $lte: now },
-				results: "",
+				result: "",
 				status: PredictionStatus.Valid,
 			})
 			.exec();
@@ -287,7 +287,7 @@ export class PredictionService {
 		return this.predictionModel
 			.find({
 				status: PredictionStatus.Waiting,
-				results: "",
+				result: "",
 			})
 			.exec();
 	}
