@@ -11,17 +11,21 @@ import {
 	Post,
 	Put,
 	Req,
-	Res,
 	UnauthorizedException,
 	UseGuards,
+	ValidationPipe,
 } from "@nestjs/common";
 import { Role, User, UserDocument } from "../user/user.schema";
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 import { UserService } from "./user.service";
 import { JwtService } from "@nestjs/jwt";
 import { CosmeticService } from "../cosmetic/cosmetic.service";
 import { AuthGuard } from "../guards/auth.guard";
+import { AdminGuard } from "src/guards/admin.guard";
+import { UserDto } from "./dto/user.dto";
+import { CreateUserDto } from "./dto/createuser.dto";
+import { UpdateUserDto } from "./dto/updateuser.dto";
 
 /**
  * Contrôleur pour gérer les opérations liées aux utilisateurs.
@@ -32,8 +36,8 @@ export class UserController {
 	 * Constructeur pour UserController.
 	 * @param userService - Service pour la logique métier liée aux utilisateurs.
 	 * @param jwtService - Service pour gérer les opérations JWT.
-     * @param cosmeticService - Service pour la logique métier liée aux cosmétiques.
-     * @param userModel - Modèle Mongoose pour les utilisateurs.
+	 * @param cosmeticService - Service pour la logique métier liée aux cosmétiques.
+	 * @param userModel - Modèle Mongoose pour les utilisateurs.
 	 */
 	constructor(
 		private readonly userService: UserService,
@@ -46,11 +50,11 @@ export class UserController {
 	 * Récupère tous les utilisateurs.
 	 * @returns La liste des utilisateurs
 	 */
-	@UseGuards(AuthGuard)
+	@UseGuards(AuthGuard, AdminGuard)
 	@Get("")
-	async getUsers(): Promise<User[]> {
-		const user = await this.userService.getAll();
-		return user;
+	async getUsers(): Promise<UserDto[]> {
+		const users = await this.userService.getAll();
+		return users.map((user) => new UserDto(user));
 	}
 
 	/**
@@ -59,79 +63,36 @@ export class UserController {
 	 * @returns Les données de l'utilisateur
 	 * @throws {BadRequestException} si le nom d'utilisateur est manquant.
 	 * @throws {NotFoundException} si l'utilisateur n'existe pas.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la
+	 * permission d'accéder aux données de l'utilisateur demandé.
 	 */
 	@UseGuards(AuthGuard)
 	@Get("/{:username}")
-	async getUserByUsername(@Param("username") username: string) {
+	async getUserByUsername(@Req() request, @Param("username") username: string): Promise<UserDto> {
 		if (username === undefined || username === null) {
-			throw new BadRequestException({
-				message: "Le nom d'utilisateur est requis",
-			});
+			throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
 		}
 
-		const user = await this.userService.getByUsername(username);
-		if (!user)
-			throw new NotFoundException({
-				message: "L'utilisateur n'est pas trouvable",
-			});
+		if (request.user.username !== username && request.user.role !== Role.ADMIN) throw new ForbiddenException();
 
-		return user;
+		const user = await this.userService.getByUsername(username);
+		if (!user) throw new NotFoundException({ message: "L'utilisateur n'est pas trouvable" });
+
+		return new UserDto(user);
 	}
 
 	/**
 	 * Crée un nouvel utilisateur.
-	 * @param user - Les données de l'utilisateur à créer.
+	 * @param createUserDto - Les données de l'utilisateur à créer.
 	 * @returns Les données de l'utilisateur
 	 * @throws {BadRequestException} si les données de l'utilisateur sont invalides ou si la création échoue.
 	 */
 	@Post("")
 	@HttpCode(201)
-	async createUser(@Body() user: User) {
-		if (!user)
-			throw new BadRequestException({
-				message: "L'utilisateur est requis",
-			});
-
-		// Validation des champs requis
-		if (!user.motDePasse)
-			throw new BadRequestException({
-				message: "Le mot de passe est requis.",
-			});
-		if (!user.username)
-			throw new BadRequestException({
-				message: "Le nom d'utilisateur est requis.",
-			});
-
-		// Validation des contraintes du mot de passe
-		if (user.motDePasse.length < 8)
-			throw new BadRequestException({
-				message: "Le mot de passe doit contenir au moins 8 caractères.",
-			});
-		if (!/[A-Z]/.test(user.motDePasse))
-			throw new BadRequestException({
-				message:
-					"Le mot de passe doit contenir au moins une lettre majuscule.",
-			});
-		if (!/[a-z]/.test(user.motDePasse))
-			throw new BadRequestException({
-				message:
-					"Le mot de passe doit contenir au moins une lettre minuscule.",
-			});
-		if (!/[0-9]/.test(user.motDePasse))
-			throw new BadRequestException({
-				message: "Le mot de passe doit contenir au moins un chiffre.",
-			});
-		if (!/[!@#$%^&*(),.?":{}|<>]/.test(user.motDePasse))
-			throw new BadRequestException({
-				message:
-					"Le mot de passe doit contenir au moins un caractère spécial.",
-			});
+	async createUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
+		if (!createUserDto) throw new BadRequestException({ message: "L'utilisateur est requis" });
 		try {
-			const newUser = await this.userService.createUser({
-				...user,
-				role: Role.USER,
-			});
-			return newUser;
+			await this.userService.createUser(createUserDto);
 		} catch (error) {
 			throw new BadRequestException({ message: error.message });
 		}
@@ -141,7 +102,7 @@ export class UserController {
 	 * Met à jour un utilisateur par son nom d'utilisateur.
 	 * @param request L'objet de requête HTTP contenant les informations de l'utilisateur authentifié.
 	 * @param username Le nom d'utilisateur de l'utilisateur à mettre à jour.
-	 * @param user Les nouvelles données de l'utilisateur.
+	 * @param updateUserDto Les nouvelles données de l'utilisateur.
 	 * @returns Les données de l'utilisateur mis à jour.
 	 * @throws {BadRequestException} si le nom d'utilisateur ou les données de l'utilisateur sont invalides.
 	 */
@@ -150,33 +111,30 @@ export class UserController {
 	async updateUserByUsername(
 		@Req() request,
 		@Param("username") username: string,
-		@Body() user: User,
+		@Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
 	) {
-		if (!username)
-			throw new BadRequestException({
-				message: "Le nom d'utilisateur est requis",
-			});
-		if (!user)
-			throw new BadRequestException({
-				message: "L'utilisateur est requis",
-			});
+		if (request.user && request.user.username !== username && request.user.role !== Role.ADMIN) {
+			throw new ForbiddenException();
+		}
 
-		if (
-			request.user.role !== Role.ADMIN &&
-			request.user.username !== username
-		) {
+		if (!username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
+		if (!updateUserDto) throw new BadRequestException({ message: "L'utilisateur est requis" });
+
+		if (request.user.role !== Role.ADMIN && request.user.username !== username) {
 			throw new ForbiddenException({
-				message:
-					"Vous n'avez pas la permission de modifier cet utilisateur.",
+				message: "Vous n'avez pas la permission de modifier cet utilisateur.",
 			});
 		}
 
 		try {
-			const updatedUser = await this.userService.createOrUpdateByUsername(
-				username,
-				user,
-			);
-			return updatedUser;
+			let newUpdateUserDto: UpdateUserDto;
+			if (request.user.role !== Role.ADMIN) {
+				newUpdateUserDto = new UpdateUserDto({ motDePasse: updateUserDto.motDePasse });
+			} else {
+				newUpdateUserDto = updateUserDto;
+			}
+
+			await this.userService.createOrUpdateByUsername(username, newUpdateUserDto);
 		} catch (error) {
 			throw new BadRequestException({ message: error.message });
 		}
@@ -191,16 +149,14 @@ export class UserController {
 	 */
 	@UseGuards(AuthGuard)
 	@Delete("/{:username}")
-	async deleteUser(@Param("username") username: string) {
-		if (!username)
-			throw new BadRequestException({
-				message: "Le nom d'utilisateur est requis",
-			});
+	async deleteUser(@Req() request, @Param("username") username: string) {
+		if (!username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
+		if (request.user.role !== Role.ADMIN && request.user.username !== username) {
+			throw new ForbiddenException();
+		}
 
 		try {
-			const deletedUser =
-				await this.userService.deleteByUsername(username);
-			return deletedUser;
+			await this.userService.deleteByUsername(username);
 		} catch (error) {
 			throw new NotFoundException({ message: error.message });
 		}
@@ -215,14 +171,8 @@ export class UserController {
 	 */
 	@Post("/login")
 	async login(@Body() credentials: { username: string; password: string }) {
-		if (!credentials.username)
-			throw new BadRequestException({
-				message: "Le nom d'utilisateur est requis",
-			});
-		if (!credentials.password)
-			throw new BadRequestException({
-				message: "Le mot de passe est requis",
-			});
+		if (!credentials.username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
+		if (!credentials.password) throw new BadRequestException({ message: "Le mot de passe est requis" });
 
 		try {
 			const token = await this.userService.getJwtToken(
@@ -232,9 +182,7 @@ export class UserController {
 			);
 			return { token: token };
 		} catch (error) {
-			throw new UnauthorizedException({
-				message: error.message || "Échec de l'authentification",
-			});
+			throw new UnauthorizedException({ message: error.message || "Échec de l'authentification" });
 		}
 	}
 
@@ -246,20 +194,18 @@ export class UserController {
 	 */
 	@UseGuards(AuthGuard)
 	@Get("/{:username}/daily-reward")
-	async getDailyReward(@Param("username") username: string) {
-		if (!username)
-			throw new BadRequestException({
-				message: "Le nom d'utilisateur est requis",
-			});
+	async getDailyReward(@Req() request, @Param("username") username: string) {
+		if (!username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
+		if (request.user.username !== username) {
+			throw new ForbiddenException();
+		}
 
 		try {
 			const reward = await this.userService.claimDailyReward(username);
 			return { reward: reward };
 		} catch (error) {
 			throw new BadRequestException({
-				message:
-					error.message ||
-					"Échec de la récupération de la récompense quotidienne",
+				message: error.message || "Échec de la récupération de la récompense quotidienne",
 			});
 		}
 	}
@@ -279,55 +225,28 @@ export class UserController {
 	 */
 	@UseGuards(AuthGuard)
 	@Post("/:username/buy/cosmetic/:cosmeticId")
-	async buyCosmetic(
-		@Param("cosmeticId") cosmeticId: string,
-		@Param("username") username,
-		@Req() request,
-	) {
-		const searchUser = await this.userModel.findOne({ username }).exec();
+	async buyCosmetic(@Req() request, @Param("cosmeticId") cosmeticId: string, @Param("username") username) {
+		const user = await this.userModel.findOne({ username }).exec();
 
-		if (!searchUser) {
-			throw new NotFoundException({
-				message: "L'utilisateur n'existe pas",
-			});
-		}
-		if (!cosmeticId)
-			throw new BadRequestException({
-				message: "L'identifiant du cosmétique est requis",
-			});
+		if (!user) throw new NotFoundException({ message: "L'utilisateur n'existe pas" });
+		if (!cosmeticId) throw new BadRequestException({ message: "L'identifiant du cosmétique est requis" });
 
-
-		if (!request.user || request.user.id !== searchUser._id.toString()) {
-			throw new ForbiddenException({
-				message: "Vous n'avez pas la permission",
-			});
+		if (request.user.username !== user.username) {
+			throw new ForbiddenException({ message: "Vous n'avez pas la permission" });
 		}
 
-		if (
-			request.user.cosmeticsOwned &&
-			request.user.cosmeticsOwned.includes(cosmeticId)
-		) {
-			throw new BadRequestException({
-				message: "Vous possédez déjà ce cosmétique",
-			});
+		if (request.user.cosmeticsOwned && request.user.cosmeticsOwned.includes(cosmeticId)) {
+			throw new BadRequestException({ message: "Vous possédez déjà ce cosmétique" });
 		}
 
 		const cosmetic = await this.cosmeticService.findById(cosmeticId);
 
-		if (!cosmetic) {
-			throw new NotFoundException({
-				message: "Le cosmétique n'existe pas",
-			});
+		if (!cosmetic) throw new NotFoundException({ message: "Le cosmétique n'existe pas" });
+
+		if (user.points < cosmetic.cost) {
+			throw new BadRequestException({ message: "Vous n'avez pas assez de points pour acheter ce cosmétique" });
 		}
 
-		if (searchUser.points < cosmetic.cost) {
-			throw new BadRequestException({
-				message:
-					"Vous n'avez pas assez de points pour acheter ce cosmétique",
-			});
-		}
-
-
-		return await this.userService.buyCosmetic(searchUser, cosmetic);
+		await this.userService.buyCosmetic(user, cosmetic);
 	}
 }

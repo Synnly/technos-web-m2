@@ -1,5 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { UserMiddleware } from "./middleware/user.middleware";
+import { JwtService } from "@nestjs/jwt";
 
 /**
  * Initialise l'application NestJS.
@@ -27,8 +29,10 @@ async function bootstrap() {
 		methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 		credentials: true,
 	});
+	const userMiddleware = new UserMiddleware(app.get(JwtService));
 
+	// Express/Nest attend une fonction middleware ; on passe la méthode `use` liée à l'instance.
+	app.use(userMiddleware.use.bind(userMiddleware));
 	await app.listen(process.env.PORT ?? 3000);
-
 }
 bootstrap();

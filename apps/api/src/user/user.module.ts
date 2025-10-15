@@ -4,14 +4,18 @@ import { TokenController } from "./token.controller";
 import { UserService } from "./user.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "./user.schema";
-import { AuthModule } from "src/guards/auth.module";
-import { CosmeticModule } from "src/cosmetic/cosmetic.module";
+import { AuthModule } from "../guards/auth.module";
+import { CosmeticModule } from "../cosmetic/cosmetic.module";
+import { PredictionModule } from "../prediction/prediction.module";
+import { VoteModule } from "../vote/vote.module";
 
 @Module({
 	imports: [
 		MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
 		AuthModule,
 		CosmeticModule,
+		PredictionModule,
+		VoteModule
 	],
 	controllers: [UserController, TokenController],
 	providers: [UserService],

@@ -16,6 +16,6 @@ import { VoteModule } from "src/vote/vote.module";
 	],
 	controllers: [PredictionController],
 	providers: [PredictionService],
-	exports: [MongooseModule],
+	exports: [MongooseModule, PredictionService],
 })
 export class PredictionModule {}

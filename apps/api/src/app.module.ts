@@ -7,6 +7,7 @@ import { VoteModule } from "./vote/vote.module";
 import { PublicationModule } from "./publication/publication.module";
 import { CosmeticModule } from "./cosmetic/cosmetic.module";
 import { JwtModule } from "@nestjs/jwt";
+import { UserMiddleware } from "./middleware/user.middleware";
 
 /**
  * Module principal de l'application.
@@ -39,5 +40,7 @@ import { JwtModule } from "@nestjs/jwt";
 	providers: [],
 })
 export class AppModule implements NestModule {
-	configure(consumer: MiddlewareConsumer) {}
+	configure(consumer: MiddlewareConsumer) {
+		consumer.apply(UserMiddleware).forRoutes("*");
+	}
 }
