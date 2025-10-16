@@ -1,18 +1,13 @@
-import { UserController } from "../../src/user/user.controller";
-import { UserService } from "../../src/user/user.service";
+import { UserController } from "../../../src/user/user.controller";
+import { UserService } from "../../../src/user/user.service";
 import { Test } from "@nestjs/testing";
-import { Role, User } from "../../src/user/user.schema";
+import { Role, User } from "../../../src/user/user.schema";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-import {
-	BadRequestException,
-	NotFoundException,
-	UnauthorizedException,
-	ForbiddenException,
-} from "@nestjs/common";
-import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
+import { BadRequestException, NotFoundException, UnauthorizedException, ForbiddenException } from "@nestjs/common";
+import { CosmeticService } from "../../../src/cosmetic/cosmetic.service";
 import { getModelToken } from "@nestjs/mongoose";
-import { CosmeticType } from "../../src/cosmetic/cosmetic.schema";
+import { CosmeticType } from "../../../src/cosmetic/cosmetic.schema";
 import { Model } from "mongoose";
 
 const expectedUser1 = {
@@ -87,20 +82,12 @@ const mockCosmeticModel = jest.fn().mockImplementation((data) => ({
 })) as unknown as MockCosmeticModel;
 
 const mockUserModel = {
-	findOne: jest
-		.fn()
-		.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
-	findById: jest
-		.fn()
-		.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
-	find: jest
-		.fn()
-		.mockReturnValue({
-			exec: jest.fn().mockResolvedValue([expectedUser1, expectedUser2]),
-		}),
-	findByIdAndUpdate: jest
-		.fn()
-		.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
+	find: jest.fn().mockReturnValue({
+		exec: jest.fn().mockResolvedValue([expectedUser1, expectedUser2]),
+	}),
+	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
 	create: jest.fn().mockResolvedValue(expectedUser1),
 } as any;
 
@@ -187,9 +174,7 @@ describe("UserController", () => {
 			// Configuration du mock pour retourner null (utilisateur non trouvé)
 			mockUserService.getByUsername.mockResolvedValue(null);
 
-			await expect(
-				userController.getUserByUsername(username),
-			).rejects.toThrow(NotFoundException);
+			await expect(userController.getUserByUsername(username)).rejects.toThrow(NotFoundException);
 
 			expect(userService.getByUsername).toHaveBeenCalledWith(username);
 		});
@@ -202,9 +187,7 @@ describe("UserController", () => {
 			// Configuration du mock pour retourner null (utilisateur non trouvé)
 			mockUserService.getByUsername.mockResolvedValue(null);
 
-			await expect(
-				userController.getUserByUsername(username),
-			).rejects.toThrow(NotFoundException);
+			await expect(userController.getUserByUsername(username)).rejects.toThrow(NotFoundException);
 
 			expect(userService.getByUsername).toHaveBeenCalledWith(username);
 		});
@@ -227,9 +210,7 @@ describe("UserController", () => {
 				throw new Error("Username déjà utilisé.");
 			});
 
-			await expect(
-				userController.createUser(expectedUser1),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.createUser(expectedUser1)).rejects.toThrow(BadRequestException);
 
 			expect(userService.createUser).toHaveBeenCalledWith(expectedUser1);
 		});
@@ -240,9 +221,7 @@ describe("UserController", () => {
 			const username = "testuser";
 			const newUser = { username: username } as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -251,9 +230,7 @@ describe("UserController", () => {
 			const motDePasse = "testpassword";
 			const newUser = { motDePasse: motDePasse } as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -264,9 +241,7 @@ describe("UserController", () => {
 				motDePasse: "Short1!",
 			} as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -277,9 +252,7 @@ describe("UserController", () => {
 				motDePasse: "lowercase123!",
 			} as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -290,9 +263,7 @@ describe("UserController", () => {
 				motDePasse: "UPPERCASE123!",
 			} as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -303,9 +274,7 @@ describe("UserController", () => {
 				motDePasse: "NoDigits!",
 			} as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -316,18 +285,14 @@ describe("UserController", () => {
 				motDePasse: "NoSpecial123",
 			} as User;
 
-			await expect(userController.createUser(newUser)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.createUser(newUser)).rejects.toThrow(BadRequestException);
 		});
 	});
 
 	describe("updateUserByUsername", () => {
 		it("should return a 200 when a user is updated", async () => {
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				expectedUser1,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(expectedUser1);
 
 			const mockReq = {
 				user: {
@@ -338,16 +303,9 @@ describe("UserController", () => {
 			} as any;
 
 			// Utiliser le même username que dans mockReq.user.username pour passer la vérification de permission
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				expectedUser1,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, expectedUser1);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				expectedUser1,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, expectedUser1);
 		});
 	});
 
@@ -359,9 +317,7 @@ describe("UserController", () => {
 			} as User;
 
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				updatedUser,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(updatedUser);
 
 			const mockReq = {
 				user: {
@@ -370,16 +326,9 @@ describe("UserController", () => {
 					username: expectedUser1.username,
 				},
 			} as any;
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				updatedUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, updatedUser);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				updatedUser,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 		});
 	});
 
@@ -391,9 +340,7 @@ describe("UserController", () => {
 			} as User;
 
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				updatedUser,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(updatedUser);
 
 			const mockReq = {
 				user: {
@@ -403,16 +350,9 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				updatedUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, updatedUser);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				updatedUser,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 		});
 	});
 
@@ -421,9 +361,7 @@ describe("UserController", () => {
 			const updatedUser = { ...expectedUser1, points: 200 } as User;
 
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				updatedUser,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(updatedUser);
 
 			const mockReq = {
 				user: {
@@ -433,16 +371,9 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				updatedUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, updatedUser);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				updatedUser,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 		});
 	});
 
@@ -454,9 +385,7 @@ describe("UserController", () => {
 			} as User;
 
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				updatedUser,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(updatedUser);
 
 			const mockReq = {
 				user: {
@@ -466,25 +395,16 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				updatedUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, updatedUser);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				updatedUser,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 		});
 	});
 
 	describe("updateUserByUsername", () => {
 		it("should return a 200 when a user is updated to the same user", async () => {
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				expectedUser1,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(expectedUser1);
 
 			const mockReq = {
 				user: {
@@ -493,16 +413,9 @@ describe("UserController", () => {
 					username: expectedUser1.username,
 				},
 			} as any;
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				expectedUser1,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, expectedUser1);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				expectedUser1,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, expectedUser1);
 		});
 	});
 
@@ -519,16 +432,9 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				noPasswordUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, noPasswordUser);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				noPasswordUser,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, noPasswordUser);
 		});
 	});
 
@@ -545,11 +451,7 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				noUsernameUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, noUsernameUser);
 		});
 	});
 
@@ -558,9 +460,7 @@ describe("UserController", () => {
 			const updatedUser = {} as User;
 
 			// Configuration du mock pour retourner l'utilisateur créé
-			mockUserService.createOrUpdateByUsername.mockResolvedValue(
-				expectedUser1,
-			);
+			mockUserService.createOrUpdateByUsername.mockResolvedValue(expectedUser1);
 
 			const mockReq = {
 				user: {
@@ -570,16 +470,9 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await userController.updateUserByUsername(
-				mockReq,
-				expectedUser1.username,
-				updatedUser,
-			);
+			await userController.updateUserByUsername(mockReq, expectedUser1.username, updatedUser);
 
-			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(
-				expectedUser1.username,
-				updatedUser,
-			);
+			expect(userService.createOrUpdateByUsername).toHaveBeenCalledWith(expectedUser1.username, updatedUser);
 		});
 	});
 
@@ -604,9 +497,7 @@ describe("UserController", () => {
 				throw new Error("L'utilisateur n'est pas trouvable");
 			});
 
-			await expect(userController.deleteUser(username)).rejects.toThrow(
-				NotFoundException,
-			);
+			await expect(userController.deleteUser(username)).rejects.toThrow(NotFoundException);
 
 			expect(userService.deleteByUsername).toHaveBeenCalledWith(username);
 		});
@@ -616,9 +507,7 @@ describe("UserController", () => {
 		it("should return a 400 when no username is given", async () => {
 			const username = "";
 
-			await expect(userController.deleteUser(username)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.deleteUser(username)).rejects.toThrow(BadRequestException);
 		});
 	});
 
@@ -722,9 +611,7 @@ describe("UserController", () => {
 		it("should return a 400 when no username is provided", async () => {
 			const username = "";
 
-			await expect(
-				userController.getDailyReward(username),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.getDailyReward(username)).rejects.toThrow(BadRequestException);
 		});
 
 		it("should return a 404 when user is not found", async () => {
@@ -734,9 +621,7 @@ describe("UserController", () => {
 				throw new Error("L'utilisateur n'est pas trouvable");
 			});
 
-			await expect(
-				userController.getDailyReward(username),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.getDailyReward(username)).rejects.toThrow(BadRequestException);
 
 			expect(userService.claimDailyReward).toHaveBeenCalledWith(username);
 		});
@@ -745,14 +630,10 @@ describe("UserController", () => {
 			const username = expectedUser1.username;
 
 			mockUserService.claimDailyReward.mockImplementation(() => {
-				throw new Error(
-					"Récompense quotidienne déjà réclamée aujourd'hui.",
-				);
+				throw new Error("Récompense quotidienne déjà réclamée aujourd'hui.");
 			});
 
-			await expect(
-				userController.getDailyReward(username),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.getDailyReward(username)).rejects.toThrow(BadRequestException);
 
 			expect(userService.claimDailyReward).toHaveBeenCalledWith(username);
 		});
@@ -777,9 +658,7 @@ describe("UserController", () => {
 			await userController.buyCosmetic(cosmeticId, username, mockReq);
 
 			expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
-			expect(mockCosmeticService.findById).toHaveBeenCalledWith(
-				cosmeticId,
-			);
+			expect(mockCosmeticService.findById).toHaveBeenCalledWith(cosmeticId);
 			expect(userService.buyCosmetic).toHaveBeenCalledWith(
 				expectedUser1,
 				expect.objectContaining({ _id: cosmeticId }),
@@ -794,9 +673,7 @@ describe("UserController", () => {
 			});
 			const mockReq = { user: { id: "x", cosmeticsOwned: [] } } as any;
 
-			await expect(
-				userController.buyCosmetic(cosmeticId, username, mockReq),
-			).rejects.toThrow(NotFoundException);
+			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(NotFoundException);
 		});
 
 		it("should throw BadRequestException when cosmeticId is missing", async () => {
@@ -809,9 +686,9 @@ describe("UserController", () => {
 				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
 			} as any;
 
-			await expect(
-				userController.buyCosmetic(cosmeticId, username, mockReq),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw ForbiddenException when request user id doesn't match search user", async () => {
@@ -824,9 +701,7 @@ describe("UserController", () => {
 				user: { id: "otherId", cosmeticsOwned: [] },
 			} as any;
 
-			await expect(
-				userController.buyCosmetic(cosmeticId, username, mockReq),
-			).rejects.toThrow(ForbiddenException);
+			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(ForbiddenException);
 		});
 
 		it("should throw BadRequestException when user already owns cosmetic", async () => {
@@ -842,9 +717,9 @@ describe("UserController", () => {
 				},
 			} as any;
 
-			await expect(
-				userController.buyCosmetic(cosmeticId, username, mockReq),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw NotFoundException when cosmetic does not exist", async () => {
@@ -858,9 +733,7 @@ describe("UserController", () => {
 				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
 			} as any;
 
-			await expect(
-				userController.buyCosmetic(cosmeticId, username, mockReq),
-			).rejects.toThrow(NotFoundException);
+			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(NotFoundException);
 		});
 
 		it("should throw BadRequestException when user has insufficient points", async () => {
@@ -877,9 +750,9 @@ describe("UserController", () => {
 				user: { id: (expectedUser1 as any)._id, cosmeticsOwned: [] },
 			} as any;
 
-			await expect(
-				userController.buyCosmetic(cosmeticId, username, mockReq),
-			).rejects.toThrow(BadRequestException);
+			await expect(userController.buyCosmetic(cosmeticId, username, mockReq)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 	});
 });

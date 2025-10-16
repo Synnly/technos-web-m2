@@ -1,8 +1,8 @@
-import { UserController } from "../../src/user/user.controller";
-import { UserService } from "../../src/user/user.service";
+import { UserController } from "../../../src/user/user.controller";
+import { UserService } from "../../../src/user/user.service";
 import { JwtService } from '@nestjs/jwt';
 import { Test } from "@nestjs/testing";
-import { User } from "../../src/user/user.schema";
+import { User } from "../../../src/user/user.schema";
 import { getModelToken } from '@nestjs/mongoose';
 import { HttpStatus } from "@nestjs/common/enums/http-status.enum";
 
@@ -13,7 +13,7 @@ jest.mock('bcrypt', () => ({
 }));
 
 import * as bcrypt from 'bcrypt';
-import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
+import { CosmeticService } from "../../../src/cosmetic/cosmetic.service";
 
 const expectedUser1 = { 
     _id: '1', 

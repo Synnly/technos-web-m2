@@ -4,13 +4,13 @@ import { Model } from "mongoose";
 import { Role, User, UserDocument } from "../user/user.schema";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
-import { Cosmetic } from "../../src/cosmetic/cosmetic.schema";
+import { Cosmetic } from "../cosmetic/cosmetic.schema";
 import { CreateUserDto } from "./dto/createuser.dto";
 import { UpdateUserDto } from "./dto/updateuser.dto";
-import { Prediction } from "src/prediction/prediction.schema";
-import { PredictionService } from "src/prediction/prediction.service";
-import { Vote } from "src/vote/vote.schema";
-import { VoteService } from "src/vote/vote.service";
+import { Prediction } from "../prediction/prediction.schema";
+import { PredictionService } from "../prediction/prediction.service";
+import { Vote } from "../vote/vote.schema";
+import { VoteService } from "../vote/vote.service";
 
 @Injectable()
 /**

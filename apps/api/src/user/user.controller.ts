@@ -22,7 +22,7 @@ import { UserService } from "./user.service";
 import { JwtService } from "@nestjs/jwt";
 import { CosmeticService } from "../cosmetic/cosmetic.service";
 import { AuthGuard } from "../guards/auth.guard";
-import { AdminGuard } from "src/guards/admin.guard";
+import { AdminGuard } from "../guards/admin.guard";
 import { UserDto } from "./dto/user.dto";
 import { CreateUserDto } from "./dto/createuser.dto";
 import { UpdateUserDto } from "./dto/updateuser.dto";
