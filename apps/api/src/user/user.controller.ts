@@ -226,27 +226,22 @@ export class UserController {
 	@UseGuards(AuthGuard)
 	@Post("/:username/buy/cosmetic/:cosmeticId")
 	async buyCosmetic(@Req() request, @Param("cosmeticId") cosmeticId: string, @Param("username") username) {
-		const user = await this.userModel.findOne({ username }).exec();
+		if (request.user.username !== username)
+			throw new ForbiddenException({ message: "Vous n'avez pas la permission" });
 
-		if (!user) throw new NotFoundException({ message: "L'utilisateur n'existe pas" });
 		if (!cosmeticId) throw new BadRequestException({ message: "L'identifiant du cosmétique est requis" });
 
-		if (request.user.username !== user.username) {
-			throw new ForbiddenException({ message: "Vous n'avez pas la permission" });
-		}
-
-		if (request.user.cosmeticsOwned && request.user.cosmeticsOwned.includes(cosmeticId)) {
-			throw new BadRequestException({ message: "Vous possédez déjà ce cosmétique" });
-		}
+		const user = await this.userService.getByUsername(username);
+		if (!user) throw new NotFoundException({ message: "L'utilisateur n'est pas trouvable" });
 
 		const cosmetic = await this.cosmeticService.findById(cosmeticId);
+		if (!cosmetic) throw new NotFoundException({ message: "Le cosmétique n'est pas trouvable" });
 
-		if (!cosmetic) throw new NotFoundException({ message: "Le cosmétique n'existe pas" });
 
-		if (user.points < cosmetic.cost) {
-			throw new BadRequestException({ message: "Vous n'avez pas assez de points pour acheter ce cosmétique" });
+		try {
+			await this.userService.buyCosmetic(username, cosmetic);
+		} catch (error) {
+			throw new BadRequestException({ message: error.message });
 		}
-
-		await this.userService.buyCosmetic(user, cosmetic);
 	}
 }

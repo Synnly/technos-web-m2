@@ -215,7 +215,13 @@ export class UserService {
 	 * @param cosmetic le cosmétique à acheter
 	 * @returns l'utilisateur mis à jour après l'achat
 	 */
-	async buyCosmetic(user, cosmetic: Cosmetic): Promise<User> {
+	async buyCosmetic(username: String, cosmetic: Cosmetic): Promise<User> {
+		const user = await this.userModel.findOne({ username }).exec();
+		if (!user) throw new Error("L'utilisateur n'est pas trouvable");
+
+		if (user.cosmeticsOwned.includes(cosmetic._id)) throw new Error("Vous possédez déjà ce cosmétique");
+		if (user.points < cosmetic.cost) throw new Error("Vous n'avez pas assez de points pour acheter ce cosmétique");
+		
 		user.points -= cosmetic.cost;
 		user.cosmeticsOwned.push(cosmetic._id);
 
