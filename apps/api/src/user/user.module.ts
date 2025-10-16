@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { UserController } from "./user.controller";
 import { TokenController } from "./token.controller";
 import { UserService } from "./user.service";
@@ -14,7 +14,7 @@ import { VoteModule } from "../vote/vote.module";
 		MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
 		AuthModule,
 		CosmeticModule,
-		PredictionModule,
+		forwardRef(() => PredictionModule),
 		VoteModule
 	],
 	controllers: [UserController, TokenController],

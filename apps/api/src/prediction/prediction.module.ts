@@ -11,7 +11,7 @@ import { VoteModule } from "src/vote/vote.module";
 		MongooseModule.forFeature([
 			{ name: Prediction.name, schema: PredictionSchema },
 		]),
-		UserModule,
+		forwardRef(() => UserModule),
 		forwardRef(() => VoteModule),
 	],
 	controllers: [PredictionController],

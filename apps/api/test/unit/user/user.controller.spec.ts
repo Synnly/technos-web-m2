@@ -7,12 +7,10 @@ import { JwtService } from "@nestjs/jwt";
 import { BadRequestException, NotFoundException, UnauthorizedException, ForbiddenException } from "@nestjs/common";
 import { CosmeticService } from "../../../src/cosmetic/cosmetic.service";
 import { getModelToken } from "@nestjs/mongoose";
-import { CosmeticType } from "../../../src/cosmetic/cosmetic.schema";
 import { Model } from "mongoose";
 import { UserDto } from "../../../src/user/dto/user.dto";
 import { CreateUserDto } from "../../../src/user/dto/createuser.dto";
 import { UpdateUserDto } from "../../../src/user/dto/updateuser.dto";
-import { mock } from "node:test";
 
 const expectedUser1 = {
 	_id: "1",
