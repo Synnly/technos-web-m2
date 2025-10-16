@@ -15,7 +15,7 @@ import { VoteModule } from "../vote/vote.module";
 		AuthModule,
 		CosmeticModule,
 		forwardRef(() => PredictionModule),
-		VoteModule
+		forwardRef(() => VoteModule),
 	],
 	controllers: [UserController, TokenController],
 	providers: [UserService],

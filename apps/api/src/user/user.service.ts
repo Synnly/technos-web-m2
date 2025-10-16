@@ -62,7 +62,21 @@ export class UserService {
 			motDePasse: hash,
 		};
 		const newUser = new this.userModel(reqBody);
-		newUser.save();
+		await newUser.save();
+	}
+
+	/**
+	 * Définit le rôle d'un utilisateur à ADMIN basé sur le nom d'utilisateur fourni.
+	 * NE PAS UTILISER CETTE FONCTION DANS UN CONTROLEUR ACCESSIBLE PUBLIQUEMENT.
+	 * @param username Le nom d'utilisateur de l'utilisateur à promouvoir au rôle ADMIN.
+	 * @throws Error si l'utilisateur n'est pas trouvable.
+	 */
+	async setAdmin(username: string) {
+		const user = await this.userModel.findOne({ username: username }).exec();
+		if (!user) throw new Error("Utilisateur non trouvé");
+
+		user.role = Role.ADMIN;
+		await user.save();
 	}
 
 	/**

@@ -4,7 +4,7 @@ import { PredictionController } from "./prediction.controller";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Prediction, PredictionSchema } from "./prediction.schema";
 import { UserModule } from "../user/user.module";
-import { VoteModule } from "src/vote/vote.module";
+import { VoteModule } from "../vote/vote.module";
 
 @Module({
 	imports: [
@@ -12,7 +12,7 @@ import { VoteModule } from "src/vote/vote.module";
 			{ name: Prediction.name, schema: PredictionSchema },
 		]),
 		forwardRef(() => UserModule),
-		forwardRef(() => VoteModule),
+		forwardRef(() => VoteModule)
 	],
 	controllers: [PredictionController],
 	providers: [PredictionService],

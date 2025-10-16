@@ -32,7 +32,7 @@ import { UserMiddleware } from "./middleware/user.middleware";
 		CosmeticModule,
 		JwtModule.register({
 			global: true,
-			secret: process.env.JWT_SECRET!, // <-- nécessaire
+			secret: process.env.JWT_SECRET!,
 			signOptions: { expiresIn: "2h" },
 		}),
 	],
