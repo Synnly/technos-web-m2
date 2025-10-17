@@ -16,7 +16,7 @@ const AccountTabs: React.FC<AccountTabsProps> = () => {
 	];
 
 	return (
-		<div className="bg-gray-900/90 p-4 shadow-md">
+		<div className="p-4 !text-white">
 			<Tabs
 				defaultActiveKey="1"
 				className="text-center"

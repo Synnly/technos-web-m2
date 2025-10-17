@@ -39,7 +39,7 @@ function Dashboard() {
 			className={
 					sidebarCollapsed
 						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all"
-						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
+						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-80"
 				}>
 					<AccountTabs />
 			</main>
