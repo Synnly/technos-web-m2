@@ -12,13 +12,17 @@ import { VoteModule } from "../../src/vote/vote.module";
 import { PredictionModule } from "../../src/prediction/prediction.module";
 import { PublicationModule } from "../../src/publication/publication.module";
 import { CosmeticModule } from "../../src/cosmetic/cosmetic.module";
-import { AuthModule } from "../../src/guards/auth.module";
+import { UpdateUserDto } from "../../src/user/dto/updateuser.dto";
+import { Cosmetic, CosmeticType } from "../../src/cosmetic/cosmetic.schema";
+import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
+import { log } from "console";
 
 describe("User Integration Tests", () => {
 	let app: INestApplication;
 	let moduleRef: TestingModule;
 	let mongoServer: MongoMemoryServer;
 	let userService: UserService;
+	let cosmeticService: CosmeticService;
 	let adminToken: string;
 	let userToken: string;
 
@@ -32,6 +36,12 @@ describe("User Integration Tests", () => {
 		username: "admin",
 		motDePasse: "AdminPass123!",
 		role: Role.ADMIN,
+	};
+
+	const cosmetic1 = {
+		name: "Cosmetic 1",
+		cost: 100,
+		type: CosmeticType.BADGE,
 	};
 
 	beforeAll(async () => {
@@ -52,19 +62,19 @@ describe("User Integration Tests", () => {
 					],
 				}),
 				JwtModule.registerAsync({
-                    global: true,
-                    useFactory: (configService: ConfigService) => ({
-                        secret: configService.get<string>('JWT_SECRET'),
-                        signOptions: { expiresIn: '1h' },
-                    }),
-                    inject: [ConfigService],
-                }),
+					global: true,
+					useFactory: (configService: ConfigService) => ({
+						secret: configService.get<string>("JWT_SECRET"),
+						signOptions: { expiresIn: "1h" },
+					}),
+					inject: [ConfigService],
+				}),
 				MongooseModule.forRoot(mongoUri),
 				CosmeticModule,
-                PublicationModule,
-                VoteModule,
-                PredictionModule,
-                UserModule
+				PublicationModule,
+				VoteModule,
+				PredictionModule,
+				UserModule,
 			],
 		}).compile();
 
@@ -83,12 +93,12 @@ describe("User Integration Tests", () => {
 		await app.init();
 
 		userService = moduleRef.get<UserService>(UserService);
+		cosmeticService = moduleRef.get<CosmeticService>(CosmeticService);
 
 		// Création des utilisateurs de test
 		await userService.createUser(testUser);
 		await userService.createUser(testAdmin);
 		await userService.setAdmin(testAdmin.username);
-		
 
 		// Génération des tokens
 		const userLoginResponse = await request(app.getHttpServer())
@@ -101,6 +111,9 @@ describe("User Integration Tests", () => {
 			.post("/api/user/login")
 			.send({ username: testAdmin.username, password: testAdmin.motDePasse });
 		adminToken = adminLoginResponse.body.token.token;
+
+		// Création d'un cosmétique de test
+		await cosmeticService.create(cosmetic1 as Cosmetic);
 	});
 
 	afterAll(async () => {
@@ -173,207 +186,326 @@ describe("User Integration Tests", () => {
 		});
 	});
 
-	// describe("GET /api/user/:username", () => {
-	// 	it("should return user data for own profile", async () => {
-	// 		const response = await request(app.getHttpServer())
-	// 			.get(`/api/user/${testUser.username}`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.expect(200);
+	describe("GET /api/user/:username", () => {
+		it("should return user data for own profile", async () => {
+			const response = await request(app.getHttpServer())
+				.get(`/api/user/${testUser.username}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.OK);
 
-	// 		expect(response.body.username).toBe(testUser.username);
-	// 		expect(response.body.motDePasse).toBeUndefined(); // Password should not be returned
-	// 	});
+			expect(response.body.username).toBe(testUser.username);
+			expect(response.body.motDePasse).toBeUndefined();
+		});
 
-	// 	it("should return 403 when accessing other user profile as regular user", async () => {
-	// 		await request(app.getHttpServer())
-	// 			.get(`/api/user/${testAdmin.username}`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.expect(403);
-	// 	});
+		it("should return 403 when accessing other user profile as regular user", async () => {
+			await request(app.getHttpServer())
+				.get(`/api/user/${testAdmin.username}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.FORBIDDEN);
+		});
 
-	// 	it("should allow admin to access any user profile", async () => {
-	// 		const response = await request(app.getHttpServer())
-	// 			.get(`/api/user/${testUser.username}`)
-	// 			.set("Authorization", `Bearer ${adminToken}`)
-	// 			.expect(200);
+		it("should allow admin to access any user profile", async () => {
+			const response = await request(app.getHttpServer())
+				.get(`/api/user/${testUser.username}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
 
-	// 		expect(response.body.username).toBe(testUser.username);
-	// 	});
+			expect(response.body.username).toBe(testUser.username);
+		});
 
-	// 	it("should return 404 for non-existent user", async () => {
-	// 		await request(app.getHttpServer())
-	// 			.get("/api/user/nonexistent")
-	// 			.set("Authorization", `Bearer ${adminToken}`)
-	// 			.expect(404);
-	// 	});
-	// });
+		it("should return 404 for non-existent user", async () => {
+			await request(app.getHttpServer())
+				.get("/api/user/nonexistent")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.NOT_FOUND);
+		});
+	});
 
-	// describe("PUT /api/user/:username", () => {
-	// 	it("should update user password for own profile", async () => {
-	// 		const updateData = {
-	// 			motDePasse: "NewPassword123!",
-	// 		};
+	describe("PUT /api/user/:username", () => {
+		it("should update user password for own profile", async () => {
+			const updateData = {
+				username: testUser.username,
+				motDePasse: "NewPassword123!",
+			};
 
-	// 		await request(app.getHttpServer())
-	// 			.put(`/api/user/${testUser.username}`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.send(updateData)
-	// 			.expect(200);
+			await request(app.getHttpServer())
+				.put(`/api/user/${testUser.username}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.send(updateData)
+				.expect(HttpStatus.OK);
 
-	// 		// Vérifier que le mot de passe a été mis à jour
-	// 		const loginResponse = await request(app.getHttpServer())
-	// 			.post("/api/user/login")
-	// 			.send({ username: testUser.username, password: "NewPassword123!" })
-	// 			.expect(200);
+			// Vérifier que le mot de passe a été mis à jour
+			const loginResponse = await request(app.getHttpServer())
+				.post("/api/user/login")
+				.send({ username: testUser.username, password: "NewPassword123!" })
+				.expect(HttpStatus.CREATED);
 
-	// 		expect(loginResponse.body.token).toBeDefined();
-	// 	});
+			expect(loginResponse.body.token).toBeDefined();
 
-	// 	it("should return 400 with invalid password format", async () => {
-	// 		const updateData = {
-	// 			motDePasse: "weak",
-	// 		};
+			// Réinitialiser le mot de passe pour les autres tests
+			await userService.createOrUpdateByUsername(
+				testUser.username,
+				new UpdateUserDto({
+					username: testUser.username,
+					motDePasse: testUser.motDePasse,
+				}),
+			);
+		});
 
-	// 		const response = await request(app.getHttpServer())
-	// 			.put(`/api/user/${testUser.username}`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.send(updateData)
-	// 			.expect(400);
+		it("should create user if it doesn't exist", async () => {
+			const newUser = {
+				username: "newuser",
+				motDePasse: "NewPassword123!",
+			};
 
-	// 		expect(response.body.message).toContain("motDePasse");
-	// 	});
+			await request(app.getHttpServer()).post("/api/user").send(newUser).expect(HttpStatus.CREATED);
+		});
 
-	// 	it("should return 403 when updating other user as regular user", async () => {
-	// 		const updateData = {
-	// 			motDePasse: "NewPassword123!",
-	// 		};
+		it("should return 400 with invalid password format", async () => {
+			const updateData = {
+				username: testUser.username,
+				motDePasse: "weak",
+			};
 
-	// 		await request(app.getHttpServer())
-	// 			.put(`/api/user/${testAdmin.username}`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.send(updateData)
-	// 			.expect(403);
-	// 	});
+			await request(app.getHttpServer())
+				.put(`/api/user/${testUser.username}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.send(updateData)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
 
-	// 	it("should allow admin to update any user", async () => {
-	// 		const updateData = {
-	// 			points: 1000,
-	// 			role: Role.USER,
-	// 		};
+		it("should return 403 when updating other user as regular user", async () => {
+			const updateData = {
+				username: testAdmin.username,
+				motDePasse: "NewPassword123!",
+			};
 
-	// 		await request(app.getHttpServer())
-	// 			.put(`/api/user/${testUser.username}`)
-	// 			.set("Authorization", `Bearer ${adminToken}`)
-	// 			.send(updateData)
-	// 			.expect(200);
+			await request(app.getHttpServer())
+				.put(`/api/user/${testAdmin.username}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.send(updateData)
+				.expect(HttpStatus.FORBIDDEN);
+		});
 
-	// 		const updatedUser = await userService.getByUsername(testUser.username);
-	// 		expect(updatedUser.points).toBe(1000);
-	// 	});
-	// });
+		it("should allow admin to update any user", async () => {
+			const updateData = {
+				username: testUser.username,
+				points: 1000,
+				role: Role.USER,
+			};
 
-	// describe("DELETE /api/user/:username", () => {
-	// 	it("should allow user to delete own account", async () => {
-	// 		// Créer un utilisateur temporaire pour le test
-	// 		const tempUser = {
-	// 			username: "tempuser",
-	// 			motDePasse: "TempPass123!",
-	// 		};
+			await request(app.getHttpServer())
+				.put(`/api/user/${testUser.username}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(updateData)
+				.expect(HttpStatus.OK);
 
-	// 		await userService.createUser(tempUser);
+			const updatedUser = await userService.getByUsername(testUser.username);
+			expect(updatedUser!.points).toBe(1000);
+		});
+	});
 
-	// 		const loginResponse = await request(app.getHttpServer())
-	// 			.post("/api/user/login")
-	// 			.send({ username: tempUser.username, password: tempUser.motDePasse });
+	describe("DELETE /api/user/:username", () => {
+		it("should allow user to delete own account", async () => {
+			const tempUser = {
+				username: "tempuser",
+				motDePasse: "TempPass123!",
+			};
 
-	// 		const tempToken = loginResponse.body.token;
+			await userService.createUser(tempUser);
 
-	// 		await request(app.getHttpServer())
-	// 			.delete(`/api/user/${tempUser.username}`)
-	// 			.set("Authorization", `Bearer ${tempToken}`)
-	// 			.expect(200);
+			const loginResponse = await request(app.getHttpServer())
+				.post("/api/user/login")
+				.send({ username: tempUser.username, password: tempUser.motDePasse });
 
-	// 		// Vérifier que l'utilisateur a été supprimé
-	// 		const deletedUser = await userService.getByUsername(tempUser.username);
-	// 		expect(deletedUser).toBeNull();
-	// 	});
+			const tempToken = loginResponse.body.token.token;
 
-	// 	it("should return 403 when trying to delete other user as regular user", async () => {
-	// 		await request(app.getHttpServer())
-	// 			.delete(`/api/user/${testAdmin.username}`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.expect(403);
-	// 	});
+			await request(app.getHttpServer())
+				.delete(`/api/user/${tempUser.username}`)
+				.set("Authorization", `Bearer ${tempToken}`)
+				.expect(HttpStatus.OK);
 
-	// 	it("should allow admin to delete any user", async () => {
-	// 		// Créer un utilisateur temporaire pour le test
-	// 		const tempUser = {
-	// 			username: "tempuser2",
-	// 			motDePasse: "TempPass123!",
-	// 		};
+			const deletedUser = await userService.getByUsername(tempUser.username);
+			expect(deletedUser).toBeUndefined();
+		});
 
-	// 		await userService.createUser(tempUser);
+		it("should return 403 when trying to delete other user as regular user", async () => {
+			await request(app.getHttpServer())
+				.delete(`/api/user/${testAdmin.username}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.FORBIDDEN);
+		});
 
-	// 		await request(app.getHttpServer())
-	// 			.delete(`/api/user/${tempUser.username}`)
-	// 			.set("Authorization", `Bearer ${adminToken}`)
-	// 			.expect(200);
+		it("should allow admin to delete any user", async () => {
+			const tempUser = {
+				username: "tempuser2",
+				motDePasse: "TempPass123!",
+			};
 
-	// 		const deletedUser = await userService.getByUsername(tempUser.username);
-	// 		expect(deletedUser).toBeNull();
-	// 	});
-	// });
+			await userService.createUser(tempUser);
 
-	// describe("POST /api/user/login", () => {
-	// 	it("should return JWT token with valid credentials", async () => {
-	// 		const response = await request(app.getHttpServer())
-	// 			.post("/api/user/login")
-	// 			.send({
-	// 				username: testUser.username,
-	// 				password: testUser.motDePasse,
-	// 			})
-	// 			.expect(200);
+			await request(app.getHttpServer())
+				.delete(`/api/user/${tempUser.username}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
 
-	// 		expect(response.body.token).toBeDefined();
-	// 		expect(typeof response.body.token).toBe("string");
-	// 	});
+			const deletedUser = await userService.getByUsername(tempUser.username);
+			expect(deletedUser).toBeUndefined();
+		});
+	});
 
-	// 	it("should return 401 with invalid credentials", async () => {
-	// 		await request(app.getHttpServer())
-	// 			.post("/api/user/login")
-	// 			.send({
-	// 				username: testUser.username,
-	// 				password: "wrongpassword",
-	// 			})
-	// 			.expect(401);
-	// 	});
+	describe("POST /api/user/login", () => {
+		it("should return JWT token with valid credentials", async () => {
+			const response = await request(app.getHttpServer())
+				.post("/api/user/login")
+				.send({
+					username: testUser.username,
+					password: testUser.motDePasse,
+				})
+				.expect(HttpStatus.CREATED);
 
-	// 	it("should return 400 with missing credentials", async () => {
-	// 		await request(app.getHttpServer())
-	// 			.post("/api/user/login")
-	// 			.send({
-	// 				username: testUser.username,
-	// 			})
-	// 			.expect(400);
-	// 	});
-	// });
+			expect(response.body.token.token).toBeDefined();
+			expect(typeof response.body.token.token).toBe("string");
+		});
 
-	// describe("GET /api/user/:username/daily-reward", () => {
-	// 	it("should claim daily reward successfully", async () => {
-	// 		const response = await request(app.getHttpServer())
-	// 			.get(`/api/user/${testUser.username}/daily-reward`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.expect(200);
+		it("should return 401 with invalid credentials", async () => {
+			await request(app.getHttpServer())
+				.post("/api/user/login")
+				.send({
+					username: testUser.username,
+					password: "wrongpassword",
+				})
+				.expect(HttpStatus.UNAUTHORIZED);
+		});
 
-	// 		expect(response.body.reward).toBeDefined();
-	// 		expect(response.body.newPoints).toBeDefined();
-	// 	});
+		it("should return 400 with missing password", async () => {
+			await request(app.getHttpServer())
+				.post("/api/user/login")
+				.send({
+					username: testUser.username,
+				})
+				.expect(HttpStatus.BAD_REQUEST);
+		});
 
-	// 	it("should return 403 when claiming reward for other user", async () => {
-	// 		await request(app.getHttpServer())
-	// 			.get(`/api/user/${testAdmin.username}/daily-reward`)
-	// 			.set("Authorization", `Bearer ${userToken}`)
-	// 			.expect(403);
-	// 	});
-	// });
+		it("should return 400 with missing username", async () => {
+			await request(app.getHttpServer())
+				.post("/api/user/login")
+				.send({
+					password: testUser.motDePasse,
+				})
+				.expect(HttpStatus.BAD_REQUEST);
+		});
+	});
+
+	describe("GET /api/user/:username/daily-reward", () => {
+		it("should claim daily reward successfully", async () => {
+			const userBefore = await userService.getByUsername(testUser.username);
+			const initialPoints = userBefore!.points;
+
+			const response = await request(app.getHttpServer())
+				.get(`/api/user/${testUser.username}/daily-reward`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.OK);
+
+			expect(response.body.reward).toBeDefined();
+			const updatedUser = await userService.getByUsername(testUser.username);
+			expect(updatedUser!.points).toBe(initialPoints + response.body.reward);
+
+			// Réinitialiser la date de dernière récompense pour les autres tests
+			await userService.createOrUpdateByUsername(
+				testUser.username,
+				new UpdateUserDto({
+					username: testUser.username,
+					points: initialPoints,
+					dateDerniereRecompenseQuotidienne: null,
+				}),
+			);
+		});
+
+		it("should return 403 when claiming reward for other user", async () => {
+			await request(app.getHttpServer())
+				.get(`/api/user/${testAdmin.username}/daily-reward`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.FORBIDDEN);
+		});
+
+		it("should return 400 when claiming reward twice in the same day", async () => {
+			const userBefore = await userService.getByUsername(testUser.username);
+			const initialPoints = userBefore!.points;
+
+			const result = await request(app.getHttpServer())
+				.get(`/api/user/${testUser.username}/daily-reward`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.OK);
+
+			await request(app.getHttpServer())
+				.get(`/api/user/${testUser.username}/daily-reward`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.BAD_REQUEST);
+
+			await userService.createOrUpdateByUsername(
+				testUser.username,
+				new UpdateUserDto({
+					username: testUser.username,
+					dateDerniereRecompenseQuotidienne: null,
+					points: initialPoints,
+				}),
+			);
+		});
+	});
+
+	describe("POST /:username/buy/cosmetic/:cosmeticId", () => {
+		it("should return 201 when buying cosmetic for self", async () => {
+			const cosmeticId = await cosmeticService.findAll().then((cosmetics) => cosmetics[0]._id);
+			const cosmeticIdStr = cosmeticId.toString();
+			await request(app.getHttpServer())
+				.post(`/api/user/${testUser.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.CREATED);
+
+			const updatedUser = await userService.getByUsername(testUser.username);
+			expect(updatedUser).toBeDefined();
+
+			expect(updatedUser!.cosmeticsOwned.map((cosmetic) => cosmetic.toString())).toContain(cosmeticId.toString());
+
+			// Réinitialiser les données de l'utilisateur pour les autres tests
+			await userService.createOrUpdateByUsername(
+				testUser.username,
+				new UpdateUserDto({
+					username: testUser.username,
+					points: updatedUser!.points + cosmetic1.cost,
+					cosmeticsOwned: [],
+				}),
+			);
+		});
+
+		it("should return 403 when buying cosmetic for other user", async () => {
+			const cosmeticId = await cosmeticService.findAll().then((cosmetics) => cosmetics[0]._id.toString());
+			const cosmeticIdStr = cosmeticId.toString();
+			await request(app.getHttpServer())
+				.post(`/api/user/${testAdmin.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.FORBIDDEN);
+		});
+
+		it("should return 400 when buying already owned cosmetic", async () => {
+			const cosmeticId = await cosmeticService.findAll().then((cosmetics) => cosmetics[0]._id.toString());
+			const cosmeticIdStr = cosmeticId.toString();
+			// Acheter le cosmétique une première fois
+			await request(app.getHttpServer())
+				.post(`/api/user/${testUser.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.CREATED);
+
+			const updatedUser = await userService.getByUsername(testUser.username);
+			expect(updatedUser).toBeDefined();
+			expect(updatedUser!.cosmeticsOwned.map((cosmetic) => cosmetic.toString())).toContain(cosmeticId);
+
+			// Tenter de l'acheter à nouveau
+			await request(app.getHttpServer())
+				.post(`/api/user/${testUser.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
+	});
 });

@@ -133,8 +133,13 @@ export class UserController {
 			} else {
 				newUpdateUserDto = updateUserDto;
 			}
-
-			await this.userService.createOrUpdateByUsername(username, newUpdateUserDto);
+await this.userService.createOrUpdateByUsername(username, newUpdateUserDto);
+return { statusCode: 300 };
+			// if (await this.userService.createOrUpdateByUsername(username, newUpdateUserDto)) {
+			// 	return { statusCode: 201 };
+			// } else {
+			// 	return { statusCode: 200 };
+			// }
 		} catch (error) {
 			throw new BadRequestException({ message: error.message });
 		}
@@ -236,7 +241,6 @@ export class UserController {
 
 		const cosmetic = await this.cosmeticService.findById(cosmeticId);
 		if (!cosmetic) throw new NotFoundException({ message: "Le cosmétique n'est pas trouvable" });
-
 
 		try {
 			await this.userService.buyCosmetic(username, cosmetic);

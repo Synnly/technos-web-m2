@@ -108,8 +108,9 @@ export class UserService {
 	 * Met à jour un utilisateur existant basé sur le nom d'utilisateur fourni, ou crée un nouvel utilisateur si aucun n'existe.
 	 * @param username Le nom d'utilisateur de l'utilisateur à mettre à jour ou à créer.
 	 * @param updateUserDto L'objet utilisateur contenant les informations à mettre à jour ou à utiliser pour la création.
+	 * @return Une promesse qui résout un booléen indiquant si un nouvel utilisateur a été créé (true) ou si un utilisateur existant a été mis à jour (false).
 	 */
-	async createOrUpdateByUsername(username: string, updateUserDto: UpdateUserDto) {
+	async createOrUpdateByUsername(username: string, updateUserDto: UpdateUserDto): Promise<boolean> {
 		const existingUser = await this.userModel.findOne({ username }).exec();
 
 		if (existingUser) {
@@ -118,7 +119,9 @@ export class UserService {
 			}
 			existingUser.points = updateUserDto.points ?? existingUser.points;
 			existingUser.dateDerniereRecompenseQuotidienne =
-				updateUserDto.dateDerniereRecompenseQuotidienne ?? existingUser.dateDerniereRecompenseQuotidienne;
+				updateUserDto.dateDerniereRecompenseQuotidienne === undefined
+					? existingUser.dateDerniereRecompenseQuotidienne
+					: updateUserDto.dateDerniereRecompenseQuotidienne;
 
 			existingUser.role = (updateUserDto.role ?? existingUser.role) as Role;
 
@@ -137,6 +140,7 @@ export class UserService {
 			];
 
 			await existingUser.save();
+			return false;
 		} else {
 			const hash = await bcrypt.hash(updateUserDto.motDePasse, 10);
 			const reqBody = {
@@ -158,6 +162,7 @@ export class UserService {
 			];
 
 			await newUser.save();
+			return true;
 		}
 	}
 
