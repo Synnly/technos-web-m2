@@ -4,18 +4,18 @@ import { PredictionController } from "./prediction.controller";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Prediction, PredictionSchema } from "./prediction.schema";
 import { UserModule } from "../user/user.module";
-import { VoteModule } from "src/vote/vote.module";
+import { VoteModule } from "../vote/vote.module";
 
 @Module({
 	imports: [
 		MongooseModule.forFeature([
 			{ name: Prediction.name, schema: PredictionSchema },
 		]),
-		UserModule,
-		forwardRef(() => VoteModule),
+		forwardRef(() => UserModule),
+		forwardRef(() => VoteModule)
 	],
 	controllers: [PredictionController],
 	providers: [PredictionService],
-	exports: [MongooseModule],
+	exports: [MongooseModule, PredictionService],
 })
 export class PredictionModule {}

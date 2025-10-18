@@ -75,6 +75,13 @@ export class VoteService {
 		return this.normalizeVote(vote) as Vote;
 	}
 
+	async getByIds(ids: string[]): Promise<Vote[]> {
+		const votes = await this.voteModel
+			.find({ _id: { $in: ids } })
+			.exec();
+		return votes.map((v) => this.normalizeVote(v) as Vote);
+	}
+
 	/**
 	 * Crée un nouveau vote et met à jour les données utilisateur et prédiction.
 	 * Retire les points de l'utilisateur et met à jour le montant total de l'option.

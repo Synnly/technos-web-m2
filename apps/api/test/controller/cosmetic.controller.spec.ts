@@ -6,6 +6,9 @@ import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Role } from "../../src/user/user.schema";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
+import { AuthGuard } from "../../src/guards/auth.guard";
+import { AdminGuard } from "../../src/guards/admin.guard";
+import { ConfigService } from "@nestjs/config";
 
 const expectedCosmetic1: Cosmetic = {
 	_id: "c1",
@@ -51,7 +54,13 @@ describe("CosmeticController", () => {
 					provide: JwtService,
 					useValue: { verify: jest.fn(), sign: jest.fn() },
 				},
+				{
+					provide: AuthGuard,
+					useValue: { canActivate: jest.fn().mockReturnValue(true) },
+				},
+				{ provide: AdminGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
 				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
+				{ provide: ConfigService, useValue: { get: jest.fn(() => "test-secret") } },
 			],
 		}).compile();
 
@@ -87,17 +96,13 @@ describe("CosmeticController", () => {
 		});
 
 		it("should throw 400 if id is missing", async () => {
-			await expect(
-				cosmeticController.getCosmeticById(""),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.getCosmeticById("")).rejects.toThrow(BadRequestException);
 		});
 
 		it("should throw 404 if cosmetic not found", async () => {
 			mockCosmeticService.findById.mockResolvedValue(null);
 
-			await expect(
-				cosmeticController.getCosmeticById("unknown"),
-			).rejects.toThrow(NotFoundException);
+			await expect(cosmeticController.getCosmeticById("unknown")).rejects.toThrow(NotFoundException);
 		});
 	});
 
@@ -108,36 +113,22 @@ describe("CosmeticController", () => {
 		it("should create cosmetic when admin", async () => {
 			mockCosmeticService.create.mockResolvedValue(expectedCosmetic1);
 
-			const result = await cosmeticController.createCosmetic(
-				expectedCosmetic1,
-				adminUser,
-				"admin",
-			);
+			const result = await cosmeticController.createCosmetic(expectedCosmetic1, adminUser, "admin");
 
 			expect(result).toEqual(expectedCosmetic1);
-			expect(cosmeticService.create).toHaveBeenCalledWith(
-				expectedCosmetic1,
-			);
+			expect(cosmeticService.create).toHaveBeenCalledWith(expectedCosmetic1);
 		});
 
 		it("should throw 400 if not admin", async () => {
-			await expect(
-				cosmeticController.createCosmetic(
-					expectedCosmetic1,
-					normalUser,
-					"user",
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.createCosmetic(expectedCosmetic1, normalUser, "user")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 400 if body missing", async () => {
-			await expect(
-				cosmeticController.createCosmetic(
-					undefined,
-					adminUser,
-					"admin",
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.createCosmetic(undefined, adminUser, "admin")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 400 if name missing", async () => {
@@ -145,13 +136,9 @@ describe("CosmeticController", () => {
 				...expectedCosmetic1,
 				name: undefined,
 			} as any;
-			await expect(
-				cosmeticController.createCosmetic(
-					badCosmetic,
-					adminUser,
-					"admin",
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.createCosmetic(badCosmetic, adminUser, "admin")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 400 if cost missing", async () => {
@@ -159,13 +146,9 @@ describe("CosmeticController", () => {
 				...expectedCosmetic1,
 				cost: undefined,
 			} as any;
-			await expect(
-				cosmeticController.createCosmetic(
-					badCosmetic,
-					adminUser,
-					"admin",
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.createCosmetic(badCosmetic, adminUser, "admin")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 400 if type missing", async () => {
@@ -173,13 +156,9 @@ describe("CosmeticController", () => {
 				...expectedCosmetic1,
 				type: undefined,
 			} as any;
-			await expect(
-				cosmeticController.createCosmetic(
-					badCosmetic,
-					adminUser,
-					"admin",
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.createCosmetic(badCosmetic, adminUser, "admin")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 	});
 
@@ -191,51 +170,28 @@ describe("CosmeticController", () => {
 			mockCosmeticService.findById.mockResolvedValue(expectedCosmetic1);
 			mockCosmeticService.updateById.mockResolvedValue(expectedCosmetic1);
 
-			const result = await cosmeticController.updateCosmetic(
-				"c1",
-				expectedCosmetic1,
-				adminUser,
-				"admin",
-			);
+			const result = await cosmeticController.updateCosmetic("c1", expectedCosmetic1, adminUser, "admin");
 
 			expect(result).toEqual(expectedCosmetic1);
-			expect(cosmeticService.updateById).toHaveBeenCalledWith(
-				"c1",
-				expectedCosmetic1,
-			);
+			expect(cosmeticService.updateById).toHaveBeenCalledWith("c1", expectedCosmetic1);
 		});
 
 		it("should throw 400 if not admin", async () => {
 			await expect(
-				cosmeticController.updateCosmetic(
-					"c1",
-					expectedCosmetic1,
-					normalUser,
-					"user",
-				),
+				cosmeticController.updateCosmetic("c1", expectedCosmetic1, normalUser, "user"),
 			).rejects.toThrow(BadRequestException);
 		});
 
 		it("should throw 400 if body missing", async () => {
-			await expect(
-				cosmeticController.updateCosmetic(
-					"c1",
-					undefined,
-					adminUser,
-					"admin",
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.updateCosmetic("c1", undefined, adminUser, "admin")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 404 if cosmetic not found", async () => {
 			mockCosmeticService.findById.mockResolvedValue(null);
 			await expect(
-				cosmeticController.updateCosmetic(
-					"c1",
-					expectedCosmetic1,
-					adminUser,
-					"admin",
-				),
+				cosmeticController.updateCosmetic("c1", expectedCosmetic1, adminUser, "admin"),
 			).rejects.toThrow(NotFoundException);
 		});
 	});
@@ -248,37 +204,31 @@ describe("CosmeticController", () => {
 			mockCosmeticService.findById.mockResolvedValue(expectedCosmetic1);
 			mockCosmeticService.deleteById.mockResolvedValue(expectedCosmetic1);
 
-			const result = await cosmeticController.deleteCosmetic(
-				"c1",
-				adminUser,
-				"admin",
-			);
+			const result = await cosmeticController.deleteCosmetic("c1", adminUser, "admin");
 			expect(result).toEqual(expectedCosmetic1);
 			expect(cosmeticService.deleteById).toHaveBeenCalledWith("c1");
 		});
 
 		it("should throw 400 if not admin", async () => {
-			await expect(
-				cosmeticController.deleteCosmetic("c1", normalUser, "user"),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.deleteCosmetic("c1", normalUser, "user")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 404 if cosmetic not found", async () => {
 			mockCosmeticService.findById.mockResolvedValue(null);
-			await expect(
-				cosmeticController.deleteCosmetic("c1", adminUser, "admin"),
-			).rejects.toThrow(NotFoundException);
+			await expect(cosmeticController.deleteCosmetic("c1", adminUser, "admin")).rejects.toThrow(
+				NotFoundException,
+			);
 		});
 
 		it("should throw 400 if service throws error", async () => {
 			mockCosmeticService.findById.mockResolvedValue(expectedCosmetic1);
-			mockCosmeticService.deleteById.mockRejectedValue(
-				new Error("Delete failed"),
-			);
+			mockCosmeticService.deleteById.mockRejectedValue(new Error("Delete failed"));
 
-			await expect(
-				cosmeticController.deleteCosmetic("c1", adminUser, "admin"),
-			).rejects.toThrow(BadRequestException);
+			await expect(cosmeticController.deleteCosmetic("c1", adminUser, "admin")).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 	});
 });

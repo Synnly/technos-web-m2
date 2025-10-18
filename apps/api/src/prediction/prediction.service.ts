@@ -80,6 +80,14 @@ export class PredictionService {
 		return this.normalizePred(pred) as Prediction;
 	}
 
+	async getByIds(ids: string[]): Promise<Prediction[]> {
+		const preds = await this.predictionModel
+			.find({ _id: { $in: ids } })
+			.populate("user_id", "username")
+			.exec();
+		return (preds as any[]).map((p) => this.normalizePred(p) as Prediction);
+	}
+
 	/**
 	 * Crée une nouvelle prédiction dans la base de données.
 	 * Le schéma impose que `title` soit présent ; cette méthode se contente de créer

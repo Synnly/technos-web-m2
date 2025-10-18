@@ -1,14 +1,14 @@
 import { Test } from "@nestjs/testing";
 import { VoteController } from "../../src/vote/vote.controller";
-import {
-	Prediction,
-	PredictionStatus,
-} from "../../src/prediction/prediction.schema";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
 import { User } from "../../src/user/user.schema";
 import { VoteService } from "../../src/vote/vote.service";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
+import { AuthGuard } from "../../src/guards/auth.guard";
+import { AdminGuard } from "../../src/guards/admin.guard";
+import { ConfigService } from "@nestjs/config";
 
 const expectedUser1 = {
 	_id: "1",
@@ -70,7 +70,13 @@ describe("VoteController", () => {
 					provide: JwtService,
 					useValue: { verify: jest.fn(), sign: jest.fn() },
 				},
+				{
+					provide: AuthGuard,
+					useValue: { canActivate: jest.fn().mockReturnValue(true) },
+				},
+				{ provide: AdminGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
 				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
+				{ provide: ConfigService, useValue: { get: jest.fn(() => "test-secret") } },
 			],
 		}).compile();
 
@@ -107,9 +113,7 @@ describe("VoteController", () => {
 		it("should return 404 if no vote is found", async () => {
 			mockVoteService.getById.mockResolvedValue(null);
 
-			await expect(voteController.getVoteById("1")).rejects.toThrow(
-				NotFoundException,
-			);
+			await expect(voteController.getVoteById("1")).rejects.toThrow(NotFoundException);
 			expect(voteService.getById).toHaveBeenCalledWith("1");
 		});
 	});
@@ -134,9 +138,7 @@ describe("VoteController", () => {
 		});
 
 		it("should return 400 if the data is missing", async () => {
-			await expect(voteController.createVote(null)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(null)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -144,9 +146,7 @@ describe("VoteController", () => {
 		it("should return 400 if the user is missing", async () => {
 			const newVote = { ...expectedVote1, user_id: undefined };
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -155,9 +155,7 @@ describe("VoteController", () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).prediction_id;
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -166,9 +164,7 @@ describe("VoteController", () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).option;
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -177,9 +173,7 @@ describe("VoteController", () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).amount;
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -187,9 +181,7 @@ describe("VoteController", () => {
 		it("should return 400 if the amount is less than 1", async () => {
 			const newVote = { ...expectedVote1, _id: undefined, amount: 0 };
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -198,9 +190,7 @@ describe("VoteController", () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 			delete (newVote as any).date;
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
@@ -208,13 +198,9 @@ describe("VoteController", () => {
 		it("should return 400 if the service throws an error", async () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 
-			mockVoteService.createVote.mockRejectedValue(
-				new Error("Service error"),
-			);
+			mockVoteService.createVote.mockRejectedValue(new Error("Service error"));
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).toHaveBeenCalled();
 		});
@@ -222,13 +208,9 @@ describe("VoteController", () => {
 		it("should return 400 if the user does not have enough points", async () => {
 			const newVote = { ...expectedVote1, _id: undefined };
 
-			mockVoteService.createVote.mockRejectedValue(
-				new Error("Points insuffisants"),
-			);
+			mockVoteService.createVote.mockRejectedValue(new Error("Points insuffisants"));
 
-			await expect(voteController.createVote(newVote)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).toHaveBeenCalled();
 		});
@@ -256,17 +238,13 @@ describe("VoteController", () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).user_id;
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
 
 		it("should return 400 if the data is missing", async () => {
-			await expect(voteController.updateVote("1", null)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(voteController.updateVote("1", null)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -274,9 +252,7 @@ describe("VoteController", () => {
 		it("should return 400 if the id is missing", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 
-			await expect(
-				voteController.updateVote("", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -288,9 +264,7 @@ describe("VoteController", () => {
 				user_id: undefined,
 			};
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -299,9 +273,7 @@ describe("VoteController", () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).prediction_id;
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -310,9 +282,7 @@ describe("VoteController", () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).option;
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -321,9 +291,7 @@ describe("VoteController", () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 			delete (updatedVote as any).amount;
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -331,9 +299,7 @@ describe("VoteController", () => {
 		it("should return 400 if the amount is less than 1", async () => {
 			const updatedVote = { ...expectedVote1, amount: 0 };
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
 		});
@@ -341,13 +307,9 @@ describe("VoteController", () => {
 		it("should return 400 if the service throws an error", async () => {
 			const updatedVote = { ...expectedVote1, amount: 20 };
 
-			mockVoteService.createOrUpdateVote.mockRejectedValue(
-				new Error("Service error"),
-			);
+			mockVoteService.createOrUpdateVote.mockRejectedValue(new Error("Service error"));
 
-			await expect(
-				voteController.updateVote("1", updatedVote),
-			).rejects.toThrow(BadRequestException);
+			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createOrUpdateVote).toHaveBeenCalled();
 		});
@@ -365,9 +327,7 @@ describe("VoteController", () => {
 		it("should return 404 if no vote is found to delete", async () => {
 			mockVoteService.deleteVote.mockResolvedValue(null);
 
-			await expect(voteController.deleteVote("1")).rejects.toThrow(
-				NotFoundException,
-			);
+			await expect(voteController.deleteVote("1")).rejects.toThrow(NotFoundException);
 
 			expect(voteService.deleteVote).toHaveBeenCalledWith("1");
 		});

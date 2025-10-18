@@ -86,7 +86,6 @@ export const userController = {
 		password: string,
 		setError?: React.Dispatch<React.SetStateAction<string | null>>,
 	) {
-		console.log("Registering user:", username.trim() === "");
 		if (username.trim() === "") {
 			if (setError)
 				setError("Le nom d'utilisateur ne peut pas être vide");
