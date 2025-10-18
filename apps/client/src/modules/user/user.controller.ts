@@ -108,4 +108,25 @@ export const userController = {
 			return null;
 		}
 	},
+
+	async deleteUser(
+		username: string,
+		token: string,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return;
+		}
+		try {
+			await userResolver.deleteUser(username, token);
+		} catch (err: any) {
+			const msg = "Erreur lors de la suppression de l'utilisateur";
+			if (setToast) setToast({ message: msg, type: "error" });
+		}
+	},
 };

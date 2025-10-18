@@ -61,4 +61,7 @@ export const userResolver = {
 
 		return userService.register(username, password);
 	},
+	async deleteUser(username: string, token: string) {
+		userService.deleteUser(username, token);
+	},
 };

@@ -1,5 +1,6 @@
 import { Package2 } from "lucide-react";
-import CosmeticPicker from "../cosmetics/CosmeticPicker";
+import CosmeticPicker from "../cosmetics/cosmetic-picker/CosmeticPicker";
+import type { User } from "../../modules/user/user.interface";
 
 export const CosmeticsLabel = (
 	<span className="flex items-center gap-2 text-gray-300">
@@ -9,13 +10,13 @@ export const CosmeticsLabel = (
 );
 
 type Props = {
-	username?: string | null;
+	user: User;
 };
 
-export default function CosmeticsTab({ username }: Props) {
+export default function CosmeticsTab({ user }: Props) {
 	return (
 		<div className="p-4 text-gray-200">
-			{username && <CosmeticPicker username={username} />}
+			{user && <CosmeticPicker user={user} />}
 		</div>
 	);
 }
