@@ -7,6 +7,7 @@ import { VoteModule } from "./vote/vote.module";
 import { PublicationModule } from "./publication/publication.module";
 import { CosmeticModule } from "./cosmetic/cosmetic.module";
 import { JwtModule } from "@nestjs/jwt";
+import { UserMiddleware } from "./middleware/user.middleware";
 
 /**
  * Module principal de l'application.
@@ -29,15 +30,21 @@ import { JwtModule } from "@nestjs/jwt";
 		VoteModule,
 		PublicationModule,
 		CosmeticModule,
-		JwtModule.register({
-			global: true,
-			secret: process.env.JWT_SECRET!, // <-- nécessaire
-			signOptions: { expiresIn: "2h" },
-		}),
+		JwtModule.registerAsync({
+            global: true,
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get<string>("JWT_SECRET"),
+                signOptions: { expiresIn: "2h" },
+            }),
+            inject: [ConfigService],
+        }),
 	],
 	controllers: [],
 	providers: [],
 })
 export class AppModule implements NestModule {
-	configure(consumer: MiddlewareConsumer) {}
+	configure(consumer: MiddlewareConsumer) {
+		consumer.apply(UserMiddleware).forRoutes("*");
+	}
 }

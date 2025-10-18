@@ -1,19 +1,14 @@
 import { PredictionController } from "../../src/prediction/prediction.controller";
 import { PredictionService } from "../../src/prediction/prediction.service";
 import { Test } from "@nestjs/testing";
-import {
-	Prediction,
-	PredictionStatus,
-} from "../../src/prediction/prediction.schema";
+import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
 import { User } from "../../src/user/user.schema";
-import {
-	BadRequestException,
-	HttpException,
-	NotFoundException,
-} from "@nestjs/common/exceptions";
+import { BadRequestException, HttpException, NotFoundException } from "@nestjs/common/exceptions";
 import { HttpStatus } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
+import { AuthGuard } from "../../src/guards/auth.guard";
+import { ConfigService } from "@nestjs/config";
 
 const expectedUser1 = {
 	_id: "1",
@@ -88,7 +83,12 @@ describe("PredictionController", () => {
 					provide: JwtService,
 					useValue: { verify: jest.fn(), sign: jest.fn() },
 				},
+				{
+					provide: AuthGuard,
+					useValue: { canActivate: jest.fn().mockReturnValue(true) },
+				},
 				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
+				{ provide: ConfigService, useValue: { get: jest.fn(() => "test-secret") } },
 			],
 		}).compile();
 
@@ -122,42 +122,31 @@ describe("PredictionController", () => {
 
 			await predictionController.getPredictionById(expectedPred1._id!);
 
-			expect(predictionService.getById).toHaveBeenCalledWith(
-				expectedPred1._id,
-			);
+			expect(predictionService.getById).toHaveBeenCalledWith(expectedPred1._id);
 		});
 
 		it("should return 404 when not found", async () => {
 			mockPredictionService.getById.mockResolvedValue(null);
 
-			await expect(
-				predictionController.getPredictionById("unknown"),
-			).rejects.toThrow(NotFoundException);
+			await expect(predictionController.getPredictionById("unknown")).rejects.toThrow(NotFoundException);
 
 			expect(predictionService.getById).toHaveBeenCalledWith("unknown");
 		});
 
 		it("should return 400 when id is missing", async () => {
-			await expect(
-				predictionController.getPredictionById(""),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.getPredictionById("")).rejects.toThrow(BadRequestException);
 		});
 	});
 
 	describe("createPrediction", () => {
 		it("should create a prediction and return 201", async () => {
-			mockPredictionService.createPrediction.mockResolvedValue(
-				expectedPred1,
-			);
+			mockPredictionService.createPrediction.mockResolvedValue(expectedPred1);
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			const result = await predictionController.createPrediction(
-				mockReq,
-				expectedPred1,
-			);
+			const result = await predictionController.createPrediction(mockReq, expectedPred1);
 
 			expect(predictionService.createPrediction).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -180,25 +169,21 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, badPred),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, badPred)).rejects.toThrow(BadRequestException);
 		});
 
 		it("should return 400 on service error", async () => {
-			mockPredictionService.createPrediction.mockImplementationOnce(
-				() => {
-					throw new BadRequestException("Error");
-				},
-			);
+			mockPredictionService.createPrediction.mockImplementationOnce(() => {
+				throw new BadRequestException("Error");
+			});
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, expectedPred1),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, expectedPred1)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when options count is 0", async () => {
@@ -210,12 +195,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(
-					mockReq,
-					predWithZeroOptions,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, predWithZeroOptions)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when options count is 1", async () => {
@@ -228,12 +210,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(
-					mockReq,
-					predWithOneOption,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, predWithOneOption)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when dateFin is before today", async () => {
@@ -246,9 +225,7 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, badPred),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, badPred)).rejects.toThrow(BadRequestException);
 		});
 
 		it("should return 400 when status is missing", async () => {
@@ -261,9 +238,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, predNoStatus),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, predNoStatus)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when status is invalid", async () => {
@@ -275,9 +252,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, predBadStatus),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, predBadStatus)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when prediction body is missing", async () => {
@@ -285,12 +262,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(
-					mockReq,
-					undefined as any,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, undefined as any)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when dateFin is missing", async () => {
@@ -302,9 +276,7 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, badPred),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, badPred)).rejects.toThrow(BadRequestException);
 		});
 
 		it("should return 400 when authenticated user is missing", async () => {
@@ -314,9 +286,9 @@ describe("PredictionController", () => {
 				user_id: undefined,
 			} as unknown as Prediction;
 
-			await expect(
-				predictionController.createPrediction(mockReq, predNoUser),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, predNoUser)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when result is not empty", async () => {
@@ -328,27 +300,19 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.createPrediction(mockReq, badPred),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.createPrediction(mockReq, badPred)).rejects.toThrow(BadRequestException);
 		});
 	});
 
 	describe("updatePredictionById", () => {
 		it("should update and return 200", async () => {
-			mockPredictionService.createOrUpdateById.mockResolvedValue(
-				expectedPred1,
-			);
+			mockPredictionService.createOrUpdateById.mockResolvedValue(expectedPred1);
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			const result = await predictionController.updatePredictionById(
-				mockReq,
-				expectedPred1._id!,
-				expectedPred1,
-			);
+			const result = await predictionController.updatePredictionById(mockReq, expectedPred1._id!, expectedPred1);
 
 			expect(predictionService.createOrUpdateById).toHaveBeenCalledWith(
 				expectedPred1._id,
@@ -373,25 +337,17 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					badPred._id,
-					badPred,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.updatePredictionById(mockReq, badPred._id, badPred)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when missing id", async () => {
 			const mockReq = {} as any;
 
-			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					"",
-					expectedPred1,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.updatePredictionById(mockReq, "", expectedPred1)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when missing the title", async () => {
@@ -403,32 +359,22 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					badPred._id,
-					badPred,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.updatePredictionById(mockReq, badPred._id, badPred)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 on service error", async () => {
-			mockPredictionService.createOrUpdateById.mockImplementationOnce(
-				() => {
-					throw new Error("Error");
-				},
-			);
+			mockPredictionService.createOrUpdateById.mockImplementationOnce(() => {
+				throw new Error("Error");
+			});
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
 			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					expectedPred1._id,
-					expectedPred1,
-				),
+				predictionController.updatePredictionById(mockReq, expectedPred1._id, expectedPred1),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -442,11 +388,7 @@ describe("PredictionController", () => {
 			} as any;
 
 			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					predWithZeroOptions._id,
-					predWithZeroOptions,
-				),
+				predictionController.updatePredictionById(mockReq, predWithZeroOptions._id, predWithZeroOptions),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -460,11 +402,7 @@ describe("PredictionController", () => {
 			} as any;
 
 			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					predWithOneOption._id,
-					predWithOneOption,
-				),
+				predictionController.updatePredictionById(mockReq, predWithOneOption._id, predWithOneOption),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -477,13 +415,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					badPred._id,
-					badPred,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.updatePredictionById(mockReq, badPred._id, badPred)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when status is missing", async () => {
@@ -496,11 +430,7 @@ describe("PredictionController", () => {
 			} as any;
 
 			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					predNoStatus._id,
-					predNoStatus,
-				),
+				predictionController.updatePredictionById(mockReq, predNoStatus._id, predNoStatus),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -514,11 +444,7 @@ describe("PredictionController", () => {
 			} as any;
 
 			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					predBadStatus._id,
-					predBadStatus,
-				),
+				predictionController.updatePredictionById(mockReq, predBadStatus._id, predBadStatus),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -527,13 +453,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					"1",
-					undefined as any,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.updatePredictionById(mockReq, "1", undefined as any)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should return 400 when dateFin is missing", async () => {
@@ -546,13 +468,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(
-				predictionController.updatePredictionById(
-					mockReq,
-					badPred._id,
-					badPred,
-				),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.updatePredictionById(mockReq, badPred._id, badPred)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 	});
 
@@ -562,9 +480,7 @@ describe("PredictionController", () => {
 
 			await predictionController.deletePrediction(expectedPred1._id!);
 
-			expect(predictionService.deleteById).toHaveBeenCalledWith(
-				expectedPred1._id,
-			);
+			expect(predictionService.deleteById).toHaveBeenCalledWith(expectedPred1._id);
 		});
 
 		it("should return 404 when prediction is not found", async () => {
@@ -572,13 +488,9 @@ describe("PredictionController", () => {
 				throw new HttpException("Not found", HttpStatus.NOT_FOUND);
 			});
 
-			await expect(
-				predictionController.deletePrediction("unknown"),
-			).rejects.toThrow(HttpException);
+			await expect(predictionController.deletePrediction("unknown")).rejects.toThrow(HttpException);
 
-			expect(predictionService.deleteById).toHaveBeenCalledWith(
-				"unknown",
-			);
+			expect(predictionService.deleteById).toHaveBeenCalledWith("unknown");
 		});
 	});
 	describe("getExpiredPredictions", () => {
@@ -595,15 +507,11 @@ describe("PredictionController", () => {
 					dateFin: new Date("2023-12-31"),
 				},
 			];
-			mockPredictionService.getExpiredPredictions.mockResolvedValue(
-				expiredPreds,
-			);
+			mockPredictionService.getExpiredPredictions.mockResolvedValue(expiredPreds);
 
 			await predictionController.getExpiredPredictions();
 
-			expect(
-				mockPredictionService.getExpiredPredictions,
-			).toHaveBeenCalled();
+			expect(mockPredictionService.getExpiredPredictions).toHaveBeenCalled();
 		});
 
 		it("should return empty array if no expired predictions found", async () => {
@@ -611,9 +519,7 @@ describe("PredictionController", () => {
 
 			await predictionController.getExpiredPredictions();
 
-			expect(
-				mockPredictionService.getExpiredPredictions,
-			).toHaveBeenCalled();
+			expect(mockPredictionService.getExpiredPredictions).toHaveBeenCalled();
 		});
 	});
 
@@ -626,15 +532,11 @@ describe("PredictionController", () => {
 					dateFin: new Date("2025-12-31"),
 				},
 			];
-			mockPredictionService.getWaitingPredictions.mockResolvedValue(
-				waitingPreds,
-			);
+			mockPredictionService.getWaitingPredictions.mockResolvedValue(waitingPreds);
 
 			await predictionController.getWaitingPredictions();
 
-			expect(
-				mockPredictionService.getWaitingPredictions,
-			).toHaveBeenCalled();
+			expect(mockPredictionService.getWaitingPredictions).toHaveBeenCalled();
 		});
 
 		it("should return empty array if no waiting predictions found", async () => {
@@ -642,24 +544,18 @@ describe("PredictionController", () => {
 
 			await predictionController.getWaitingPredictions();
 
-			expect(
-				mockPredictionService.getWaitingPredictions,
-			).toHaveBeenCalled();
+			expect(mockPredictionService.getWaitingPredictions).toHaveBeenCalled();
 		});
 	});
 
 	describe("getValidPredictions", () => {
 		it("should call service and return valid predictions", async () => {
 			const expected = [expectedPred1];
-			mockPredictionService.getValidPredictions.mockResolvedValue(
-				expected,
-			);
+			mockPredictionService.getValidPredictions.mockResolvedValue(expected);
 
 			await predictionController.getValidPredictions();
 
-			expect(
-				mockPredictionService.getValidPredictions,
-			).toHaveBeenCalled();
+			expect(mockPredictionService.getValidPredictions).toHaveBeenCalled();
 		});
 
 		it("should return empty array if no valid predictions", async () => {
@@ -667,38 +563,25 @@ describe("PredictionController", () => {
 
 			await predictionController.getValidPredictions();
 
-			expect(
-				mockPredictionService.getValidPredictions,
-			).toHaveBeenCalled();
+			expect(mockPredictionService.getValidPredictions).toHaveBeenCalled();
 		});
 	});
 
 	describe("getPredictionTimeline", () => {
 		it("should call service and return timeline when params are valid", async () => {
-			const expectedTimeline = [
-				{ date: new Date("2024-01-01"), options: { yes: 1 } },
-			];
-			mockPredictionService.getPredictionTimeline.mockResolvedValue(
-				expectedTimeline,
-			);
+			const expectedTimeline = [{ date: new Date("2024-01-01"), options: { yes: 1 } }];
+			mockPredictionService.getPredictionTimeline.mockResolvedValue(expectedTimeline);
 
-			const result = await predictionController.getPredictionTimeline(
-				expectedPred1._id!,
-				5,
-				true,
-				false,
-			);
+			const result = await predictionController.getPredictionTimeline(expectedPred1._id!, 5, true, false);
 
-			expect(
-				mockPredictionService.getPredictionTimeline,
-			).toHaveBeenCalledWith(expectedPred1._id, 5, true, false);
+			expect(mockPredictionService.getPredictionTimeline).toHaveBeenCalledWith(expectedPred1._id, 5, true, false);
 			expect(result).toBe(expectedTimeline);
 		});
 
 		it("should throw 400 when id is missing", async () => {
-			await expect(
-				predictionController.getPredictionTimeline("", 5, false, false),
-			).rejects.toThrow(BadRequestException);
+			await expect(predictionController.getPredictionTimeline("", 5, false, false)).rejects.toThrow(
+				BadRequestException,
+			);
 		});
 
 		it("should throw 400 when intervalMinutes is missing or <= 0", async () => {
@@ -721,29 +604,22 @@ describe("PredictionController", () => {
 			mockPredictionService.getPredictionTimeline.mockResolvedValue(expectedTimeline);
 
 			// Appel avec seulement id et intervalMinutes
-			const result = await predictionController.getPredictionTimeline(
-				expectedPred1._id!,
-				10 as any,
-			);
+			const result = await predictionController.getPredictionTimeline(expectedPred1._id!, 10 as any);
 
-			expect(
-				mockPredictionService.getPredictionTimeline,
-			).toHaveBeenCalledWith(expectedPred1._id, 10, false, false);
+			expect(mockPredictionService.getPredictionTimeline).toHaveBeenCalledWith(
+				expectedPred1._id,
+				10,
+				false,
+				false,
+			);
 			expect(result).toBe(expectedTimeline);
 		});
 
 		it("should throw BadRequestException when underlying service throws", async () => {
-			mockPredictionService.getPredictionTimeline.mockRejectedValue(
-				new Error("service failure"),
-			);
+			mockPredictionService.getPredictionTimeline.mockRejectedValue(new Error("service failure"));
 
 			await expect(
-				predictionController.getPredictionTimeline(
-					expectedPred1._id!,
-					5,
-					false,
-					false,
-				),
+				predictionController.getPredictionTimeline(expectedPred1._id!, 5, false, false),
 			).rejects.toThrow(BadRequestException);
 		});
 	});

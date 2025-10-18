@@ -3,7 +3,7 @@ import { CosmeticController } from "./cosmetic.controller";
 import { CosmeticService } from "./cosmetic.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Cosmetic, CosmeticSchema } from "./cosmetic.schema";
-import { AuthModule } from "src/guards/auth.module";
+import { AuthModule } from "../guards/auth.module";
 
 @Module({
 	imports: [
