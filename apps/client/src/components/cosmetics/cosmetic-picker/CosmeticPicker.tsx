@@ -6,7 +6,7 @@ import type { CosmeticPickerProps } from "./cosmetic-picker.interface";
 import type { Toast } from "../../toast/Toast.interface";
 import ToastComponent from "../../toast/Toast.component";
 
-export default function CosmeticPicker({ user }: CosmeticPickerProps) {
+const CosmeticPicker = ({ user }: CosmeticPickerProps) => {
 	const [cosmeticsOwned, setCosmeticsOwned] = useState<Cosmetic[]>([]);
 	const [toast, setToast] = useState<Toast | null>(null);
 	const clearToast = () => setToast(null);
@@ -81,3 +81,5 @@ export default function CosmeticPicker({ user }: CosmeticPickerProps) {
 		</div>
 	);
 }
+
+export default CosmeticPicker;

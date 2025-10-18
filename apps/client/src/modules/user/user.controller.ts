@@ -128,4 +128,26 @@ export const userController = {
 			if (setToast) setToast({ message: msg, type: "error" });
 		}
 	},
+
+	async updateUser(
+		username: string,
+		data: Partial<User>,
+		token: string | null,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return;
+		}
+		try {
+			await userResolver.updateUser(username, data, token);
+		} catch (err: any) {
+			const msg = "Erreur lors de la mise à jour de l'utilisateur";
+			if (setToast) setToast({ message: msg, type: "error" });
+		}
+	}
 };

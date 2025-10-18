@@ -6,7 +6,7 @@ import Sidebar from "../../sidebar/Sidebar.component";
 import ToastComponent from "../../toast/Toast.component";
 import type { AuthenticatedHomeProps } from "../types/AuthenticatedHome.type";
 
-export default function IsAuthenticatedHome({
+const IsAuthenticatedHome = ({
 	user,
 	username,
 	token,
@@ -20,7 +20,7 @@ export default function IsAuthenticatedHome({
 	fetchAllPredictions,
 	setPoints,
 	setUser,
-}: AuthenticatedHomeProps) {
+}: AuthenticatedHomeProps) => {
 	const clearToast = () => setToast(null);
 
 	return (
@@ -32,17 +32,9 @@ export default function IsAuthenticatedHome({
 				setPoints={setPoints}
 				setToast={setToast}
 				onPredictionCreated={fetchAllPredictions}
-				onCollapsedChange={(value: boolean) =>
-					setSidebarCollapsed(value)
-				}
+				onCollapsedChange={(value: boolean) => setSidebarCollapsed(value)}
 			/>
-			{toast && (
-				<ToastComponent
-					message={toast.message!}
-					type={toast.type!}
-					onClose={clearToast}
-				/>
-			)}
+			{toast && <ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} />}
 
 			<main
 				className={
@@ -62,4 +54,6 @@ export default function IsAuthenticatedHome({
 			</main>
 		</div>
 	);
-}
+};
+
+export default IsAuthenticatedHome;

@@ -1,6 +1,6 @@
 import CosmeticCard from "./cosmetic-card/CosmeticCard";
 
-export default function CosmeticList({ owned, applied, apply }: any) {
+const CosmeticList = ({ owned, applied, apply }: any) => {
 	if (owned.length === 0) {
 		return (
 			<div className="col-span-full text-sm text-gray-500 bg-gray-800/60 border border-gray-700 rounded-xl p-4 text-center">
@@ -16,7 +16,6 @@ export default function CosmeticList({ owned, applied, apply }: any) {
 					key={c._id}
 					id={c._id}
 					name={c.name}
-					cost={c.cost}
 					isApplied={applied.includes(String(c._id))}
 					onApply={apply}
 					type={c.type}
@@ -25,3 +24,5 @@ export default function CosmeticList({ owned, applied, apply }: any) {
 		</div>
 	);
 }
+
+export default CosmeticList;

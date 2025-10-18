@@ -7,9 +7,7 @@ import GenericForm from "../form/Form.component";
 import InputPassword from "../input/Password/InputPassword.component";
 import InputText from "../input/Text/InputText.component";
 import type { FormField } from "../modal/modal.interface";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import type { User } from "../../modules/user/user.interface";
 
 export const SettingsLabel = (
 	<span className="flex items-center gap-2 text-gray-300">
@@ -18,11 +16,12 @@ export const SettingsLabel = (
 	</span>
 );
 
-export default function SettingsTab() {
+const SettingsTab = () => {
 	const { username, logout } = useAuth();
 	const navigate = useNavigate();
 
 	const [modal, contextHolder] = Modal.useModal();
+	const token = localStorage.getItem("token");
 
 	const fields: FormField[] = [
 		{
@@ -55,19 +54,12 @@ export default function SettingsTab() {
 		if (!username) return;
 
 		try {
-			await axios.put(`${API_URL}/user/${username}`, {
-				username: values.username,
-				motDePasse: values.password,
-			});
-			const response = await axios.post(`${API_URL}/user/login`, {
-				username: values.username,
-				password: values.password,
-			});
+			const partialUser: Partial<User> = { username: values.username, motDePasse: values.password };
+			await userController.updateUser(username, partialUser, token);
+			const response = await userController.login(values.username, values.password);
 			localStorage.setItem("token", response.data.token.token);
-			window.location.reload();
-		} catch (err) {
-			console.error(err);
-		}
+			navigate("/dashboard", { replace: true });
+		} catch (err) {}
 	};
 
 	const confirmAccountDeletionHandler = () => {
@@ -76,8 +68,7 @@ export default function SettingsTab() {
 
 		modal.confirm({
 			title: "Supprimer le compte",
-			content:
-				"Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible !",
+			content: "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible !",
 			okText: "Supprimer",
 			okType: "danger",
 			cancelText: "Annuler",
@@ -95,12 +86,9 @@ export default function SettingsTab() {
 
 			<div className="max-w-3xl mx-auto space-y-8">
 				<div className="space-y-2">
-					<h2 className="text-2xl mt-6 font-medium text-white">
-						Sécurité du compte
-					</h2>
+					<h2 className="text-2xl mt-6 font-medium text-white">Sécurité du compte</h2>
 					<p className="text-gray-400 text-sm">
-						Gérez les actions sensibles liées à votre compte de
-						manière sécurisée.
+						Gérez les actions sensibles liées à votre compte de manière sécurisée.
 					</p>
 				</div>
 
@@ -117,12 +105,9 @@ export default function SettingsTab() {
 				<div className="border-t border-gray-700 my-6" />
 
 				<div className="space-y-2 mt-12">
-					<h2 className="text-2xl font-medium text-red-400">
-						Suppression du compte
-					</h2>
+					<h2 className="text-2xl font-medium text-red-400">Suppression du compte</h2>
 					<p className="text-gray-400 text-sm">
-						La suppression de votre compte est irréversible. Toutes
-						vos données seront perdues.
+						La suppression de votre compte est irréversible. Toutes vos données seront perdues.
 					</p>
 				</div>
 
@@ -135,4 +120,6 @@ export default function SettingsTab() {
 			</div>
 		</div>
 	);
-}
+};
+
+export default SettingsTab;
