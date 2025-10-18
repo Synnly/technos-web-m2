@@ -6,7 +6,7 @@ import Register from "./pages/Registration";
 import Index from "./pages/Index";
 import ProtectedRoute from "./ProtectedRoute";
 import Dashboard from "./Dashboard";
-import Prediction from "./Prediction";
+import Prediction from "./pages/Prediction";
 import Shop from "./Shop";
 import AllPredictions from "./pages/AllPredictions";
 import "./App.css";
