@@ -11,6 +11,9 @@ import { Model } from "mongoose";
 import { UserDto } from "../../../src/user/dto/user.dto";
 import { CreateUserDto } from "../../../src/user/dto/createuser.dto";
 import { UpdateUserDto } from "../../../src/user/dto/updateuser.dto";
+import { AuthGuard } from "../../../src/guards/auth.guard";
+import { AdminGuard } from "../../../src/guards/admin.guard";
+import { ConfigService } from "@nestjs/config";
 
 const expectedUser1 = {
 	_id: "1",
@@ -134,7 +137,16 @@ describe("UserController", () => {
 					provide: getModelToken(User.name),
 					useValue: mockUserModel,
 				},
+				{
+					provide: AuthGuard,
+					useValue: { canActivate: jest.fn().mockReturnValue(true) },
+				},
+				{
+					provide: AdminGuard,
+					useValue: { canActivate: jest.fn().mockReturnValue(true) },
+				},
 				{ provide: APP_GUARD, useValue: { canActivate: () => true } },
+				{ provide: ConfigService, useValue: { get: jest.fn(() => "test-secret") } },
 			],
 		}).compile();
 
@@ -370,9 +382,7 @@ describe("UserController", () => {
 			mockUserService.claimDailyReward.mockRejectedValue(
 				new Error("Récompense quotidienne déjà réclamée aujourd'hui."),
 			);
-			await expect(userController.getDailyReward(mockRequest)).rejects.toThrow(
-				BadRequestException,
-			);
+			await expect(userController.getDailyReward(mockRequest)).rejects.toThrow(BadRequestException);
 			expect(userService.claimDailyReward).toHaveBeenCalledWith(expectedUser1.username);
 		});
 	});
