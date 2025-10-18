@@ -30,11 +30,15 @@ import { UserMiddleware } from "./middleware/user.middleware";
 		VoteModule,
 		PublicationModule,
 		CosmeticModule,
-		JwtModule.register({
-			global: true,
-			secret: process.env.JWT_SECRET!,
-			signOptions: { expiresIn: "2h" },
-		}),
+		JwtModule.registerAsync({
+            global: true,
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get<string>("JWT_SECRET"),
+                signOptions: { expiresIn: "2h" },
+            }),
+            inject: [ConfigService],
+        }),
 	],
 	controllers: [],
 	providers: [],

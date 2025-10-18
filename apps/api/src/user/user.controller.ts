@@ -48,7 +48,8 @@ export class UserController {
 
 	/**
 	 * Récupère tous les utilisateurs.
-	 * @returns La liste des utilisateurs
+	 * @returns La liste des DTOs de tous les utilisateur.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission d'accéder à cette ressource.
 	 */
 	@UseGuards(AuthGuard, AdminGuard)
 	@Get("")
@@ -57,8 +58,28 @@ export class UserController {
 		return users.map((user) => new UserDto(user));
 	}
 
+		/**
+	 * Récupère la récompense quotidienne pour un utilisateur.
+	 * @param request la requête HTTP contenant l'utilisateur authentifié
+	 * @returns un objet contenant la récompense quotidienne
+	 * @throws {BadRequestException} si le nom d'utilisateur est invalide ou si la récupération de la récompense échoue.
+	 */
+	@UseGuards(AuthGuard)
+	@Get("/daily-reward")
+	async getDailyReward(@Req() request) {
+		try {
+			const reward = await this.userService.claimDailyReward(request.user.username);
+			return { reward: reward };
+		} catch (error) {
+			throw new BadRequestException({
+				message: error.message || "Échec de la récupération de la récompense quotidienne",
+			});
+		}
+	}
+
 	/**
 	 * Récupère un utilisateur par son nom d'utilisateur.
+	 * @param request L'objet de requête HTTP contenant les informations de l'utilisateur authentifié.
 	 * @param username Le nom d'utilisateur de l'utilisateur à récupérer.
 	 * @returns Les données de l'utilisateur
 	 * @throws {BadRequestException} si le nom d'utilisateur est manquant.
@@ -83,9 +104,9 @@ export class UserController {
 
 	/**
 	 * Crée un nouvel utilisateur.
-	 * @param createUserDto - Les données de l'utilisateur à créer.
-	 * @returns Les données de l'utilisateur
-	 * @throws {BadRequestException} si les données de l'utilisateur sont invalides ou si la création échoue.
+	 * @param createUserDto Les données du nouvel utilisateur à créer.
+	 * @returns Les données de l'utilisateur créé.
+	 * @throws {BadRequestException} si les données de l'utilisateur sont invalides.
 	 */
 	@Post("")
 	@HttpCode(201)
@@ -102,9 +123,9 @@ export class UserController {
 	 * Met à jour un utilisateur par son nom d'utilisateur.
 	 * @param request L'objet de requête HTTP contenant les informations de l'utilisateur authentifié.
 	 * @param username Le nom d'utilisateur de l'utilisateur à mettre à jour.
-	 * @param updateUserDto Les nouvelles données de l'utilisateur.
-	 * @returns Les données de l'utilisateur mis à jour.
-	 * @throws {BadRequestException} si le nom d'utilisateur ou les données de l'utilisateur sont invalides.
+	 * @param updateUserDto Les données mises à jour de l'utilisateur.
+	 * @throws {BadRequestException} si le nom d'utilisateur ou les données mises à jour sont invalides.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de modifier cet utilisateur.
 	 */
 	@UseGuards(AuthGuard)
 	@Put("/{:username}")
@@ -133,13 +154,13 @@ export class UserController {
 			} else {
 				newUpdateUserDto = updateUserDto;
 			}
-await this.userService.createOrUpdateByUsername(username, newUpdateUserDto);
-return { statusCode: 300 };
-			// if (await this.userService.createOrUpdateByUsername(username, newUpdateUserDto)) {
-			// 	return { statusCode: 201 };
-			// } else {
-			// 	return { statusCode: 200 };
-			// }
+			await this.userService.createOrUpdateByUsername(username, newUpdateUserDto);
+
+			if (await this.userService.createOrUpdateByUsername(username, newUpdateUserDto)) {
+				return { statusCode: 201 };
+			} else {
+				return { statusCode: 200 };
+			}
 		} catch (error) {
 			throw new BadRequestException({ message: error.message });
 		}
@@ -147,10 +168,11 @@ return { statusCode: 300 };
 
 	/**
 	 * Supprime un utilisateur par son nom d'utilisateur.
+	 * @param request L'objet de requête HTTP contenant les informations de l'utilisateur authentifié.
 	 * @param username Le nom d'utilisateur de l'utilisateur à supprimer.
-	 * @returns Les données de l'utilisateur supprimé.
 	 * @throws {BadRequestException} si le nom d'utilisateur est invalide.
 	 * @throws {NotFoundException} si l'utilisateur n'existe pas.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de supprimer cet utilisateur.
 	 */
 	@UseGuards(AuthGuard)
 	@Delete("/{:username}")
@@ -188,30 +210,6 @@ return { statusCode: 300 };
 			return { token: token };
 		} catch (error) {
 			throw new UnauthorizedException({ message: error.message || "Échec de l'authentification" });
-		}
-	}
-
-	/**
-	 * Récupère la récompense quotidienne pour un utilisateur donné.
-	 * @param username Le nom d'utilisateur de l'utilisateur.
-	 * @returns Un objet contenant la récompense quotidienne.
-	 * @throws {BadRequestException} si le nom d'utilisateur est invalide ou si la récupération de la récompense échoue.
-	 */
-	@UseGuards(AuthGuard)
-	@Get("/{:username}/daily-reward")
-	async getDailyReward(@Req() request, @Param("username") username: string) {
-		if (!username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
-		if (request.user.username !== username) {
-			throw new ForbiddenException();
-		}
-
-		try {
-			const reward = await this.userService.claimDailyReward(username);
-			return { reward: reward };
-		} catch (error) {
-			throw new BadRequestException({
-				message: error.message || "Échec de la récupération de la récompense quotidienne",
-			});
 		}
 	}
 

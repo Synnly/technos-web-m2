@@ -362,27 +362,18 @@ describe("UserController", () => {
 	describe("getDailyReward", () => {
 		it("should return the daily reward when valid username is provided", async () => {
 			mockUserService.claimDailyReward.mockResolvedValue(10);
-			await userController.getDailyReward(mockRequest, expectedUser1.username);
+			await userController.getDailyReward(mockRequest);
 			expect(userService.claimDailyReward).toHaveBeenCalledWith(expectedUser1.username);
-		});
-
-		it("should throw BadRequestException when no username is provided", async () => {
-			await expect(userController.getDailyReward(mockRequest, "")).rejects.toThrow(BadRequestException);
 		});
 
 		it("should throw BadRequestException when daily reward already claimed today", async () => {
 			mockUserService.claimDailyReward.mockRejectedValue(
 				new Error("Récompense quotidienne déjà réclamée aujourd'hui."),
 			);
-			await expect(userController.getDailyReward(mockRequest, expectedUser1.username)).rejects.toThrow(
+			await expect(userController.getDailyReward(mockRequest)).rejects.toThrow(
 				BadRequestException,
 			);
 			expect(userService.claimDailyReward).toHaveBeenCalledWith(expectedUser1.username);
-		});
-
-		it("should throw ForbiddenException when user tries to get another user's daily reward", async () => {
-			await expect(userController.getDailyReward(mockRequest, "testuser2")).rejects.toThrow(ForbiddenException);
-			expect(userService.claimDailyReward).not.toHaveBeenCalled();
 		});
 	});
 

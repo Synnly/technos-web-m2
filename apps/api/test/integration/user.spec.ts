@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpStatus, INestApplication, ValidationPipe } from "@nestjs/common";
+import { HttpStatus, INestApplication, Logger, ValidationPipe } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { JwtModule } from "@nestjs/jwt";
+import { JwtModule, JwtService } from "@nestjs/jwt";
 import request from "supertest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { UserModule } from "../../src/user/user.module";
@@ -16,6 +16,7 @@ import { UpdateUserDto } from "../../src/user/dto/updateuser.dto";
 import { Cosmetic, CosmeticType } from "../../src/cosmetic/cosmetic.schema";
 import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
 import { log } from "console";
+import { AppModule } from "../../src/app.module";
 
 describe("User Integration Tests", () => {
 	let app: INestApplication;
@@ -27,22 +28,28 @@ describe("User Integration Tests", () => {
 	let userToken: string;
 
 	// Données de test
-	const testUser = {
+	const testUserData = {
 		username: "testuser",
 		motDePasse: "TestPass123!",
+		points: 10000,
 	};
 
-	const testAdmin = {
+	const testAdminData = {
 		username: "admin",
 		motDePasse: "AdminPass123!",
+		points: 10000,
 		role: Role.ADMIN,
 	};
 
-	const cosmetic1 = {
+	const cosmeticData1 = {
 		name: "Cosmetic 1",
 		cost: 100,
 		type: CosmeticType.BADGE,
 	};
+
+	let testUser;
+	let testAdmin;
+	let testCosmetic;
 
 	beforeAll(async () => {
 		// Configuration MongoDB en mémoire
@@ -61,20 +68,8 @@ describe("User Integration Tests", () => {
 						}),
 					],
 				}),
-				JwtModule.registerAsync({
-					global: true,
-					useFactory: (configService: ConfigService) => ({
-						secret: configService.get<string>("JWT_SECRET"),
-						signOptions: { expiresIn: "1h" },
-					}),
-					inject: [ConfigService],
-				}),
 				MongooseModule.forRoot(mongoUri),
-				CosmeticModule,
-				PublicationModule,
-				VoteModule,
-				PredictionModule,
-				UserModule,
+				AppModule
 			],
 		}).compile();
 
@@ -94,26 +89,34 @@ describe("User Integration Tests", () => {
 
 		userService = moduleRef.get<UserService>(UserService);
 		cosmeticService = moduleRef.get<CosmeticService>(CosmeticService);
+	});
 
-		// Création des utilisateurs de test
-		await userService.createUser(testUser);
-		await userService.createUser(testAdmin);
-		await userService.setAdmin(testAdmin.username);
+	beforeEach(async () => {
+		await userService.createUser(testUserData);
+		await userService.createOrUpdateByUsername(testUserData.username, testUserData);
+		testUser = await userService.getByUsername(testUserData.username);
+		await userService.createUser(testAdminData);
+		testAdmin = await userService.getByUsername(testAdminData.username);
+		await userService.setAdmin(testAdminData.username);
+		await cosmeticService.create(cosmeticData1 as Cosmetic);
+		testCosmetic = (await cosmeticService.findAll())[0];
 
 		// Génération des tokens
 		const userLoginResponse = await request(app.getHttpServer())
 			.post("/api/user/login")
-			.send({ username: testUser.username, password: testUser.motDePasse });
-
+			.send({ username: testUserData.username, password: testUserData.motDePasse });
 		userToken = userLoginResponse.body.token.token;
 
 		const adminLoginResponse = await request(app.getHttpServer())
 			.post("/api/user/login")
-			.send({ username: testAdmin.username, password: testAdmin.motDePasse });
+			.send({ username: testAdminData.username, password: testAdminData.motDePasse });
 		adminToken = adminLoginResponse.body.token.token;
+	});
 
-		// Création d'un cosmétique de test
-		await cosmeticService.create(cosmetic1 as Cosmetic);
+	afterEach(async () => {
+		await userService.deleteById(testUser?.id);
+		await userService.deleteById(testAdmin?.id);
+		await cosmeticService.deleteById(testCosmetic?.id);
 	});
 
 	afterAll(async () => {
@@ -156,7 +159,7 @@ describe("User Integration Tests", () => {
 
 		it("should return 400 when user already exists", async () => {
 			const duplicateUser = {
-				username: testUser.username,
+				username: testUserData.username,
 				motDePasse: "ValidPass123!",
 			};
 
@@ -168,7 +171,8 @@ describe("User Integration Tests", () => {
 		it("should return all users for admin", async () => {
 			const response = await request(app.getHttpServer())
 				.get("/api/user")
-				.set("Authorization", `Bearer ${adminToken}`);
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
 
 			expect(Array.isArray(response.body)).toBe(true);
 			expect(response.body.length).toBe(2);
@@ -189,28 +193,28 @@ describe("User Integration Tests", () => {
 	describe("GET /api/user/:username", () => {
 		it("should return user data for own profile", async () => {
 			const response = await request(app.getHttpServer())
-				.get(`/api/user/${testUser.username}`)
+				.get(`/api/user/${testUserData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 
-			expect(response.body.username).toBe(testUser.username);
+			expect(response.body.username).toBe(testUserData.username);
 			expect(response.body.motDePasse).toBeUndefined();
 		});
 
 		it("should return 403 when accessing other user profile as regular user", async () => {
 			await request(app.getHttpServer())
-				.get(`/api/user/${testAdmin.username}`)
+				.get(`/api/user/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.FORBIDDEN);
 		});
 
 		it("should allow admin to access any user profile", async () => {
 			const response = await request(app.getHttpServer())
-				.get(`/api/user/${testUser.username}`)
+				.get(`/api/user/${testUserData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 
-			expect(response.body.username).toBe(testUser.username);
+			expect(response.body.username).toBe(testUserData.username);
 		});
 
 		it("should return 404 for non-existent user", async () => {
@@ -224,12 +228,12 @@ describe("User Integration Tests", () => {
 	describe("PUT /api/user/:username", () => {
 		it("should update user password for own profile", async () => {
 			const updateData = {
-				username: testUser.username,
+				username: testUserData.username,
 				motDePasse: "NewPassword123!",
 			};
 
 			await request(app.getHttpServer())
-				.put(`/api/user/${testUser.username}`)
+				.put(`/api/user/${testUserData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.send(updateData)
 				.expect(HttpStatus.OK);
@@ -237,19 +241,10 @@ describe("User Integration Tests", () => {
 			// Vérifier que le mot de passe a été mis à jour
 			const loginResponse = await request(app.getHttpServer())
 				.post("/api/user/login")
-				.send({ username: testUser.username, password: "NewPassword123!" })
+				.send({ username: testUserData.username, password: "NewPassword123!" })
 				.expect(HttpStatus.CREATED);
 
 			expect(loginResponse.body.token).toBeDefined();
-
-			// Réinitialiser le mot de passe pour les autres tests
-			await userService.createOrUpdateByUsername(
-				testUser.username,
-				new UpdateUserDto({
-					username: testUser.username,
-					motDePasse: testUser.motDePasse,
-				}),
-			);
 		});
 
 		it("should create user if it doesn't exist", async () => {
@@ -263,12 +258,12 @@ describe("User Integration Tests", () => {
 
 		it("should return 400 with invalid password format", async () => {
 			const updateData = {
-				username: testUser.username,
+				username: testUserData.username,
 				motDePasse: "weak",
 			};
 
 			await request(app.getHttpServer())
-				.put(`/api/user/${testUser.username}`)
+				.put(`/api/user/${testUserData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.send(updateData)
 				.expect(HttpStatus.BAD_REQUEST);
@@ -276,12 +271,12 @@ describe("User Integration Tests", () => {
 
 		it("should return 403 when updating other user as regular user", async () => {
 			const updateData = {
-				username: testAdmin.username,
+				username: testAdminData.username,
 				motDePasse: "NewPassword123!",
 			};
 
 			await request(app.getHttpServer())
-				.put(`/api/user/${testAdmin.username}`)
+				.put(`/api/user/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.send(updateData)
 				.expect(HttpStatus.FORBIDDEN);
@@ -289,18 +284,18 @@ describe("User Integration Tests", () => {
 
 		it("should allow admin to update any user", async () => {
 			const updateData = {
-				username: testUser.username,
+				username: testUserData.username,
 				points: 1000,
 				role: Role.USER,
 			};
 
 			await request(app.getHttpServer())
-				.put(`/api/user/${testUser.username}`)
+				.put(`/api/user/${testUserData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)
 				.send(updateData)
 				.expect(HttpStatus.OK);
 
-			const updatedUser = await userService.getByUsername(testUser.username);
+			const updatedUser = await userService.getByUsername(testUserData.username);
 			expect(updatedUser!.points).toBe(1000);
 		});
 	});
@@ -331,7 +326,7 @@ describe("User Integration Tests", () => {
 
 		it("should return 403 when trying to delete other user as regular user", async () => {
 			await request(app.getHttpServer())
-				.delete(`/api/user/${testAdmin.username}`)
+				.delete(`/api/user/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.FORBIDDEN);
 		});
@@ -359,8 +354,8 @@ describe("User Integration Tests", () => {
 			const response = await request(app.getHttpServer())
 				.post("/api/user/login")
 				.send({
-					username: testUser.username,
-					password: testUser.motDePasse,
+					username: testUserData.username,
+					password: testUserData.motDePasse,
 				})
 				.expect(HttpStatus.CREATED);
 
@@ -372,7 +367,7 @@ describe("User Integration Tests", () => {
 			await request(app.getHttpServer())
 				.post("/api/user/login")
 				.send({
-					username: testUser.username,
+					username: testUserData.username,
 					password: "wrongpassword",
 				})
 				.expect(HttpStatus.UNAUTHORIZED);
@@ -382,7 +377,7 @@ describe("User Integration Tests", () => {
 			await request(app.getHttpServer())
 				.post("/api/user/login")
 				.send({
-					username: testUser.username,
+					username: testUserData.username,
 				})
 				.expect(HttpStatus.BAD_REQUEST);
 		});
@@ -391,66 +386,37 @@ describe("User Integration Tests", () => {
 			await request(app.getHttpServer())
 				.post("/api/user/login")
 				.send({
-					password: testUser.motDePasse,
+					password: testUserData.motDePasse,
 				})
 				.expect(HttpStatus.BAD_REQUEST);
 		});
 	});
 
-	describe("GET /api/user/:username/daily-reward", () => {
+	describe("GET /api/user/daily-reward", () => {
 		it("should claim daily reward successfully", async () => {
-			const userBefore = await userService.getByUsername(testUser.username);
+			const userBefore = await userService.getByUsername(testUserData.username);
 			const initialPoints = userBefore!.points;
 
 			const response = await request(app.getHttpServer())
-				.get(`/api/user/${testUser.username}/daily-reward`)
+				.get("/api/user/daily-reward")
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 
 			expect(response.body.reward).toBeDefined();
-			const updatedUser = await userService.getByUsername(testUser.username);
+			const updatedUser = await userService.getByUsername(testUserData.username);
 			expect(updatedUser!.points).toBe(initialPoints + response.body.reward);
-
-			// Réinitialiser la date de dernière récompense pour les autres tests
-			await userService.createOrUpdateByUsername(
-				testUser.username,
-				new UpdateUserDto({
-					username: testUser.username,
-					points: initialPoints,
-					dateDerniereRecompenseQuotidienne: null,
-				}),
-			);
-		});
-
-		it("should return 403 when claiming reward for other user", async () => {
-			await request(app.getHttpServer())
-				.get(`/api/user/${testAdmin.username}/daily-reward`)
-				.set("Authorization", `Bearer ${userToken}`)
-				.expect(HttpStatus.FORBIDDEN);
 		});
 
 		it("should return 400 when claiming reward twice in the same day", async () => {
-			const userBefore = await userService.getByUsername(testUser.username);
-			const initialPoints = userBefore!.points;
-
-			const result = await request(app.getHttpServer())
-				.get(`/api/user/${testUser.username}/daily-reward`)
+			await request(app.getHttpServer())
+				.get(`/api/user/daily-reward`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 
 			await request(app.getHttpServer())
-				.get(`/api/user/${testUser.username}/daily-reward`)
+				.get(`/api/user/daily-reward`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.BAD_REQUEST);
-
-			await userService.createOrUpdateByUsername(
-				testUser.username,
-				new UpdateUserDto({
-					username: testUser.username,
-					dateDerniereRecompenseQuotidienne: null,
-					points: initialPoints,
-				}),
-			);
 		});
 	});
 
@@ -459,31 +425,21 @@ describe("User Integration Tests", () => {
 			const cosmeticId = await cosmeticService.findAll().then((cosmetics) => cosmetics[0]._id);
 			const cosmeticIdStr = cosmeticId.toString();
 			await request(app.getHttpServer())
-				.post(`/api/user/${testUser.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.post(`/api/user/${testUserData.username}/buy/cosmetic/${cosmeticIdStr}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.CREATED);
 
-			const updatedUser = await userService.getByUsername(testUser.username);
+			const updatedUser = await userService.getByUsername(testUserData.username);
 			expect(updatedUser).toBeDefined();
 
 			expect(updatedUser!.cosmeticsOwned.map((cosmetic) => cosmetic.toString())).toContain(cosmeticId.toString());
-
-			// Réinitialiser les données de l'utilisateur pour les autres tests
-			await userService.createOrUpdateByUsername(
-				testUser.username,
-				new UpdateUserDto({
-					username: testUser.username,
-					points: updatedUser!.points + cosmetic1.cost,
-					cosmeticsOwned: [],
-				}),
-			);
 		});
 
 		it("should return 403 when buying cosmetic for other user", async () => {
 			const cosmeticId = await cosmeticService.findAll().then((cosmetics) => cosmetics[0]._id.toString());
 			const cosmeticIdStr = cosmeticId.toString();
 			await request(app.getHttpServer())
-				.post(`/api/user/${testAdmin.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.post(`/api/user/${testAdminData.username}/buy/cosmetic/${cosmeticIdStr}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.FORBIDDEN);
 		});
@@ -492,18 +448,18 @@ describe("User Integration Tests", () => {
 			const cosmeticId = await cosmeticService.findAll().then((cosmetics) => cosmetics[0]._id.toString());
 			const cosmeticIdStr = cosmeticId.toString();
 			// Acheter le cosmétique une première fois
-			await request(app.getHttpServer())
-				.post(`/api/user/${testUser.username}/buy/cosmetic/${cosmeticIdStr}`)
+			const response = await request(app.getHttpServer())
+				.post(`/api/user/${testUserData.username}/buy/cosmetic/${cosmeticIdStr}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.CREATED);
 
-			const updatedUser = await userService.getByUsername(testUser.username);
+			const updatedUser = await userService.getByUsername(testUserData.username);
 			expect(updatedUser).toBeDefined();
 			expect(updatedUser!.cosmeticsOwned.map((cosmetic) => cosmetic.toString())).toContain(cosmeticId);
 
 			// Tenter de l'acheter à nouveau
 			await request(app.getHttpServer())
-				.post(`/api/user/${testUser.username}/buy/cosmetic/${cosmeticIdStr}`)
+				.post(`/api/user/${testUserData.username}/buy/cosmetic/${cosmeticIdStr}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.BAD_REQUEST);
 		});

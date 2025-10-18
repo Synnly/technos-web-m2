@@ -9,7 +9,7 @@ import {
 	IsStrongPassword,
 	Min,
 } from "class-validator";
-import { IsStringOrNull } from "../../../src/validators/isStringOrNull.validator";
+import { IsStringOrNull } from "../../validators/isStringOrNull.validator";
 
 /**
  * DTO pour la mise à jour des informations d'un utilisateur.

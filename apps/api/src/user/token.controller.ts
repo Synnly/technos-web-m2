@@ -1,11 +1,4 @@
-import {
-	Body,
-	Controller,
-	HttpStatus,
-	Post,
-	Res,
-    UnauthorizedException,
-} from "@nestjs/common";
+import { Body, Controller, HttpStatus, Post, Res, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 
 /**
@@ -29,10 +22,7 @@ export class TokenController {
 	 * (Unauthorized) avec un message d'erreur.
 	 */
 	@Post("/check")
-	async checkToken(
-		@Res() response,
-		@Body("token") token: string,
-	): Promise<any> {
+	async checkToken(@Res() response, @Body("token") token: string): Promise<any> {
 		try {
 			const decoded = this.jwtService.verify(token);
 			return response.status(HttpStatus.OK).json(decoded);
