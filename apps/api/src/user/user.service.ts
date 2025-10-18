@@ -18,8 +18,10 @@ import { VoteService } from "../vote/vote.service";
  */
 export class UserService {
 	/**
-	 * Crée une instance de UserService.
-	 * @param userModel - Le modèle utilisateur injecté pour interagir avec la base de données.
+	 * Construit le UserService.
+	 * @param userModel Le modèle Mongoose pour les utilisateurs.
+	 * @param predictionService Le service de prédiction injecté.
+	 * @param voteService Le service de vote injecté.
 	 */
 	constructor(
 		@InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -28,7 +30,7 @@ export class UserService {
 	) {}
 
 	/**
-	 * Récupère tous les utilisateurs du système.
+	 * Récupère tous les utilisateurs de la base de données.
 	 * @returns Une promesse qui résout un tableau d'objets utilisateur.
 	 */
 	async getAll(): Promise<User[]> {
@@ -36,9 +38,9 @@ export class UserService {
 	}
 
 	/**
-	 * Récupère un utilisateur unique basé sur le nom d'utilisateur fourni.
-	 * @param username Le nom d'utilisateur (nom d'utilisateur ou identifiant) de l'utilisateur à récupérer.
-	 * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, ou `undefined` si aucun utilisateur ne correspond au username donné.
+	 * Récupère un utilisateur par son nom d'utilisateur.
+	 * @param username Le nom d'utilisateur de l'utilisateur à récupérer.
+	 * @returns Une promesse qui résout l'objet utilisateur s'il est trouvé, sinon undefined.
 	 */
 	async getByUsername(username: any): Promise<User | undefined> {
 		return (await this.userModel.findOne({ username }).exec()) ?? undefined;
@@ -46,7 +48,7 @@ export class UserService {
 
 	/**
 	 * Crée un nouvel utilisateur dans la base de données.
-	 * @param createUserDto Les données nécessaires pour créer un nouvel utilisateur.
+	 * @param createUserDto L'objet utilisateur contenant les informations de création.
 	 * @throws Error si le nom d'utilisateur est déjà utilisé.
 	 */
 	async createUser(createUserDto: CreateUserDto) {
@@ -80,12 +82,12 @@ export class UserService {
 	}
 
 	/**
-	 * Génère un token JWT pour un utilisateur donné si les informations d'identification sont valides.
+	 * Génère un token JWT pour un utilisateur donné.
 	 * @param username Le nom d'utilisateur de l'utilisateur.
 	 * @param password Le mot de passe de l'utilisateur.
-	 * @param jwt Le service JWT utilisé pour signer le token.
-	 * @returns Une promesse qui résout un objet contenant le token JWT si les informations d'identification sont valides.
-	 * @throws Error si l'utilisateur n'est pas trouvable ou si les informations d'identification sont incorrectes.
+	 * @param jwt Le service JWT pour la génération du token.
+	 * @returns Une promesse qui résout un objet contenant le token JWT.
+	 * @throws Error si l'utilisateur n'est pas trouvable ou si les identifiants sont incorrects.
 	 */
 	async getJwtToken(username: string, password: string, jwt: JwtService): Promise<any> {
 		const foundUser = await this.userModel.findOne({ username: username }).exec();
@@ -105,10 +107,10 @@ export class UserService {
 	}
 
 	/**
-	 * Met à jour un utilisateur existant basé sur le nom d'utilisateur fourni, ou crée un nouvel utilisateur si aucun n'existe.
-	 * @param username Le nom d'utilisateur de l'utilisateur à mettre à jour ou à créer.
-	 * @param updateUserDto L'objet utilisateur contenant les informations à mettre à jour ou à utiliser pour la création.
-	 * @return Une promesse qui résout un booléen indiquant si un nouvel utilisateur a été créé (true) ou si un utilisateur existant a été mis à jour (false).
+	 * Crée ou met à jour un utilisateur basé sur le nom d'utilisateur fourni.
+	 * @param username Le nom d'utilisateur de l'utilisateur à créer ou mettre à jour.
+	 * @param updateUserDto L'objet contenant les informations de mise à jour.
+	 * @returns Une promesse qui résout un booléen indiquant si un nouvel utilisateur a été créé (true) ou mis à jour (false).
 	 */
 	async createOrUpdateByUsername(username: string, updateUserDto: UpdateUserDto): Promise<boolean> {
 		const existingUser = await this.userModel.findOne({ username }).exec();
@@ -167,9 +169,9 @@ export class UserService {
 	}
 
 	/**
-	 * Supprime un utilisateur de la base de données à partir de son identifiant.
-	 * @param id L'identifiant de l'utilisateur à supprimer.
-	 * @returns Une promesse qui résout l'utilisateur supprimé si trouvé, ou lève une exception si aucun utilisateur n'est trouvé avec cet identifiant.
+	 * Supprime un utilisateur de la base de données à partir de son ID.
+	 * @param id L'ID de l'utilisateur à supprimer.
+	 * @returns Une promesse qui résout l'utilisateur supprimé si trouvé, ou lève une exception si aucun utilisateur n'est trouvé avec cet ID.
 	 * @throws Error si l'utilisateur n'est pas trouvable.
 	 */
 	async deleteById(id: string): Promise<User> {
@@ -199,9 +201,9 @@ export class UserService {
 	}
 
 	/**
-	 * Permet à un utilisateur de réclamer une récompense quotidienne.
+	 * Permet à un utilisateur de réclamer sa récompense quotidienne.
 	 * @param username Le nom d'utilisateur de l'utilisateur réclamant la récompense.
-	 * @returns Une promesse qui résout le nombre de points ajoutés à l'utilisateur.
+	 * @returns Le nombre de points ajoutés à l'utilisateur.
 	 * @throws Error si l'utilisateur n'est pas trouvable ou si la récompense a déjà été réclamée aujourd'hui.
 	 */
 	async claimDailyReward(username: string): Promise<number> {
@@ -230,9 +232,9 @@ export class UserService {
 
 	/**
 	 * Permet à un utilisateur d'acheter un cosmétique.
-	 * @param user l'utilisateur achetant le cosmétique
-	 * @param cosmetic le cosmétique à acheter
-	 * @returns l'utilisateur mis à jour après l'achat
+	 * @param username Le nom d'utilisateur de l'utilisateur achetant le cosmétique.
+	 * @param cosmetic Le cosmétique à acheter.
+	 * @throws Error si l'utilisateur n'est pas trouvable, s'il possède déjà le cosmétique, ou s'il n'a pas assez de points.
 	 */
 	async buyCosmetic(username: String, cosmetic: Cosmetic) {
 		const user = await this.userModel.findOne({ username }).exec();
