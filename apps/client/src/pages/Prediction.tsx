@@ -155,7 +155,7 @@ function Prediction() {
 	}, [predictionId]);
 
 	return (
-		<div className="bg-gray-900 mx-auto px-6 py-8 w-full min-h-screen flex flex-col select-none">
+		<div className="bg-gray-900 mx-auto px-6 py-8 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -174,22 +174,22 @@ function Prediction() {
 						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
 				}
 			>
-				<p className="text-3xl font-bold mb-2 text-white">{prediction?.title}</p>
-				<div className="text-gray-400 mb-2 flex gap-2">
-					<CalendarClock strokeWidth={1.5} />
+				<p className="text-xl md:text-3xl font-bold mb-2 text-white">{prediction?.title}</p>
+				<div className="text-sm md:text-base text-gray-400 mb-2 flex gap-2">
+					<CalendarClock strokeWidth={1.5} className="w-5 h-5 md:w-6"/>
 					{prediction?.dateFin?.toLocaleDateString()}
 				</div>
-				<div className="text-gray-400 mb-2">
+				<div className="text-sm md:text-base text-gray-400 mb-2">
 					Lorem ipsum dolor sit amet consectetur adipisicing elit. Repudiandae consequatur amet dolor corrupti
 					pariatur eos, ipsa reprehenderit perspiciatis neque minus blanditiis cum porro commodi consectetur
 					ab quae, dolorum natus illum.
 				</div>
-				<div className="h-100 border border-gray-700 rounded-lg p-8">
+				<div className="h-50 md:h-100 border border-gray-700 rounded-lg p-4 md:p-8">
 					<div className="h-full">
 						<PredictionTimeline predictionId={predictionId} />
 					</div>
 				</div>
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-10 mt-5">
+				<div className="mt-5">
 					<AmountButtonRow
 						currentAmount={currentAmount}
 						customAmount={customAmount}

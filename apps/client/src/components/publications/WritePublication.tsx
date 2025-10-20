@@ -10,7 +10,13 @@ interface WritePublicationProps {
 	addPublication: (message: Publication) => void;
 }
 
-const WritePublication: React.FC<WritePublicationProps> = ({ predictionId, username, placeholder, parentPublication, addPublication }) => {
+const WritePublication: React.FC<WritePublicationProps> = ({
+	predictionId,
+	username,
+	placeholder,
+	parentPublication,
+	addPublication,
+}) => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleInput = () => {
@@ -23,14 +29,14 @@ const WritePublication: React.FC<WritePublicationProps> = ({ predictionId, usern
 	const sendPublication = () => {
 		if (textareaRef.current) {
 			const publication = {
-				_id: Math.random()*1000 % 10 + "",
+				_id: ((Math.random() * 1000) % 10) + "",
 				message: textareaRef.current.value,
 				datePublication: new Date(),
 				prediction_id: predictionId,
 				parentPublication_id: parentPublication ? parentPublication._id : undefined,
 				user_id: username,
 				likes: [],
-			}
+			};
 			addPublication(publication);
 			textareaRef.current.value = "";
 			handleInput();
@@ -53,11 +59,13 @@ const WritePublication: React.FC<WritePublicationProps> = ({ predictionId, usern
 				/>
 
 				<button
-					className="text-white bg-gray-800 border border-gray-700 rounded-md w-fit p-2 cursor-pointer 
+					className="text-white bg-gray-800 border border-gray-700 self-center rounded-md w-fit p-1 md:p-2 cursor-pointer 
                 	transition-all duration-300 hover:scale-110 active:scale-95 hover:shadow-xl background-gray-700 h-fit"
-					onClick={() => {sendPublication()}}
+					onClick={() => {
+						sendPublication();
+					}}
 				>
-					<Send strokeWidth={1.5} />
+					<Send strokeWidth={1.5} className="w-5 h-5 md:w-6 md:h-6" />
 				</button>
 			</div>
 		</div>

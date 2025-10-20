@@ -47,7 +47,7 @@ const AmountButtonRow: React.FC<AmountButtonRowProps> = ({
 	};
 
 	return (
-		<>
+		<div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-2">
 			{Object.values(amounts).map((amount) => (
 				<AmountButton
 					key={amount}
@@ -63,7 +63,7 @@ const AmountButtonRow: React.FC<AmountButtonRowProps> = ({
 				customAmountSelected={customAmountSelected}
 				onCustomAmountClick={onCustomAmountClick}
 			/>
-		</>
+		</div>
 	);
 };
 

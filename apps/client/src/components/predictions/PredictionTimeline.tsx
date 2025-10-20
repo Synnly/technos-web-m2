@@ -93,7 +93,7 @@ export const PredictionTimeline: FC<Props> = ({ predictionId }) => {
 				type: "category",
 				data: timelineData.map((item) => {
 					const date = new Date(item.date);
-					return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+					return `${date.getDate()}/${date.getMonth() + 1}`;
 				}),
 			},
 			yAxis: {

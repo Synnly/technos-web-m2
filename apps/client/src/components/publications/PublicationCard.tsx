@@ -33,16 +33,17 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 
 	return (
 		<div>
-			<div className="bg-gray-800/50 text-white border border-gray-700 rounded-lg p-4 shadow-md">
+			<div className="text-sm md:text-base bg-gray-800/50 text-white border border-gray-700 rounded-lg p-4 shadow-md">
 				<p className="font-bold">{publication.user_id}</p>
-				<h3 className="">{publication.message}</h3>
-				<div className="flex gap-4">
-					<p className="text-gray-400">{publication.datePublication.toLocaleString()}</p>
+				<h3>{publication.message}</h3>
+				<div className="flex gap-4 mt-1">
+					<p className="text-gray-400">{publication.datePublication.toLocaleDateString()}</p>
 					<div className="flex gap-1 cursor-pointer">
 						<Heart
 							strokeWidth={1.25}
-							className={`transition-all duration-300 ease-in-out hover:fill-red-500
-                            hover:scale-110 active:scale-95 ${publication.likes.includes(username) ? "fill-red-500" : "transparent"}`}
+							className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ease-in-out hover:fill-red-500
+                            hover:scale-110 active:scale-95 fill-${publication.likes.includes(username) ? "red-500" : "transparent"} 
+							`}
 							onClick={() => toggleLike(publication._id)}
 						/>
 						<div>{publication.likes.length}</div>
@@ -50,7 +51,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 					<div className="flex gap-1 cursor-pointer">
 						<MessageSquare
 							strokeWidth={1.25}
-							className="transition-all duration-300 ease-in-out fill-transparent hover:fill-blue-500
+							className="w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ease-in-out fill-transparent hover:fill-blue-500
                             hover:scale-110 active:scale-95"
 							onClick={() => setShowChildren(!showChildren)}
 						/>
@@ -59,14 +60,14 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 					<div>
 						<MessageSquarePlus
 							strokeWidth={1.25}
-							className="transition-all duration-300 ease-in-out fill-transparent hover:fill-green-500
+							className="w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ease-in-out fill-transparent hover:fill-green-500
                             hover:scale-110 active:scale-95"
 							onClick={() => setShowPublicationBox(!showPublicationBox)}
 						/>
 					</div>
 				</div>
 			</div>
-			<div className="mx-20 mt-2">
+			<div className="ml-10 md:mx-20 mt-2">
 				{showPublicationBox && (
 					<WritePublication
 						predictionId={predictionId}
@@ -78,7 +79,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 				)}
 			</div>
 			{childPublications.length > 0 && showChildren && (
-				<div className="ml-20 mt-2" ref={publicationDivRef}>
+				<div className="ml-7 sm:ml-10 lg:ml-20 mt-2" ref={publicationDivRef}>
 					{childPublications.map((child) => (
 						<PublicationCard
                             key={child._id}
