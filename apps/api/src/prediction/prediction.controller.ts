@@ -15,8 +15,8 @@ import {
 } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
-import { CreatePredictionDto } from "./dto/create-prediction.dto";
-import { UpdatePredictionDto } from "./dto/update-prediction.dto";
+import { CreatePredictionDto } from "./dto/createprediction.dto";
+import { UpdatePredictionDto } from "./dto/updateprediction.dto";
 import { PredictionDto } from "./dto/prediction.dto";
 import { ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";

@@ -1,5 +1,5 @@
 import { validate } from "class-validator";
-import { CreatePredictionDto } from "../../../src/prediction/dto/create-prediction.dto";
+import { CreatePredictionDto } from "../../../src/prediction/dto/createprediction.dto";
 
 describe("CreatePredictionDto", () => {
 	let dto: CreatePredictionDto;
