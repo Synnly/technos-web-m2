@@ -20,6 +20,7 @@ import { UpdatePredictionDto } from "./dto/update-prediction.dto";
 import { PredictionDto } from "./dto/prediction.dto";
 import { ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
+import { AdminGuard } from "../guards/admin.guard";
 
 /**
  * Contrôleur pour gérer les prédictions.
@@ -202,6 +203,7 @@ export class PredictionController {
 	 * @throws {BadRequestException} Si l'id ou l'option gagnante est manquant, ou si une erreur se produit lors de la validation.
 	 */
 	@Put("/:id/validate")
+	@UseGuards(AdminGuard)
 	async validatePrediction(
 		@Param("id") id: string,
 		@Body() body: { winningOption: string },

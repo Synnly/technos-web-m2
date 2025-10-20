@@ -19,7 +19,7 @@ describe("Prediction Integration Tests", () => {
 	let userService: UserService;
 	let predictionService: PredictionService;
 	let cosmeticService: CosmeticService;
-    let jwtService: JwtService;
+	let jwtService: JwtService;
 
 	const testUserData = {
 		username: "ptestuser",
@@ -53,7 +53,7 @@ describe("Prediction Integration Tests", () => {
 		userService = moduleRef.get<UserService>(UserService);
 		predictionService = moduleRef.get<PredictionService>(PredictionService);
 		cosmeticService = moduleRef.get<CosmeticService>(CosmeticService);
-        jwtService = moduleRef.get<JwtService>(JwtService);
+		jwtService = moduleRef.get<JwtService>(JwtService);
 	});
 
 	let userToken: string;
@@ -71,12 +71,20 @@ describe("Prediction Integration Tests", () => {
 
 		// create tokens that include user _id so the AuthGuard populates req.user._id
 		const createdUser = await userService.getByUsername(testUserData.username);
-		if (!createdUser) throw new Error('Test setup: created user not found');
-		userToken = jwtService.sign({ username: (createdUser as any).username, role: (createdUser as any).role, _id: (createdUser as any)._id });
+		if (!createdUser) throw new Error("Test setup: created user not found");
+		userToken = jwtService.sign({
+			username: (createdUser as any).username,
+			role: (createdUser as any).role,
+			_id: (createdUser as any)._id,
+		});
 
 		const createdAdmin = await userService.getByUsername(testAdminData.username);
-		if (!createdAdmin) throw new Error('Test setup: created admin not found');
-		adminToken = jwtService.sign({ username: (createdAdmin as any).username, role: (createdAdmin as any).role, _id: (createdAdmin as any)._id });
+		if (!createdAdmin) throw new Error("Test setup: created admin not found");
+		adminToken = jwtService.sign({
+			username: (createdAdmin as any).username,
+			role: (createdAdmin as any).role,
+			_id: (createdAdmin as any)._id,
+		});
 	});
 
 	afterEach(async () => {
@@ -137,6 +145,24 @@ describe("Prediction Integration Tests", () => {
 			createdPrediction = all[0];
 		});
 
+		it("should create a prediction with valid data (admin)", async () => {
+			const payload = {
+				title: "Admin Test Prediction",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+
+			const createResValidate = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(createResValidate.status).toBe(HttpStatus.CREATED);
+
+			const all = await predictionService.getAll();
+			expect(all.length).toBeGreaterThanOrEqual(1);
+		});
+
 		it("should return 400 for invalid data (missing title)", async () => {
 			const payload = {
 				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
@@ -147,6 +173,20 @@ describe("Prediction Integration Tests", () => {
 			await request(app.getHttpServer())
 				.post("/api/prediction")
 				.set("Authorization", `Bearer ${userToken}`)
+				.send(payload)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
+
+		it("should return 400 for invalid data (missing title) (admin)", async () => {
+			const payload = {
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+
+			await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
 				.send(payload)
 				.expect(HttpStatus.BAD_REQUEST);
 		});
@@ -166,6 +206,21 @@ describe("Prediction Integration Tests", () => {
 			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 
+		it("should return 400 when options are fewer than 2 (admin)", async () => {
+			const payload = {
+				title: "Bad options",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0 },
+				status: "waiting",
+			};
+
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
 		it("should return 400 when dateFin is in the past", async () => {
 			const payload = {
 				title: "Past date",
@@ -177,6 +232,21 @@ describe("Prediction Integration Tests", () => {
 			const res = await request(app.getHttpServer())
 				.post("/api/prediction")
 				.set("Authorization", `Bearer ${userToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it("should return 400 when dateFin is in the past (admin)", async () => {
+			const payload = {
+				title: "Past date",
+				dateFin: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
 				.send(payload);
 			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
 		});
@@ -196,6 +266,21 @@ describe("Prediction Integration Tests", () => {
 			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
 		});
 
+		it("should return 400 when title is too short (admin)", async () => {
+			const payload = {
+				title: "ab",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
 		it("should return 400 when status is invalid", async () => {
 			const payload = {
 				title: "Invalid status",
@@ -207,6 +292,21 @@ describe("Prediction Integration Tests", () => {
 			const res = await request(app.getHttpServer())
 				.post("/api/prediction")
 				.set("Authorization", `Bearer ${userToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it("should return 400 when status is invalid (admin)", async () => {
+			const payload = {
+				title: "Invalid status",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "not-a-status",
+			};
+
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
 				.send(payload);
 			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
 		});
@@ -226,6 +326,22 @@ describe("Prediction Integration Tests", () => {
 				.send(payload);
 			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
 		});
+
+		it("should return 400 when trying to set result on create (admin)", async () => {
+			const payload = {
+				title: "Has result",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+				result: "A",
+			};
+
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.BAD_REQUEST);
+		});
 	});
 
 	describe("GET /api/prediction", () => {
@@ -233,6 +349,14 @@ describe("Prediction Integration Tests", () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction")
 				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.OK);
+			expect(Array.isArray(res.body)).toBe(true);
+		});
+
+		it("should list predictions (admin)", async () => {
+			const res = await request(app.getHttpServer())
+				.get("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
 		});
@@ -247,10 +371,26 @@ describe("Prediction Integration Tests", () => {
 			expect(Array.isArray(res.body)).toBe(true);
 		});
 
+		it("should list waiting predictions (admin)", async () => {
+			const res = await request(app.getHttpServer())
+				.get("/api/prediction/waiting")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
+			expect(Array.isArray(res.body)).toBe(true);
+		});
+
 		it("should list valid predictions", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/valid")
 				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.OK);
+			expect(Array.isArray(res.body)).toBe(true);
+		});
+
+		it("should list valid predictions (admin)", async () => {
+			const res = await request(app.getHttpServer())
+				.get("/api/prediction/valid")
+				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
 		});
@@ -262,11 +402,18 @@ describe("Prediction Integration Tests", () => {
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
 		});
+
+		it("should list expired predictions (array) (admin)", async () => {
+			const res = await request(app.getHttpServer())
+				.get("/api/prediction/expired")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
+			expect(Array.isArray(res.body)).toBe(true);
+		});
 	});
 
 	describe("GET /api/prediction/:id/timeline", () => {
 		it("should return 400 when intervalMinutes missing or invalid", async () => {
-			// create a prediction first
 			const payload = {
 				title: "TimelineTest",
 				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
@@ -284,6 +431,27 @@ describe("Prediction Integration Tests", () => {
 			await request(app.getHttpServer())
 				.get(`/api/prediction/${id}/timeline`)
 				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
+
+		it("should return 400 when intervalMinutes missing or invalid (admin)", async () => {
+			const payload = {
+				title: "TimelineTestAdmin",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+			const createRes = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(createRes.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			await request(app.getHttpServer())
+				.get(`/api/prediction/${id}/timeline`)
+				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.BAD_REQUEST);
 		});
 
@@ -310,6 +478,29 @@ describe("Prediction Integration Tests", () => {
 			expect(Array.isArray(r.body)).toBe(true);
 		});
 
+		it("should return a timeline with valid params (admin)", async () => {
+			const payload = {
+				title: "TimelineOKAdmin",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+			const createRes = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(createRes.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			const r = await request(app.getHttpServer())
+				.get(`/api/prediction/${id}/timeline`)
+				.query({ intervalMinutes: 1 })
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
+			expect(Array.isArray(r.body)).toBe(true);
+		});
+
 		it("should return 400 when intervalMinutes is non-positive", async () => {
 			const payload = {
 				title: "TimelineNeg",
@@ -332,6 +523,28 @@ describe("Prediction Integration Tests", () => {
 				.expect(HttpStatus.BAD_REQUEST);
 		});
 
+		it("should return 400 when intervalMinutes is non-positive (admin)", async () => {
+			const payload = {
+				title: "TimelineNegAdmin",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+			const createRes = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(createRes.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			await request(app.getHttpServer())
+				.get(`/api/prediction/${id}/timeline`)
+				.query({ intervalMinutes: 0 })
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
+
 		it("should accept votesAsPercentage and fromStart params and return array", async () => {
 			const payload = {
 				title: "TimelineFlags",
@@ -351,6 +564,29 @@ describe("Prediction Integration Tests", () => {
 				.get(`/api/prediction/${id}/timeline`)
 				.query({ intervalMinutes: 1, votesAsPercentage: true, fromStart: true })
 				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.OK);
+			expect(Array.isArray(r.body)).toBe(true);
+		});
+
+		it("should accept votesAsPercentage and fromStart params and return array (admin)", async () => {
+			const payload = {
+				title: "TimelineFlagsAdmin",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 0, B: 0 },
+				status: "waiting",
+			};
+			const createRes = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(createRes.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			const r = await request(app.getHttpServer())
+				.get(`/api/prediction/${id}/timeline`)
+				.query({ intervalMinutes: 1, votesAsPercentage: true, fromStart: true })
+				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(r.body)).toBe(true);
 		});
@@ -387,8 +623,16 @@ describe("Prediction Integration Tests", () => {
 			expect(res.body.title).toBe("For CRUD");
 		});
 
+		it("should get prediction by id (admin)", async () => {
+			const res = await request(app.getHttpServer())
+				.get(`/api/prediction/${predId}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
+			expect(res.body._id).toBeDefined();
+			expect(res.body.title).toBe("For CRUD");
+		});
+
 		it("should update prediction by owner", async () => {
-			// fetch existing to build a full update payload (controller expects several fields)
 			const existing = await predictionService.getById(predId);
 			const update = {
 				title: "Updated title",
@@ -405,12 +649,51 @@ describe("Prediction Integration Tests", () => {
 			expect(updated!.title).toBe("Updated title");
 		});
 
+		it("should update prediction by owner (admin)", async () => {
+			const existing = await predictionService.getById(predId);
+			const update = {
+				title: "Updated title admin",
+				dateFin: new Date(existing!.dateFin).toISOString(),
+				options: existing!.options,
+				status: existing!.status,
+			};
+			await request(app.getHttpServer())
+				.put(`/api/prediction/${predId}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(update)
+				.expect(HttpStatus.OK);
+			const updated = await predictionService.getById(predId);
+			expect(updated!.title).toBe("Updated title admin");
+		});
+
 		it("should delete prediction by owner", async () => {
 			await request(app.getHttpServer())
 				.delete(`/api/prediction/${predId}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 			const found = await predictionService.getById(predId);
+			expect(found).toBeUndefined();
+		});
+
+		it("should delete prediction by owner (admin)", async () => {
+			const payload = {
+				title: "For CRUD Admin Delete",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { X: 0, Y: 0 },
+				status: "waiting",
+			};
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const newId = all[0]._id as any;
+			await request(app.getHttpServer())
+				.delete(`/api/prediction/${newId}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.OK);
+			const found = await predictionService.getById(newId);
 			expect(found).toBeUndefined();
 		});
 
@@ -422,11 +705,27 @@ describe("Prediction Integration Tests", () => {
 				.expect(HttpStatus.NOT_FOUND);
 		});
 
+		it("should return 404 when getting non-existent id (admin)", async () => {
+			const fakeId = "000000000000000000000000";
+			await request(app.getHttpServer())
+				.get(`/api/prediction/${fakeId}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.expect(HttpStatus.NOT_FOUND);
+		});
+
 		it("should return 400 when deleting non-existent id", async () => {
 			const fakeId = "000000000000000000000001";
 			await request(app.getHttpServer())
 				.delete(`/api/prediction/${fakeId}`)
 				.set("Authorization", `Bearer ${userToken}`)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
+
+		it("should return 400 when deleting non-existent id (admin)", async () => {
+			const fakeId = "000000000000000000000001";
+			await request(app.getHttpServer())
+				.delete(`/api/prediction/${fakeId}`)
+				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.BAD_REQUEST);
 		});
 
@@ -438,11 +737,19 @@ describe("Prediction Integration Tests", () => {
 				.send(update)
 				.expect(HttpStatus.BAD_REQUEST);
 		});
+
+		it("should return 400 when updating with a result set (cannot vote on validated) (admin)", async () => {
+			const update = { result: "A" };
+			await request(app.getHttpServer())
+				.put(`/api/prediction/${predId}`)
+				.set("Authorization", `Bearer ${adminToken}`)
+				.send(update)
+				.expect(HttpStatus.BAD_REQUEST);
+		});
 	});
 
 	describe("PUT /api/prediction/:id/validate", () => {
 		it("should validate a prediction (admin) and return structure", async () => {
-			// create prediction
 			const payload = {
 				title: "To Validate",
 				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
@@ -490,6 +797,28 @@ describe("Prediction Integration Tests", () => {
 				.expect(HttpStatus.BAD_REQUEST);
 		});
 
+		it("should return 403 when winningOption is missing and attempted by regular user", async () => {
+			const payload = {
+				title: "To Validate Missing User",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 10, B: 0 },
+				status: "Valid",
+			};
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${userToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			await request(app.getHttpServer())
+				.put(`/api/prediction/${id}/validate`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.send({})
+				.expect(HttpStatus.FORBIDDEN);
+		});
+
 		it("should return 400 when winningOption is invalid", async () => {
 			const payload = {
 				title: "To Validate InvalidOpt",
@@ -510,6 +839,50 @@ describe("Prediction Integration Tests", () => {
 				.set("Authorization", `Bearer ${adminToken}`)
 				.send({ winningOption: "Z" });
 			expect(validateRes.status).toBe(HttpStatus.BAD_REQUEST);
+		});
+
+		it("should return 403 when winningOption is invalid and attempted by regular user", async () => {
+			const payload = {
+				title: "To Validate InvalidOpt User",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 10, B: 5 },
+				status: "Valid",
+			};
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${userToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			const validateRes = await request(app.getHttpServer())
+				.put(`/api/prediction/${id}/validate`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.send({ winningOption: "Z" });
+			expect(validateRes.status).toBe(HttpStatus.FORBIDDEN);
+		});
+
+		it("should return 403 when a regular user attempts to validate a prediction", async () => {
+			const payload = {
+				title: "UserTryValidate",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				options: { A: 10, B: 5 },
+				status: "Valid",
+			};
+			const res = await request(app.getHttpServer())
+				.post("/api/prediction")
+				.set("Authorization", `Bearer ${userToken}`)
+				.send(payload);
+			expect(res.status).toBe(HttpStatus.CREATED);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			const validateRes = await request(app.getHttpServer())
+				.put(`/api/prediction/${id}/validate`)
+				.set("Authorization", `Bearer ${userToken}`)
+				.send({ winningOption: "A" });
+			expect(validateRes.status).toBe(HttpStatus.FORBIDDEN);
 		});
 	});
 });
