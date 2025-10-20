@@ -33,6 +33,7 @@ export const PredictionService = {
 		try {
 			const headers = { Authorization: `Bearer ${token}` };
 			const resp = await axios.get<Prediction>(`${API_URL}/prediction/${id}`, { headers });
+			resp.data.dateFin = new Date(resp.data.dateFin);
 			return resp.data || undefined;
 		} catch (error) {
 			return undefined;

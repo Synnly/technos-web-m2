@@ -1,33 +1,84 @@
 import Sidebar from "../components/sidebar/Sidebar.component";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { userController } from "../modules/user/user.controller";
 import ToastComponent from "../components/toast/Toast.component";
 import type { Toast } from "../components/toast/Toast.interface";
 import { PredictionTimeline } from "../components/predictions/PredictionTimeline";
-import type { Prediction } from "../modules/prediction/prediction.interface";
 import PredictionController from "../modules/prediction/prediction.controller";
 import OptionGrid from "../components/predictions/options/OptionGrid";
-import AmountButton from "../components/predictions/AmountButton";
 import ConfirmVote from "../components/predictions/ConfirmVote";
-import CustomAmountInput from "../components/predictions/CustomAmountInput";
+import type { PredictionWithThisVotesAndPublications } from "../modules/prediction/prediction.interface";
+import { CalendarClock } from "lucide-react";
+import WritePublication from "../components/publications/WritePublication";
+import AmountButtonRow from "../components/predictions/AmountButtonRow";
+import PublicationList from "../components/publications/PublicationList";
+import type { Publication } from "../modules/publication/publication.interface";
 
 function Prediction() {
-	const { username, isAuthenticated } = useAuth();
+	const { username } = useAuth();
 	const token = localStorage.getItem("token");
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-	// const [__, setLoading] = useState(false);
 	const [_, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
-	const [prediction, setPrediction] = useState<Prediction | null>(null);
+	const [prediction, setPrediction] = useState<PredictionWithThisVotesAndPublications | null>(null);
 	const [options, setOptions] = useState<Record<string, number>>({});
+	const [aiPronostics, setAIPronostics] = useState<Record<string, number>>({});
+	const [publications, setPublications] = useState<Publication[]>([
+		{
+			_id: "1",
+			message:
+				"Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga unde eius rem, sed neque alias nam ipsum commodi facere quam architecto molestias illum ducimus error, cupidita et consectetur adipisicing elit. Fuga unde eius rem, sed neque alias nam ipsum commodi facere quam architecto molestias illum ducimus error, cupiditate sint, illo tempora quis.",
+			datePublication: new Date(),
+			prediction_id: "68f39ca2e5611f91b1536c99",
+			user_id: "User1",
+			likes: [],
+		},
+		{
+			_id: "3",
+			message:
+				"Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga unde eius rem, sed neque alias nam ipsum commodi facere quam architecto molestias illum ducimus error, cupiditate sint, illo tempora quis.",
+			datePublication: new Date(),
+			prediction_id: "68f39ca2e5611f91b1536c99",
+			parentPublication_id: "1",
+			user_id: "User3",
+			likes: ["User1"],
+		},
+		{
+			_id: "4",
+			message:
+				"Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga unde eius rem, sed neque alias nam ipsum commodi facere quam architecto molestias illum ducimus error, cupiditate sint, illo tempora quis.",
+			datePublication: new Date(),
+			prediction_id: "68f39ca2e5611f91b1536c99",
+			parentPublication_id: "3",
+			user_id: "User4",
+			likes: [],
+		},
+		{
+			_id: "2",
+			message:
+				"Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga unde eius rem, sed neque alias nam ipsum commodi facere quam architecto molestias illum ducimus error, cupiditate sint, illo tempora quis.",
+			datePublication: new Date(),
+			prediction_id: "68f39ca2e5611f91b1536c99",
+			user_id: "User2",
+			likes: [],
+		},
+		{
+			_id: "5",
+			message:
+				"Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga unde eius rem, sed neque alias nam ipsum commodi facere quam architecto molestias illum ducimus error, cupiditate sint, illo tempora quis.",
+			datePublication: new Date(),
+			prediction_id: "68f39ca2e5611f91b1536c99",
+			user_id: "User2",
+			likes: [],
+		},
+	]);
 	const [userBets, setUserBets] = useState<Record<string, number>>({});
 	const [currentAmount, setCurrentAmount] = useState<number>(0);
 	const [customAmount, setCustomAmount] = useState<number>(0);
 	const [customAmountSelected, setCustomAmountSelected] = useState<boolean>(false);
-	// const [open, setOpen] = useState(false);
-	// const [, setError] = useState<string | null>(null);
+	const [optionSelected, setOptionSelected] = useState<string | null>(null);
 
 	const [toast, setToast] = useState<Toast | null>(null);
 
@@ -39,13 +90,12 @@ function Prediction() {
 	};
 
 	const fetchPredictionById = async (id: string) => {
-		// setLoading(true);
-		const prediction = await PredictionController.getPredictionById(id, token, setToast);
-		setPrediction({ ...prediction } as Prediction);
-		setOptions(prediction?.options || {});
+		const predictionFetched = await PredictionController.getPredictionById(id, token, setToast);
+		setPrediction({ ...predictionFetched } as PredictionWithThisVotesAndPublications);
+		setOptions(predictionFetched?.options || {});
 
 		const userBets =
-			prediction?.votes?.reduce(
+			predictionFetched?.votes?.reduce(
 				(acc: Record<string, number>, vote) => {
 					acc[vote.option] = vote.amount || 0;
 					return acc;
@@ -54,25 +104,42 @@ function Prediction() {
 			) || {};
 
 		setUserBets(userBets);
-		// setLoading(false);
+
+		if (predictionFetched?.options) {
+			setAIPronostics(
+				Object.fromEntries(
+					Object.keys(predictionFetched.options).map((option) => [option, 0]),
+				),
+			);
+		}
 	};
 
 	const clearToast = () => setToast(null);
-	const onButtonChange = (amount: number) => {
-		setCurrentAmount(amount);
-		setCustomAmountSelected(false);
+
+	const onOptionSelect = (option: string) => {
+		setOptionSelected(optionSelected === option ? null : option);
 	};
 
-	const onCustomAmountChange = (amount: number) => {
-		setCurrentAmount(Math.min(0, customAmount));
-		setCustomAmount(amount);
-		setCustomAmountSelected(customAmount > 0);
+	const onConfirmVoteClick = () => {
+		console.log(`${customAmount} ${currentAmount} ${optionSelected}`);
 	};
 
-	const onCustomAmountClick = () => {
-		setCurrentAmount(Math.min(0, customAmount));
-		setCustomAmountSelected(customAmount > 0);
+	const addPublication = (newPublication: Publication) => {
+		console.log("Adding publication", newPublication);
+		setPublications([...publications, newPublication]);
 	};
+
+	const toggleLike = (publicationId: string) => {
+		const publication = publications.find((pub) => pub._id === publicationId);
+		if (publication) {
+			if (publication.likes.includes(username!)) {
+				publication.likes = publication.likes.filter((user) => user !== username);
+			} else {
+				publication.likes.push(username!);
+			}
+			setPublications([...publications]);
+		}
+	}
 
 	useEffect(() => {
 		if (username) {
@@ -107,59 +174,59 @@ function Prediction() {
 						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
 				}
 			>
-				<p className="text-3xl font-bold mb-4 text-white">{prediction?.title}</p>
+				<p className="text-3xl font-bold mb-2 text-white">{prediction?.title}</p>
+				<div className="text-gray-400 mb-2 flex gap-2">
+					<CalendarClock strokeWidth={1.5} />
+					{prediction?.dateFin?.toLocaleDateString()}
+				</div>
+				<div className="text-gray-400 mb-2">
+					Lorem ipsum dolor sit amet consectetur adipisicing elit. Repudiandae consequatur amet dolor corrupti
+					pariatur eos, ipsa reprehenderit perspiciatis neque minus blanditiis cum porro commodi consectetur
+					ab quae, dolorum natus illum.
+				</div>
 				<div className="h-100 border border-gray-700 rounded-lg p-8">
 					<div className="h-full">
 						<PredictionTimeline predictionId={predictionId} />
 					</div>
 				</div>
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-10 mt-3">
-					<AmountButton
-						amount={10}
-						onClick={() => {
-							onButtonChange(10);
-						}}
+				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-10 mt-5">
+					<AmountButtonRow
 						currentAmount={currentAmount}
-					/>
-					<AmountButton
-						amount={50}
-						onClick={() => {
-							onButtonChange(50);
-						}}
-						currentAmount={currentAmount}
-					/>
-					<AmountButton
-						amount={100}
-						onClick={() => {
-							onButtonChange(100);
-						}}
-						currentAmount={currentAmount}
-					/>
-					<AmountButton
-						amount={1000}
-						onClick={() => {
-							onButtonChange(1000);
-						}}
-						currentAmount={currentAmount}
-					/>
-					<AmountButton
-						amount={10000}
-						onClick={() => {
-							onButtonChange(10000);
-						}}
-						currentAmount={currentAmount}
-					/>
-					<CustomAmountInput
-						onChange={onCustomAmountChange}
+						customAmount={customAmount}
 						customAmountSelected={customAmountSelected}
-						onCustomAmountClick={onCustomAmountClick}
+						setCurrentAmount={setCurrentAmount}
+						setCustomAmount={setCustomAmount}
+						setCustomAmountSelected={setCustomAmountSelected}
 					/>
 				</div>
 				<div className="mt-3">
-					<OptionGrid options={options} userBets={userBets} />
+					<OptionGrid
+						options={options}
+						userBets={userBets}
+						onOptionSelect={onOptionSelect}
+						optionSelected={optionSelected}
+						aiPronostics={aiPronostics}
+					/>
 				</div>
 				<div className="mt-3">
-					<ConfirmVote onConfirm={() => {}} onCancel={() => {}} />
+					<ConfirmVote onClick={onConfirmVoteClick} />
+				</div>
+				<div className="mt-5">
+					<WritePublication
+						predictionId={predictionId}
+						username={username ?? ""}
+						placeholder={"Écrivez votre publication ..."}
+						addPublication={addPublication}
+					/>
+				</div>
+				<div className="mt-3">
+					<PublicationList
+						predictionId={predictionId}
+						username={username ?? ""}
+						publications={publications}
+						addPublication={addPublication}
+						toggleLike={toggleLike}
+					/>
 				</div>
 			</main>
 		</div>
