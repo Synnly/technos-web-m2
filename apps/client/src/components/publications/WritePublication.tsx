@@ -42,7 +42,7 @@ const WritePublication: React.FC<WritePublicationProps> = ({ predictionId, usern
 	}, []);
 
 	return (
-		<div className="p-4 border border-gray-700 rounded-lg shadow-md w-full">
+		<div className="bg-gray-800/50 p-4 border border-gray-700 rounded-lg shadow-md w-full">
 			<div className="flex flex-row justify-between gap-4">
 				<textarea
 					placeholder={placeholder}

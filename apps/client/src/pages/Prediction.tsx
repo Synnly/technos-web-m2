@@ -12,7 +12,7 @@ import ConfirmVote from "../components/predictions/ConfirmVote";
 import type { PredictionWithThisVotesAndPublications } from "../modules/prediction/prediction.interface";
 import { CalendarClock } from "lucide-react";
 import WritePublication from "../components/publications/WritePublication";
-import AmountButtonRow from "../components/predictions/AmountButtonRow";
+import AmountButtonRow from "../components/predictions/amounts/AmountButtonRow";
 import PublicationList from "../components/publications/PublicationList";
 import type { Publication } from "../modules/publication/publication.interface";
 

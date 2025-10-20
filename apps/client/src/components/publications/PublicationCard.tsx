@@ -33,7 +33,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 
 	return (
 		<div>
-			<div className="text-white border border-gray-700 rounded-lg p-4 shadow-md">
+			<div className="bg-gray-800/50 text-white border border-gray-700 rounded-lg p-4 shadow-md">
 				<p className="font-bold">{publication.user_id}</p>
 				<h3 className="">{publication.message}</h3>
 				<div className="flex gap-4">
