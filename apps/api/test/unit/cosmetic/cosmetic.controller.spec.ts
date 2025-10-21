@@ -1,13 +1,13 @@
 import { Test } from "@nestjs/testing";
-import { CosmeticController } from "../../src/cosmetic/cosmetic.controller";
-import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
-import { Cosmetic, CosmeticType } from "../../src/cosmetic/cosmetic.schema";
+import { CosmeticController } from "../../../src/cosmetic/cosmetic.controller";
+import { CosmeticService } from "../../../src/cosmetic/cosmetic.service";
+import { Cosmetic, CosmeticType } from "../../../src/cosmetic/cosmetic.schema";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
-import { Role } from "../../src/user/user.schema";
+import { Role } from "../../../src/user/user.schema";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-import { AuthGuard } from "../../src/guards/auth.guard";
-import { AdminGuard } from "../../src/guards/admin.guard";
+import { AuthGuard } from "../../../src/guards/auth.guard";
+import { AdminGuard } from "../../../src/guards/admin.guard";
 import { ConfigService } from "@nestjs/config";
 
 const expectedCosmetic1: Cosmetic = {
@@ -110,12 +110,11 @@ describe("CosmeticController", () => {
 		const adminUser = { username: "admin", role: Role.ADMIN };
 		const normalUser = { username: "user", role: Role.USER };
 
-		it("should create cosmetic when admin", async () => {
-			mockCosmeticService.create.mockResolvedValue(expectedCosmetic1);
-
-			const result = await cosmeticController.createCosmetic(expectedCosmetic1, adminUser, "admin");
-
-			expect(result).toEqual(expectedCosmetic1);
+		it("should call service to create cosmetic when admin", async () => {
+			mockCosmeticService.create.mockResolvedValue(undefined);
+			await expect(
+				cosmeticController.createCosmetic(expectedCosmetic1, adminUser, "admin"),
+			).resolves.toBeUndefined();
 			expect(cosmeticService.create).toHaveBeenCalledWith(expectedCosmetic1);
 		});
 
@@ -126,7 +125,7 @@ describe("CosmeticController", () => {
 		});
 
 		it("should throw 400 if body missing", async () => {
-			await expect(cosmeticController.createCosmetic(undefined, adminUser, "admin")).rejects.toThrow(
+			await expect(cosmeticController.createCosmetic(undefined as any, adminUser, "admin")).rejects.toThrow(
 				BadRequestException,
 			);
 		});
@@ -166,13 +165,12 @@ describe("CosmeticController", () => {
 		const adminUser = { username: "admin", role: Role.ADMIN };
 		const normalUser = { username: "user", role: Role.USER };
 
-		it("should update cosmetic when admin and exists", async () => {
+		it("should call service to update cosmetic when admin and exists", async () => {
 			mockCosmeticService.findById.mockResolvedValue(expectedCosmetic1);
-			mockCosmeticService.updateById.mockResolvedValue(expectedCosmetic1);
-
-			const result = await cosmeticController.updateCosmetic("c1", expectedCosmetic1, adminUser, "admin");
-
-			expect(result).toEqual(expectedCosmetic1);
+			mockCosmeticService.updateById.mockResolvedValue(undefined);
+			await expect(
+				cosmeticController.updateCosmetic("c1", expectedCosmetic1, adminUser, "admin"),
+			).resolves.toBeUndefined();
 			expect(cosmeticService.updateById).toHaveBeenCalledWith("c1", expectedCosmetic1);
 		});
 
@@ -183,7 +181,7 @@ describe("CosmeticController", () => {
 		});
 
 		it("should throw 400 if body missing", async () => {
-			await expect(cosmeticController.updateCosmetic("c1", undefined, adminUser, "admin")).rejects.toThrow(
+			await expect(cosmeticController.updateCosmetic("c1", undefined as any, adminUser, "admin")).rejects.toThrow(
 				BadRequestException,
 			);
 		});
@@ -200,12 +198,10 @@ describe("CosmeticController", () => {
 		const adminUser = { username: "admin", role: Role.ADMIN };
 		const normalUser = { username: "user", role: Role.USER };
 
-		it("should delete cosmetic when admin", async () => {
+		it("should call service to delete cosmetic when admin", async () => {
 			mockCosmeticService.findById.mockResolvedValue(expectedCosmetic1);
-			mockCosmeticService.deleteById.mockResolvedValue(expectedCosmetic1);
-
-			const result = await cosmeticController.deleteCosmetic("c1", adminUser, "admin");
-			expect(result).toEqual(expectedCosmetic1);
+			mockCosmeticService.deleteById.mockResolvedValue(undefined);
+			await expect(cosmeticController.deleteCosmetic("c1", adminUser, "admin")).resolves.toBeUndefined();
 			expect(cosmeticService.deleteById).toHaveBeenCalledWith("c1");
 		});
 
