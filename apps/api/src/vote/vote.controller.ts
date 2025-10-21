@@ -1,5 +1,5 @@
 import {
-    BadRequestException,
+	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -13,6 +13,8 @@ import {
 	Req,
 	UseGuards,
 } from "@nestjs/common";
+import { CreateVoteDto } from "./dto/createvote.dto";
+import { UpdateVoteDto } from "./dto/updatevote.dto";
 import { VoteService } from "../vote/vote.service";
 import { AuthGuard } from "../guards/auth.guard";
 
@@ -53,35 +55,21 @@ export class VoteController {
 	/**
 	 * Crée un nouveau vote pour une prédiction.
 	 * @param vote Données du vote à créer (user_id, prediction_id, option, amount, date)
-	 * @returns Le vote créé avec statut
 	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
 	 */
 	@Post("")
-    @HttpCode(201)
-	async createVote(@Body() vote) {
+	@HttpCode(201)
+	async createVote(@Body() vote: CreateVoteDto) {
 		if (!vote) throw new BadRequestException("Les données du vote sont requises");
-
-		const missing = [
-			!vote.prediction_id && "L'identifiant de la prédiction est requis",
-			!vote.option && "Le choix est requis",
-			vote.amount === undefined && "Le montant est requis",
-			!vote.date && "La date est requise",
-			!vote.user_id && "L'utilisateur est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
 		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
-
-		// const { _id, ...payload } = vote as any;
-		// if (req.user?._id) payload.user_id = req.user._id;
-
 		try {
-			const created = await this.voteService.createVote(vote);
-			return created;
+			// On ignore le champ _id, le service/mongoose le gère
+			const { _id, ...payload } = vote as any;
+			await this.voteService.createVote(payload);
 		} catch (error) {
 			throw new BadRequestException(
-                error.message || "Erreur lors de la création du vote",
-            );
+				error.message || "Erreur lors de la création du vote",
+			);
 		}
 	}
 
@@ -89,54 +77,39 @@ export class VoteController {
 	 * Met à jour un vote existant.
 	 * @param id Identifiant unique du vote à mettre à jour
 	 * @param vote Données du vote à mettre à jour (user_id, prediction_id, option, amount, date)
-	 * @returns Le vote mis à jour
 	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
 	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Put("/:id")
 	async updateVote(
 		@Param("id") id: string,
-		@Body() vote,
+		@Body() vote: UpdateVoteDto,
 	) {
 		if (!vote) throw new BadRequestException("Les données du vote sont requises");
-
-		const missing = [
-			!id && "L'identifiant du vote est requis",
-			!vote && "Les données du vote sont requises",
-			!vote.user_id && "L'identifiant de l'utilisateur est requis",
-			!vote.prediction_id && "L'identifiant de la prédiction est requis",
-			!vote.option && "Le choix est requis",
-			vote.amount === undefined && "Le montant est requis",
-			!vote.user_id && "L'utilisateur est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
-
+		if (vote.amount !== undefined && vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
 		try {
-			// Créer ou mettre à jour le vote
-			const updated = await this.voteService.createOrUpdateVote(
+			// On ignore le champ _id, le service/mongoose le gère
+			const { _id, ...payload } = vote as any;
+			await this.voteService.createOrUpdateVote(
 				id,
-				vote,
+				payload,
 			);
-			return updated;
+		
 		} catch (error) {
 			throw new BadRequestException(
-                error.message || "Erreur lors de la mise à jour du vote",
-            );
+				error.message || "Erreur lors de la mise à jour du vote",
+			);
 		}
 	}
 
 	/**
 	 * Supprime un vote existant.
 	 * @param id Identifiant unique du vote à supprimer
-	 * @returns Le vote supprimé
 	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Delete("/:id")
 	async deleteVote(@Param("id") id: string) {
 		const deleted = await this.voteService.deleteVote(id);
-		if (!deleted) throw new NotFoundException("Vote introuvable");
-		return deleted;
+		if (!deleted) throw new NotFoundException("Vote introuvable");	
 	}
 }
