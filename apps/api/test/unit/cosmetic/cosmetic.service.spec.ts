@@ -15,7 +15,7 @@ const expectedCosmetic2 = {
 	name: "Red Color",
 	cost: 50,
 	type: CosmeticType.COLOR,
-	hexColor: "#FF0000",
+	value: "#FF0000",
 } as unknown as Cosmetic;
 
 const expectedCosmetics = [expectedCosmetic1, expectedCosmetic2];
@@ -105,7 +105,7 @@ describe("CosmeticService", () => {
 				name: "Blue Color",
 				cost: 80,
 				type: CosmeticType.COLOR,
-				hexColor: "#0000FF",
+				value: "#0000FF",
 			} as unknown as Cosmetic;
 
 			await expect(cosmeticService.create(newCosmetic)).resolves.toBeUndefined();

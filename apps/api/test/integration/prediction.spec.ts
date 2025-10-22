@@ -67,7 +67,7 @@ describe("Prediction Integration Tests", () => {
 		await userService.setAdmin(testAdminData.username);
 
 		// create a cosmetic to satisfy potential dependencies
-		await cosmeticService.create({ name: "pcos", cost: 10, type: CosmeticType.BADGE } as any);
+		await cosmeticService.create({ name: "pcos", cost: 10, type: CosmeticType.BADGE, value: ":beginner:" } as any);
 
 		// create tokens that include user _id so the AuthGuard populates req.user._id
 		const createdUser = await userService.getByUsername(testUserData.username);

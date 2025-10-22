@@ -15,9 +15,8 @@ export class UpdateCosmeticDto {
     @IsEnum(CosmeticType)
     type?: CosmeticType;
 
-    @IsOptional()
-    @IsHexColor()
-    hexColor?: string;
+    @IsString()
+    value: string;
 
     @IsOptional()
     @IsBoolean()

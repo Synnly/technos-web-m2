@@ -23,6 +23,7 @@ describe("CreateCosmeticDto", () => {
 		dto.name = "Badge";
 		dto.cost = -10;
 		dto.type = CosmeticType.BADGE;
+		dto.value = ":badge:";
 		const errors = await validate(dto as any);
 		expect(errors.length).toBe(0); // negative allowed by DTO
 	});
@@ -36,14 +37,14 @@ describe("CreateCosmeticDto", () => {
 		expect(errors.length).toBeGreaterThan(0);
 	});
 
-	it("should fail when hexColor is invalid", async () => {
+	it("should fail when value is invalid", async () => {
 		const dto = new CreateCosmeticDto();
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.COLOR;
-		dto.hexColor = "notacolor";
+		dto.value = "notacolor";
 		const errors = await validate(dto as any);
-		expect(errors.length).toBeGreaterThan(0);
+		expect(errors.length).toBe(0);
 	});
 
 	it("should fail when owned is not boolean", async () => {
@@ -61,16 +62,17 @@ describe("CreateCosmeticDto", () => {
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.BADGE;
+		dto.value = ":badge:";
 		const errors = await validate(dto as any);
 		expect(errors.length).toBe(0);
 	});
 
-	it("should pass with only hexColor", async () => {
+	it("should pass with only value", async () => {
 		const dto = new CreateCosmeticDto();
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.COLOR;
-		dto.hexColor = "#123456";
+		dto.value = "#123456";
 		const errors = await validate(dto as any);
 		expect(errors.length).toBe(0);
 	});
@@ -82,7 +84,7 @@ describe("CreateCosmeticDto", () => {
 		dto.type = CosmeticType.BADGE;
 		dto.owned = true;
 		const errors = await validate(dto as any);
-		expect(errors.length).toBe(0);
+		expect(errors.length).toBe(1);
 	});
 
 	it("should fail with name as number", async () => {
@@ -112,14 +114,14 @@ describe("CreateCosmeticDto", () => {
 		expect(errors.length).toBeGreaterThan(0);
 	});
 
-	it("should fail with hexColor as null", async () => {
+	it("should fail with value as null", async () => {
 		const dto = new CreateCosmeticDto();
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.COLOR;
-		dto.hexColor = null as any;
+		dto.value = null as any;
 		const errors = await validate(dto as any);
-		expect(errors.length).toEqual(0);
+		expect(errors.length).toBeGreaterThan(0);
 	});
 
 	it("should fail with owned as null", async () => {
@@ -127,16 +129,17 @@ describe("CreateCosmeticDto", () => {
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.BADGE;
+		dto.value = ":badge:";
 		dto.owned = null as any;
 		const errors = await validate(dto as any);
-		expect(errors.length).toEqual(0);
+		expect(errors.length).toBe(0);
 	});
-	it("should pass with valid hexColor", async () => {
+	it("should pass with valid value", async () => {
 		const dto = new CreateCosmeticDto();
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.COLOR;
-		dto.hexColor = "#ff00ff";
+		dto.value = "#ff00ff";
 		const errors = await validate(dto as any);
 		expect(errors.length).toBe(0);
 	});
@@ -148,7 +151,7 @@ describe("CreateCosmeticDto", () => {
 		dto.type = CosmeticType.BADGE;
 		dto.owned = true;
 		const errors = await validate(dto as any);
-		expect(errors.length).toBe(0);
+		expect(errors.length).toBe(1);
 	});
 
 	it("should pass with all valid fields", async () => {
@@ -156,7 +159,7 @@ describe("CreateCosmeticDto", () => {
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.COLOR;
-		dto.hexColor = "#abcdef";
+		dto.value = "#abcdef";
 		dto.owned = false;
 		const errors = await validate(dto as any);
 		expect(errors.length).toBe(0);
@@ -167,7 +170,7 @@ describe("CreateCosmeticDto", () => {
 		dto.name = "";
 		dto.cost = "not-a-number" as any;
 		dto.type = "not-a-type" as any;
-		dto.hexColor = "not-a-color";
+		dto.value = "not-a-color";
 		dto.owned = "not-a-bool" as any;
 		const errors = await validate(dto as any);
 		expect(errors.length).toBeGreaterThan(0);
@@ -178,7 +181,7 @@ describe("CreateCosmeticDto", () => {
 		dto.cost = 10;
 		dto.type = CosmeticType.BADGE;
 		const errors = await validate(dto as any);
-		expect(errors.length).toBe(0);
+		expect(errors.length).toBe(1);
 	});
 
 	it("should fail when name missing", async () => {
@@ -206,14 +209,14 @@ describe("CreateCosmeticDto", () => {
 		expect(errors.length).toBeGreaterThan(0);
 	});
 
-	it("should fail when hexColor is invalid", async () => {
+	it("should fail when value is invalid", async () => {
 		const dto = new CreateCosmeticDto();
 		dto.name = "Badge";
 		dto.cost = 10;
 		dto.type = CosmeticType.BADGE;
-		dto.hexColor = "not-a-color";
+		dto.value = "not-a-color";
 		const errors = await validate(dto as any);
-		expect(errors.length).toBeGreaterThan(0);
+		expect(errors.length).toBe(0);
 	});
 
 	it("should fail when cost is not a number", async () => {

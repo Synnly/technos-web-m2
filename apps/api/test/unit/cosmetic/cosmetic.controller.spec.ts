@@ -16,6 +16,7 @@ const expectedCosmetic1: Cosmetic = {
 	cost: 100,
 	type: CosmeticType.BADGE,
 	owned: false,
+	value: ":beginner:"
 };
 
 const expectedCosmetic2: Cosmetic = {
@@ -23,7 +24,7 @@ const expectedCosmetic2: Cosmetic = {
 	name: "Red Pseudo",
 	cost: 200,
 	type: CosmeticType.COLOR,
-	hexColor: "#FF0000",
+	value: "#FF0000",
 	owned: false,
 };
 

@@ -36,7 +36,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should return 403 when user updates cosmetic with valid id", async () => {
-		const payload = { name: "badge-update", cost: 5, type: CosmeticType.BADGE };
+		const payload = { name: "badge-update", cost: 5, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -53,7 +53,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should return 400 when admin creates cosmetic with missing cost", async () => {
-		const payload = { name: "badge", type: CosmeticType.BADGE };
+		const payload = { name: "badge", type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -62,7 +62,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should return 400 when admin creates cosmetic with missing type", async () => {
-		const payload = { name: "badge", cost: 10 };
+		const payload = { name: "badge", cost: 10, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -70,8 +70,8 @@ describe("Cosmetic Integration Tests", () => {
 			.expect(HttpStatus.BAD_REQUEST);
 	});
 
-	it("should return 400 when admin creates cosmetic with invalid hexColor", async () => {
-		const payload = { name: "badge", cost: 10, type: CosmeticType.COLOR, hexColor: "notacolor" };
+	it("should return 400 when admin creates cosmetic with invalid value", async () => {
+	const payload = { name: "badge", cost: 10, type: CosmeticType.COLOR, value: 123 };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -165,7 +165,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should forbid user from creating cosmetic", async () => {
-		const payload = { name: "badge1", cost: 5, type: CosmeticType.BADGE };
+		const payload = { name: "badge1", cost: 5, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testUserData.username}`)
 			.set("Authorization", `Bearer ${userToken}`)
@@ -174,7 +174,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should allow admin to create cosmetic", async () => {
-		const payload = { name: "badge1", cost: 5, type: CosmeticType.BADGE };
+		const payload = { name: "badge1", cost: 5, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -183,7 +183,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should list cosmetics for user", async () => {
-		const payload = { name: "badge-list", cost: 3, type: CosmeticType.BADGE };
+		const payload = { name: "badge-list", cost: 3, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -197,7 +197,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should list cosmetics for admin", async () => {
-		const payload = { name: "badge-list-admin", cost: 3, type: CosmeticType.BADGE };
+		const payload = { name: "badge-list-admin", cost: 3, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -211,7 +211,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should get cosmetic by id for user", async () => {
-		const payload = { name: "badge-get", cost: 4, type: CosmeticType.BADGE };
+		const payload = { name: "badge-get", cost: 4, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -228,7 +228,7 @@ describe("Cosmetic Integration Tests", () => {
 	});
 
 	it("should get cosmetic by id for admin", async () => {
-		const payload = { name: "badge-get-admin", cost: 4, type: CosmeticType.BADGE };
+		const payload = { name: "badge-get-admin", cost: 4, type: CosmeticType.BADGE, value: ":badge:" };
 		await request(app.getHttpServer())
 			.post(`/api/cosmetic/${testAdminData.username}`)
 			.set("Authorization", `Bearer ${adminToken}`)
@@ -264,7 +264,7 @@ describe("Cosmetic Integration Tests", () => {
 		});
 
 		it("should return 400 when admin updates cosmetic with invalid data", async () => {
-			const createPayload = { name: "to-update", cost: 6, type: CosmeticType.BADGE };
+			const createPayload = { name: "to-update", cost: 6, type: CosmeticType.BADGE, value: ":badge:" };
 			await request(app.getHttpServer())
 				.post(`/api/cosmetic/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)
@@ -283,7 +283,7 @@ describe("Cosmetic Integration Tests", () => {
 		});
 
 		it("should forbid regular user from updating cosmetic", async () => {
-			const createPayload = { name: "to-update-2", cost: 6, type: CosmeticType.BADGE };
+			const createPayload = { name: "to-update-2", cost: 6, type: CosmeticType.BADGE, value: ":badge:" };
 			await request(app.getHttpServer())
 				.post(`/api/cosmetic/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)
@@ -305,7 +305,7 @@ describe("Cosmetic Integration Tests", () => {
 		});
 
 		it("should allow admin to delete cosmetic and return 404 afterwards", async () => {
-			const createPayload = { name: "to-delete", cost: 7, type: CosmeticType.BADGE };
+			const createPayload = { name: "to-delete", cost: 7, type: CosmeticType.BADGE, value: ":badge:" };
 			await request(app.getHttpServer())
 				.post(`/api/cosmetic/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)
@@ -336,7 +336,7 @@ describe("Cosmetic Integration Tests", () => {
 		});
 
 		it("should forbid regular user from deleting cosmetic", async () => {
-			const createPayload = { name: "to-delete-2", cost: 8, type: CosmeticType.BADGE };
+			const createPayload = { name: "to-delete-2", cost: 8, type: CosmeticType.BADGE, value: ":badge:" };
 			await request(app.getHttpServer())
 				.post(`/api/cosmetic/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)

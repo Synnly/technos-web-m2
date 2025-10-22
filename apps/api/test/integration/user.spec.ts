@@ -17,6 +17,7 @@ import { Cosmetic, CosmeticType } from "../../src/cosmetic/cosmetic.schema";
 import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
 import { log } from "console";
 import { AppModule } from "../../src/app.module";
+import { validateHeaderValue } from "http";
 
 describe("User Integration Tests", () => {
 	let app: INestApplication;
@@ -45,6 +46,7 @@ describe("User Integration Tests", () => {
 		name: "Cosmetic 1",
 		cost: 100,
 		type: CosmeticType.BADGE,
+		value: ":beginner:",
 	};
 
 	let testUser;
