@@ -1,13 +1,14 @@
-import { PredictionController } from "../../src/prediction/prediction.controller";
-import { PredictionService } from "../../src/prediction/prediction.service";
+import { PredictionController } from "../../../src/prediction/prediction.controller";
+import { PredictionService } from "../../../src/prediction/prediction.service";
 import { Test } from "@nestjs/testing";
-import { Prediction, PredictionStatus } from "../../src/prediction/prediction.schema";
-import { User } from "../../src/user/user.schema";
+import { Prediction, PredictionStatus } from "../../../src/prediction/prediction.schema";
+import { PredictionDto } from "../../../src/prediction/dto/prediction.dto";
+import { User } from "../../../src/user/user.schema";
 import { BadRequestException, HttpException, NotFoundException } from "@nestjs/common/exceptions";
 import { HttpStatus } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-import { AuthGuard } from "../../src/guards/auth.guard";
+import { AuthGuard } from "../../../src/guards/auth.guard";
 import { ConfigService } from "@nestjs/config";
 
 const expectedUser1 = {
@@ -146,24 +147,26 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			const result = await predictionController.createPrediction(mockReq, expectedPred1);
+			const createDto = { ...expectedPred1, dateFin: (expectedPred1.dateFin as Date).toISOString() } as any;
+			const result = await predictionController.createPrediction(mockReq, createDto);
 
 			expect(predictionService.createPrediction).toHaveBeenCalledWith(
 				expect.objectContaining({
 					title: expectedPred1.title,
-					dateFin: expectedPred1.dateFin,
+					dateFin: (expectedPred1.dateFin as Date).toISOString(),
 					user_id: (expectedUser1 as any)._id,
 					options: expectedPred1.options,
 				}),
 			);
-			expect(result).toBe(expectedPred1);
+			expect(result).toEqual(new PredictionDto(expectedPred1 as any));
 		});
 
 		it("should return 400 when missing the title", async () => {
 			const badPred = {
 				...expectedPred1,
 				title: undefined,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
@@ -181,7 +184,8 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			await expect(predictionController.createPrediction(mockReq, expectedPred1)).rejects.toThrow(
+			const createDto2 = { ...expectedPred1, dateFin: (expectedPred1.dateFin as Date).toISOString() } as any;
+			await expect(predictionController.createPrediction(mockReq, createDto2)).rejects.toThrow(
 				BadRequestException,
 			);
 		});
@@ -190,7 +194,8 @@ describe("PredictionController", () => {
 			const predWithZeroOptions = {
 				...expectedPred1,
 				options: {},
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -204,7 +209,8 @@ describe("PredictionController", () => {
 			const predWithOneOption = {
 				...expectedPred1,
 				options: { only: 0 },
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
@@ -218,8 +224,8 @@ describe("PredictionController", () => {
 		it("should return 400 when dateFin is before today", async () => {
 			const badPred = {
 				...expectedPred1,
-				dateFin: new Date("2025-01-01"),
-			} as unknown as Prediction;
+				dateFin: new Date("2025-01-01").toISOString(),
+			} as any;
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
@@ -232,7 +238,8 @@ describe("PredictionController", () => {
 			const predNoStatus = {
 				...expectedPred1,
 				status: undefined,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
@@ -247,7 +254,8 @@ describe("PredictionController", () => {
 			const predBadStatus = {
 				...expectedPred1,
 				status: "NOT_VALID_STATUS" as any,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -271,7 +279,7 @@ describe("PredictionController", () => {
 			const badPred = {
 				...expectedPred1,
 				dateFin: undefined,
-			} as unknown as Prediction;
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -284,7 +292,8 @@ describe("PredictionController", () => {
 			const predNoUser = {
 				...expectedPred1,
 				user_id: undefined,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 
 			await expect(predictionController.createPrediction(mockReq, predNoUser)).rejects.toThrow(
 				BadRequestException,
@@ -295,7 +304,8 @@ describe("PredictionController", () => {
 			const badPred = {
 				...expectedPred1,
 				result: "yes",
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -312,7 +322,8 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
-			const result = await predictionController.updatePredictionById(mockReq, expectedPred1._id!, expectedPred1);
+			const updateDto = { ...expectedPred1, dateFin: (expectedPred1.dateFin as Date).toISOString() } as any;
+			const result = await predictionController.updatePredictionById(mockReq, expectedPred1._id!, updateDto);
 
 			expect(predictionService.createOrUpdateById).toHaveBeenCalledWith(
 				expectedPred1._id,
@@ -320,19 +331,20 @@ describe("PredictionController", () => {
 					title: expectedPred1.title,
 					description: expectedPred1.description,
 					status: expectedPred1.status,
-					dateFin: expectedPred1.dateFin,
+					dateFin: (expectedPred1.dateFin as Date).toISOString(),
 					options: expectedPred1.options,
 					user_id: (expectedUser1 as any)._id,
 				}),
 			);
-			expect(result).toBe(expectedPred1);
+			expect(result).toBeUndefined();
 		});
 
 		it("should return 400 when result is not empty", async () => {
 			const badPred = {
 				...expectedPred1,
 				result: "yes",
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -354,7 +366,8 @@ describe("PredictionController", () => {
 			const badPred = {
 				...expectedPred1,
 				title: undefined,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -373,8 +386,9 @@ describe("PredictionController", () => {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
 
+			const expectedPred1Dto = { ...expectedPred1, dateFin: (expectedPred1.dateFin as Date).toISOString() } as any;
 			await expect(
-				predictionController.updatePredictionById(mockReq, expectedPred1._id, expectedPred1),
+				predictionController.updatePredictionById(mockReq, expectedPred1._id, expectedPred1Dto),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -382,7 +396,8 @@ describe("PredictionController", () => {
 			const predWithZeroOptions = {
 				...expectedPred1,
 				options: {},
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -396,7 +411,8 @@ describe("PredictionController", () => {
 			const predWithOneOption = {
 				...expectedPred1,
 				options: { only: 0 },
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -409,8 +425,8 @@ describe("PredictionController", () => {
 		it("should return 400 when dateFin is before today", async () => {
 			const badPred = {
 				...expectedPred1,
-				dateFin: new Date("2025-01-01"),
-			} as unknown as Prediction;
+				dateFin: new Date("2025-01-01").toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -424,7 +440,8 @@ describe("PredictionController", () => {
 			const predNoStatus = {
 				...expectedPred1,
 				status: undefined,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -438,7 +455,8 @@ describe("PredictionController", () => {
 			const predBadStatus = {
 				...expectedPred1,
 				status: "NOT_VALID_STATUS" as any,
-			} as unknown as Prediction;
+				dateFin: (expectedPred1.dateFin as Date).toISOString(),
+			} as any;
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },
 			} as any;
@@ -462,7 +480,7 @@ describe("PredictionController", () => {
 			const badPred = {
 				...expectedPred1,
 				dateFin: undefined,
-			} as unknown as Prediction;
+			} as any;
 
 			const mockReq = {
 				user: { _id: (expectedUser1 as any)._id },

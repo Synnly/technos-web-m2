@@ -13,55 +13,51 @@ export class CosmeticService {
 		private cosmeticModel: Model<CosmeticDocument>,
 	) {}
 
-    /**
-     * Retourne tous les cosmétiques.
-     * @returns les cosmétiques
-     */
+	/**
+	 * Retourne tous les cosmétiques.
+	 * @returns les cosmétiques
+	 */
 	async findAll(): Promise<Cosmetic[]> {
 		return this.cosmeticModel.find().exec();
 	}
 
-    /**
-     * Recherche un cosmétique par son identifiant.
-     * @param id l'identifiant du cosmétique à rechercher
-     * @returns le cosmétique trouvé
-     */
-	async findById(id: string): Promise<Cosmetic> {
+	/**
+	 * Recherche un cosmétique par son identifiant.
+	 * @param id l'identifiant du cosmétique à rechercher
+	 * @returns le cosmétique trouvé
+	 */
+	async findById(id: string): Promise<Cosmetic | null> {
 		const cosmetic = await this.cosmeticModel.findById(id).exec();
-		return cosmetic!;
+		return cosmetic;
 	}
 
-    /**
-     * Crée un nouveau cosmétique.
-     * @param cosmetic les données du cosmétique à créer
-     * @returns le cosmétique créé
-     */
-	async create(cosmetic: Cosmetic): Promise<Cosmetic> {
+	/**
+	 * Crée un nouveau cosmétique.
+	 * @param cosmetic les données du cosmétique à créer
+	 * @returns le cosmétique créé
+	 */
+	async create(cosmetic: Cosmetic) {
 		const newCosmetic = new this.cosmeticModel(cosmetic);
-		return newCosmetic.save();
+		newCosmetic.save();
 	}
 
-    /**
-     * Met à jour un cosmétique par son identifiant.
-     * @param id l'identifiant du cosmétique à mettre à jour
-     * @param cosmetic les nouvelles données du cosmétique
-     * @returns la cosmétique mis à jour
-     */
-	async updateById(id: string, cosmetic: Cosmetic): Promise<Cosmetic> {
-		const updatedCosmetic = await this.cosmeticModel
-			.findByIdAndUpdate(id, cosmetic, { new: true })
-			.exec();
-		
-		return updatedCosmetic!;
+	/**
+	 * Met à jour un cosmétique par son identifiant.
+	 * @param id l'identifiant du cosmétique à mettre à jour
+	 * @param cosmetic les nouvelles données du cosmétique
+	 * @returns la cosmétique mis à jour
+	 */
+	async updateById(id: string, cosmetic: Cosmetic) {
+		await this.cosmeticModel.findByIdAndUpdate(id, cosmetic, { new: true }).exec();
 	}
 
-    /**
-     * Supprime un cosmétique par son identifiant.
-     * @param id l'identifiant du cosmétique à supprimer
-     * @returns le cosmétique supprimé
-     */
-	async deleteById(id: string): Promise<Cosmetic> {
+	/**
+	 * Supprime un cosmétique par son identifiant.
+	 * @param id l'identifiant du cosmétique à supprimer
+	 * @returns le cosmétique supprimé
+	 */
+	async deleteById(id: string): Promise<Cosmetic | null> {
 		const result = await this.cosmeticModel.findByIdAndDelete(id).exec();
-		return result!;
+		return result;
 	}
 }

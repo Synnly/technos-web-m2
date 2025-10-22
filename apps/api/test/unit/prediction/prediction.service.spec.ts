@@ -1,12 +1,12 @@
 import { Test } from "@nestjs/testing";
 import { getModelToken } from "@nestjs/mongoose";
-import { PredictionService } from "../../src/prediction/prediction.service";
+import { PredictionService } from "../../../src/prediction/prediction.service";
 import {
 	Prediction,
 	PredictionStatus,
-} from "../../src/prediction/prediction.schema";
-import { User, Role } from "../../src/user/user.schema";
-import { Vote } from "../../src/vote/vote.schema";
+} from "../../../src/prediction/prediction.schema";
+import { User, Role } from "../../../src/user/user.schema";
+import { Vote } from "../../../src/vote/vote.schema";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import OpenAI from "openai";

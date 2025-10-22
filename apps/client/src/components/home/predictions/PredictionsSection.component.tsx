@@ -2,11 +2,11 @@ import PredictionCard from "../../predictions/PredictionCard";
 import type { PredictionSectionProps } from "../types/PredictionSection.type";
 import { useNavigate } from "react-router-dom";
 
-export default function PredictionsSection({
+const PredictionsSection = ({
 	predictions,
 	usersMap,
 	onPredictionClick,
-}: PredictionSectionProps) {
+}: PredictionSectionProps) => {
 	const navigate = useNavigate();
 	const firstThree = (predictions || [])
 		.reverse()
@@ -49,3 +49,5 @@ export default function PredictionsSection({
 		</div>
 	);
 }
+
+export default PredictionsSection;

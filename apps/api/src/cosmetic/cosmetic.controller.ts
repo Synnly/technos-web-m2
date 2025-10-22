@@ -16,6 +16,9 @@ import { CosmeticService } from "./cosmetic.service";
 import { Cosmetic } from "./cosmetic.schema";
 import { Role, User } from "../user/user.schema";
 import { AuthGuard } from "../guards/auth.guard";
+import { AdminGuard } from "../guards/admin.guard";
+import { CreateCosmeticDto } from "./dto/create-cosmetic.dto";
+import { UpdateCosmeticDto } from "./dto/update-cosmetic.dto";
 
 /**
  * Contrôleur pour gérer les cosmétiques.
@@ -55,15 +58,15 @@ export class CosmeticController {
 	 * @param req la requête HTTP contenant l'utilisateur authentifié
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
-	 * @returns le cosmétique créé
 	 */
 	@Post("/:username")
+	@UseGuards(AdminGuard)
 	@HttpCode(201)
 	async createCosmetic(
-		@Body() cosmetic,
+		@Body() cosmetic: CreateCosmeticDto,
 		@Req() req,
 		@Param("username") username,
-	): Promise<Cosmetic> {
+	) {
 
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
@@ -81,7 +84,7 @@ export class CosmeticController {
 
 		if (missing) throw new BadRequestException(missing);
 
-		return await this.cosmeticService.create(cosmetic);
+		await this.cosmeticService.create(cosmetic as any);
 	}
 
 	/**
@@ -92,16 +95,16 @@ export class CosmeticController {
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
 	 * @throws NotFoundException si le cosmétique à mettre à jour n'existe pas
-	 * @returns le cosmétique mis à jour
 	 */
 	@Put("/:id")
+	@UseGuards(AdminGuard)
 	@HttpCode(200)
 	async updateCosmetic(
 		@Param("id") id: string,
-		@Body() cosmetic,
+		@Body() cosmetic: UpdateCosmeticDto,
 		@Req() req,
 		@Param("username") username: string,
-	): Promise<Cosmetic> {
+	) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException(
@@ -125,7 +128,7 @@ export class CosmeticController {
 			}
 		}
 
-		return await this.cosmeticService.updateById(id, cosmetic);
+		await this.cosmeticService.updateById(id, cosmetic as any);
 	}
 
 	/**
@@ -135,14 +138,14 @@ export class CosmeticController {
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si une erreur survient lors de la suppression
 	 * @throws NotFoundException si le cosmétique n'est pas trouvé
-	 * @returns le cosmétique supprimé
 	 */
-	@Delete("/:id")
+	@Delete("/:id/:username")
+	@UseGuards(AdminGuard)
 	async deleteCosmetic(
 		@Param("id") id: string,
 		@Req() req,
 		@Param("username") username: string,
-	): Promise<Cosmetic> {
+	) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException(
@@ -156,8 +159,7 @@ export class CosmeticController {
 		}
 
 		try {
-			const deleted = await this.cosmeticService.deleteById(id);
-			return deleted;
+			await this.cosmeticService.deleteById(id);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}

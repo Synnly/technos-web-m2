@@ -44,4 +44,21 @@ export const userService = {
 		});
 		return response.data;
 	},
+
+	async deleteUser(username: string, token: string) {
+		await axios.delete(`${API_URL}/user/${username}`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+	},
+
+	async updateUser(username: string, data: Partial<any>, token: string) {
+		const response = await axios.put(
+			`${API_URL}/user/${username}`,
+			data,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
+		return response.data;
+	}
 };

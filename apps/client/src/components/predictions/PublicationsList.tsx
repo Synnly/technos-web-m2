@@ -12,12 +12,12 @@ interface Props {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function PublicationsList({
+const PublicationsList = ({
 	p,
 	predictionId,
 	usersMap,
 	currentId,
-}: Props) {
+}: Props) => {
 	const [showPublications, setShowPublications] = useState(false);
 	const [publications, setPublications] = useState<any[]>([]);
 	const [loadingPubs, setLoadingPubs] = useState(false);
@@ -587,3 +587,5 @@ export default function PublicationsList({
 		</div>
 	);
 }
+
+export default PublicationsList;

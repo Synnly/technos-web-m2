@@ -1,4 +1,5 @@
 import type { ToastType } from "../../components/toast/Toast.interface";
+import type { User } from "./user.interface";
 import { userService } from "./user.service";
 
 export const userResolver = {
@@ -61,4 +62,11 @@ export const userResolver = {
 
 		return userService.register(username, password);
 	},
+	async deleteUser(username: string, token: string) {
+		userService.deleteUser(username, token);
+	},
+
+	async updateUser(username: string, data: Partial<User>, token: string) {
+		return userService.updateUser(username, data, token);
+	}
 };

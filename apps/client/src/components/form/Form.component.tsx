@@ -21,7 +21,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
 			onFinish={onFinish}
 		>
 			<div className="flex justify-center mb-6">
-				<p className="font-bold text-2xl text-white">{title}</p>
+				<p className="font-medium text-xl text-white">{title}</p>
 			</div>
 			{fields.map((f) => {
 				const Component = f.component;

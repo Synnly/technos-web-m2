@@ -15,7 +15,12 @@ import {
 } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
+import { CreatePredictionDto } from "./dto/createprediction.dto";
+import { UpdatePredictionDto } from "./dto/updateprediction.dto";
+import { PredictionDto } from "./dto/prediction.dto";
+import { ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
+import { AdminGuard } from "../guards/admin.guard";
 
 /**
  * Contrôleur pour gérer les prédictions.
@@ -30,9 +35,9 @@ export class PredictionController {
 	 * @returns Liste des prédictions.
 	 */
 	@Get("")
-	async getPredictions(): Promise<Prediction[]> {
+	async getPredictions(): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getAll();
-		return preds;
+		return preds.map((p) => new PredictionDto(p));
 	}
 
 	/**
@@ -40,9 +45,9 @@ export class PredictionController {
 	 * @returns une réponse HTTP (OK) avec la liste des prédictions expirées
 	 */
 	@Get("/expired")
-	async getExpiredPredictions(): Promise<Prediction[]> {
+	async getExpiredPredictions(): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getExpiredPredictions();
-		return preds;
+		return preds.map((p) => new PredictionDto(p));
 	}
 
 	/**
@@ -50,9 +55,9 @@ export class PredictionController {
 	 * @returns une réponse HTTP (OK) avec la liste des prédictions en attente
 	 */
 	@Get("/waiting")
-	async getWaitingPredictions(): Promise<Prediction[]> {
+	async getWaitingPredictions(): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getWaitingPredictions();
-		return preds;
+		return preds.map((p) => new PredictionDto(p));
 	}
 
 	/**
@@ -60,9 +65,9 @@ export class PredictionController {
 	 * @returns une réponse HTTP (OK) avec la liste des prédictions validées
 	 */
 	@Get("/valid")
-	async getValidPredictions(): Promise<Prediction[]> {
+	async getValidPredictions(): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getValidPredictions();
-		return preds;
+		return preds.map((p) => new PredictionDto(p));
 	}
 
 	/**
@@ -73,12 +78,12 @@ export class PredictionController {
 	 * @throws {NotFoundException} Si la prédiction n'existe pas.
 	 */
 	@Get("/:id")
-	async getPredictionById(@Param("id") id: string): Promise<Prediction> {
+	async getPredictionById(@Param("id") id: string): Promise<PredictionDto> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		const pred = await this.predictionService.getById(id);
 		if (!pred) throw new NotFoundException("Prédiction non trouvée");
-		return pred;
+		return new PredictionDto(pred);
 	}
 
 	/**
@@ -86,34 +91,27 @@ export class PredictionController {
 	 * @param req Objet de requête HTTP.
 	 * @param pred La prédiction à créer. Le titre, la date de fin, au moins 2 options, le statut et
 	 * l'utilisateur sont requis.
-	 * @returns La prédiction créée
 	 * @throws {BadRequestException} Si la validation échoue, ou si une erreur se produit lors de la création.
 	 */
 	@Post("")
 	@HttpCode(201)
-	async createPrediction(
-		@Req() req: any,
-		@Body() pred: Prediction,
-	): Promise<Prediction> {
+	async createPrediction(@Req() req: any, @Body(new ValidationPipe()) pred: CreatePredictionDto) {
 		// Validation simple
+		const rawPred: any = pred;
 		const missing = [
 			!pred && "La prédiction est requise",
-			!pred?.title && "Le titre est requis",
-			!pred?.dateFin && "La date de fin est requise",
-			pred?.dateFin &&
-				new Date(pred.dateFin) < new Date() &&
+			!rawPred?.title && "Le titre est requis",
+			!rawPred?.dateFin && "La date de fin est requise",
+			rawPred?.dateFin &&
+				new Date(rawPred.dateFin) < new Date() &&
 				"La date de fin doit être supérieure ou égale à aujourd'hui",
-			!pred?.options ||
-				(Object.keys(pred.options).length < 2 &&
-					"Au moins deux options sont requises"),
-			pred?.status === undefined || pred?.status.toString() === ""
+			!rawPred?.options || (Object.keys(rawPred.options).length < 2 && "Au moins deux options sont requises"),
+			rawPred?.status === undefined || rawPred?.status.toString() === ""
 				? "Le statut est requis"
-				: !Object.values(PredictionStatus).includes(pred.status) &&
-					"Le statut est invalide",
-			!req.user?._id &&
-				!pred?.user_id &&
-				"L'utilisateur authentifié est requis",
-			pred?.result !== "" &&
+				: !Object.values(PredictionStatus).includes(rawPred.status) && "Le statut est invalide",
+			!req.user?._id && !rawPred?.user_id && "L'utilisateur authentifié est requis",
+			rawPred?.result !== undefined &&
+				rawPred?.result !== "" &&
 				"On ne peut voter pour une prédiction déjà validée",
 		].filter(Boolean)[0];
 
@@ -125,10 +123,8 @@ export class PredictionController {
 		if (req.user?._id) payload.user_id = req.user._id;
 
 		try {
-			const created = await this.predictionService.createPrediction(
-				payload as Prediction,
-			);
-			return created;
+			const created = await this.predictionService.createPrediction(payload as Prediction);
+			return new PredictionDto(created);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
@@ -140,35 +136,32 @@ export class PredictionController {
 	 * @param id Identifiant de la prédiction à mettre à jour.
 	 * @param pred La prédiction mise à jour. Le titre, la date de fin, au moins 2 options, le statut et
 	 * l'utilisateur sont requis.
-	 * @returns La prédiction mise à jour.
 	 * @throws {BadRequestException} Si l'id est manquant, si la validation échoue, ou si une erreur se produit lors de la mise à jour.
 	 */
 	@Put("/:id")
 	async updatePredictionById(
 		@Req() req: any,
 		@Param("id") id: string,
-		@Body() pred: Prediction,
-	): Promise<Prediction> {
+		@Body(new ValidationPipe()) pred: UpdatePredictionDto,
+	) {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		// Validation simple (identique à create)
+		const rawPred2: any = pred;
 		const missing = [
 			!pred && "La prédiction est requise",
-			!pred?.title && "Le titre est requis",
-			!pred?.dateFin && "La date de fin est requise",
-			pred?.dateFin &&
-				new Date(pred.dateFin) < new Date() &&
+			!rawPred2?.title && "Le titre est requis",
+			!rawPred2?.dateFin && "La date de fin est requise",
+			rawPred2?.dateFin &&
+				new Date(rawPred2.dateFin) < new Date() &&
 				"La date de fin doit être supérieure ou égale à aujourd'hui",
-			(!pred?.options || Object.keys(pred.options).length < 2) &&
-				"Au moins deux options sont requises",
-			pred?.status === undefined || pred?.status.toString() === ""
+			(!rawPred2?.options || Object.keys(rawPred2.options).length < 2) && "Au moins deux options sont requises",
+			rawPred2?.status === undefined || rawPred2?.status.toString() === ""
 				? "Le statut est requis"
-				: !Object.values(PredictionStatus).includes(pred.status) &&
-					"Le statut est invalide",
-			!req.user?._id &&
-				!pred?.user_id &&
-				"L'utilisateur authentifié est requis",
-			pred?.result !== "" &&
+				: !Object.values(PredictionStatus).includes(rawPred2.status) && "Le statut est invalide",
+			!req.user?._id && !rawPred2?.user_id && "L'utilisateur authentifié est requis",
+			rawPred2?.result !== undefined &&
+				rawPred2?.result !== "" &&
 				"On ne peut voter pour une prédiction déjà validée",
 		].filter(Boolean)[0];
 
@@ -180,12 +173,7 @@ export class PredictionController {
 			if (req.user?._id) payload.user_id = req.user._id;
 
 			// Creer ou mettre à jour
-			const updated = await this.predictionService.createOrUpdateById(
-				id,
-				payload as Prediction,
-			);
-
-			return updated;
+			await this.predictionService.createOrUpdateById(id, payload as Prediction);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
@@ -194,16 +182,14 @@ export class PredictionController {
 	/**
 	 * Supprime une prédiction par son id.
 	 * @param id Identifiant de la prédiction à supprimer.
-	 * @returns La prédiction supprimée.
 	 * @throws {BadRequestException} Si l'id est manquant ou si une erreur se produit lors de la suppression.
 	 */
 	@Delete("/:id")
-	async deletePrediction(@Param("id") id: string): Promise<Prediction> {
+	async deletePrediction(@Param("id") id: string) {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		try {
-			const deleted = await this.predictionService.deleteById(id);
-			return deleted;
+			await this.predictionService.deleteById(id);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
@@ -217,6 +203,7 @@ export class PredictionController {
 	 * @throws {BadRequestException} Si l'id ou l'option gagnante est manquant, ou si une erreur se produit lors de la validation.
 	 */
 	@Put("/:id/validate")
+	@UseGuards(AdminGuard)
 	async validatePrediction(
 		@Param("id") id: string,
 		@Body() body: { winningOption: string },
@@ -231,10 +218,7 @@ export class PredictionController {
 			throw new BadRequestException("L’option gagnante est requise");
 		}
 		try {
-			const result = await this.predictionService.validatePrediction(
-				id,
-				winningOption,
-			);
+			const result = await this.predictionService.validatePrediction(id, winningOption);
 			return result;
 		} catch (error) {
 			throw new BadRequestException(error.message);
@@ -250,9 +234,7 @@ export class PredictionController {
 	): Promise<any> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 		if (!intervalMinutes || intervalMinutes <= 0) {
-			throw new BadRequestException(
-				"L'intervalle en minutes doit être un nombre positif"
-			);
+			throw new BadRequestException("L'intervalle en minutes doit être un nombre positif");
 		}
 
 		try {
@@ -260,7 +242,7 @@ export class PredictionController {
 				id,
 				intervalMinutes,
 				votesAsPercentage,
-				fromStart
+				fromStart,
 			);
 			return timeline;
 		} catch (error) {

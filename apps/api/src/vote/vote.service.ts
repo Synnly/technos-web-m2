@@ -86,13 +86,12 @@ export class VoteService {
 	 * Crée un nouveau vote et met à jour les données utilisateur et prédiction.
 	 * Retire les points de l'utilisateur et met à jour le montant total de l'option.
 	 * @param vote Les données du vote à créer
-	 * @returns {Promise<Vote>} Le vote créé
 	 * @throws {Error} Si l'utilisateur n'existe pas
 	 * @throws {Error} Si l'utilisateur n'a pas assez de points
 	 * @throws {Error} Si la prédiction n'existe pas
 	 * @throws {Error} Si une erreur survient lors de la mise à jour
 	 */
-	async createVote(vote: Vote): Promise<Vote> {
+	async createVote(vote: Vote) {
 		// Vérifier que l'utilisateur et la prédiction existent
 		const user = await this.userModel.findById(vote.user_id).exec();
 		if (!user) throw new Error("Utilisateur non trouvé");
@@ -134,8 +133,6 @@ export class VoteService {
 				throw new Error(`Erreur update user: ${e.message}`);
 			}
 		}
-
-		return this.normalizeVote(newVote) as Vote;
 	}
 
 	/**
@@ -143,7 +140,6 @@ export class VoteService {
 	 * Gère automatiquement les points utilisateur et les totaux de prédiction.
 	 * @param id Identifiant MongoDB du vote à créer ou mettre à jour
 	 * @param vote Les données du vote à créer ou mettre à jour
-	 * @returns {Promise<Vote | undefined>} Le vote créé ou mis à jour
 	 * @throws {Error} Si l'utilisateur n'existe pas
 	 * @throws {Error} Si l'utilisateur n'a pas assez de points
 	 * @throws {Error} Si la prédiction n'existe pas
@@ -152,7 +148,7 @@ export class VoteService {
 	async createOrUpdateVote(
 		id: string,
 		vote: Vote,
-	): Promise<Vote | undefined> {
+	) {
 		const existingVote = await this.voteModel.findById(id).exec();
 
 		// Verifier que l'utilisateur et la prédiction existent
@@ -223,17 +219,15 @@ export class VoteService {
 			}
 		}
 
-		return this.normalizeVote(newVote) as Vote;
 	}
 
 	/**
 	 * Supprime un vote et restitue les points à l'utilisateur.
 	 * Met à jour automatiquement les totaux de prédiction.
 	 * @param id Identifiant MongoDB du vote à supprimer
-	 * @returns {Promise<Vote | undefined>} Le vote supprimé ou undefined si inexistant
 	 * @throws {Error} Si une erreur survient lors de la suppression
 	 */
-	async deleteVote(id: string): Promise<Vote | undefined> {
+	async deleteVote(id: string) {
 		const deleted = await this.voteModel.findByIdAndDelete(id).exec();
 		if (!deleted) return undefined;
 
@@ -262,6 +256,5 @@ export class VoteService {
 			throw new Error("Erreur suppression du vote:");
 		}
 
-		return this.normalizeVote(deleted) as Vote;
 	}
 }
