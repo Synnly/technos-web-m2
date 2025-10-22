@@ -9,10 +9,7 @@ export const PredictionService = {
 		return axios.post(`${API_URL}/prediction`, payload, { headers });
 	},
 
-	async fetchUserIdByUsername(
-		username: string,
-		token?: string,
-	): Promise<string | undefined> {
+	async fetchUserIdByUsername(username: string, token?: string): Promise<string | undefined> {
 		if (!username) return undefined;
 		try {
 			const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -30,6 +27,17 @@ export const PredictionService = {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 		return resp.data || [];
+	},
+
+	async getPredictionById(id: string, token: string): Promise<Prediction | undefined> {
+		try {
+			const headers = { Authorization: `Bearer ${token}` };
+			const resp = await axios.get<Prediction>(`${API_URL}/prediction/${id}`, { headers });
+			resp.data.dateFin = new Date(resp.data.dateFin);
+			return resp.data || undefined;
+		} catch (error) {
+			return undefined;
+		}
 	},
 };
 

@@ -83,17 +83,17 @@ export const PredictionTimeline: FC<Props> = ({ predictionId }) => {
 
 		const option: EChartsOption = {
 			grid: {
-				left: 32,
-				right: 16,
-				top: 24,
-				bottom: 32,
+				left: 0,
+				right: 0,
+				top: 0,
+				bottom: 0,
 			},
 			tooltip: { trigger: "axis" },
 			xAxis: {
 				type: "category",
 				data: timelineData.map((item) => {
 					const date = new Date(item.date);
-					return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+					return `${date.getDate()}/${date.getMonth() + 1}`;
 				}),
 			},
 			yAxis: {
@@ -126,7 +126,7 @@ export const PredictionTimeline: FC<Props> = ({ predictionId }) => {
 			<div
 				ref={chartElementRef}
 				id="chart"
-				style={{ width: "80vw", height: "400px" }}
+				style={{ width: "100%", height: "100%" }}
 			/>
 		</>
 	);

@@ -1,8 +1,5 @@
 import PredictionResolver from "./prediction.resolver";
-import type {
-	PredictionFormValues,
-	CreatePredictionDeps,
-} from "./prediction.interface";
+import type { PredictionFormValues, CreatePredictionDeps } from "./prediction.interface";
 import type React from "react";
 import type { Toast } from "../../components/toast/Toast.interface";
 
@@ -11,8 +8,7 @@ export const PredictionController = {
 		values: PredictionFormValues & { options: Record<string, number> },
 		deps: CreatePredictionDeps = {},
 	) {
-		const { username, fetchPredictions, onClose, setToast, setLocalError } =
-			deps;
+		const { username, fetchPredictions, onClose, setToast, setLocalError } = deps;
 
 		if (setLocalError) setLocalError(null);
 
@@ -26,18 +22,12 @@ export const PredictionController = {
 			return { success: true };
 		} catch (err: any) {
 			console.error(err);
-			const msg =
-				err?.response?.data?.message ||
-				err?.message ||
-				"Erreur lors de la création";
+			const msg = err?.response?.data?.message || err?.message || "Erreur lors de la création";
 			if (setLocalError) setLocalError(msg);
 			return { success: false, error: msg };
 		}
 	},
-	async getAllPredictions(
-		token: string | null,
-		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
-	) {
+	async getAllPredictions(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
 		if (!token) {
 			if (setToast)
 				setToast({
@@ -56,6 +46,32 @@ export const PredictionController = {
 					type: "error",
 				});
 			return [];
+		}
+	},
+
+	async getPredictionById(
+		id: string,
+		token: string | null,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return undefined;
+		}
+		try {
+			const data = await PredictionResolver.getPredictionById(id, token);
+			return data;
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la récupération de la prédiction",
+					type: "error",
+				});
+			return undefined;
 		}
 	},
 };
