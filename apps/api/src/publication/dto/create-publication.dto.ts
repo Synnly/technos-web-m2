@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString, IsOptional, IsArray, IsDate } from "class-validator";
+import { Type } from 'class-transformer';
 
 export class CreatePublicationDto {
     @IsString()
@@ -7,6 +8,7 @@ export class CreatePublicationDto {
 
     @IsDate()
     @IsNotEmpty()
+    @Type(() => Date)
     datePublication: Date;
 
     @IsNotEmpty()

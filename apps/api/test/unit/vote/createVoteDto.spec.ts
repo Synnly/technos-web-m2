@@ -12,7 +12,6 @@ describe("CreateVoteDto", () => {
 		dto.date = new Date();
 		dto.user_id = "507f1f77bcf86cd799439012";
 		const errors = await validate(dto as any);
-		// Current DTO does not forbid 0 — validation returns no errors
 		expect(errors.length).toBe(0);
 	});
 	it("should pass with valid data", async () => {
