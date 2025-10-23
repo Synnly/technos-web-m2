@@ -5,6 +5,7 @@ import { User } from "../user.schema";
  * Expose uniquement les champs nécessaires et évite d'exposer des informations sensibles.
  */
 export class UserDto {
+	_id: string;
 	username: string;
 	points: number;
 	dateDerniereRecompenseQuotidienne: Date | null;
@@ -15,6 +16,7 @@ export class UserDto {
 	currentCosmetic: (string | null)[];
 
 	constructor(user: User) {
+		this._id = user._id;
 		this.username = user.username;
 		this.points = user.points;
 		this.dateDerniereRecompenseQuotidienne = user.dateDerniereRecompenseQuotidienne;
