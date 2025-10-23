@@ -1,31 +1,31 @@
 import { Test } from "@nestjs/testing";
-import { PublicationController } from "../../src/publication/publication.controller";
-import { PublicationService } from "../../src/publication/publication.service";
-import { Publication } from "../../src/publication/publication.schema";
+import { PublicationController } from "../../../src/publication/publication.controller";
+import { PublicationService } from "../../../src/publication/publication.service";
+import { Publication } from "../../../src/publication/publication.schema";
 import { BadRequestException, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-import { AuthGuard } from "../../src/guards/auth.guard";
-import { AdminGuard } from "../../src/guards/admin.guard";
+import { AuthGuard } from "../../../src/guards/auth.guard";
+import { AdminGuard } from "../../../src/guards/admin.guard";
 import { ConfigService } from "@nestjs/config";
 
-const expectedPub1 = {
+const expectedPub1: any = {
 	_id: "507f1f77bcf86cd799439011",
 	message: "Hello world",
-	datePublication: new Date("3025-10-01"),
+	datePublication: new Date("3025-10-01").toISOString(),
 	prediction_id: "507f1f77bcf86cd799439012",
 	parentPublication_id: undefined,
 	user_id: "507f1f77bcf86cd799439013",
-} as unknown as Publication;
+};
 
-const expectedPub2 = {
+const expectedPub2: any = {
 	_id: "507f1f77bcf86cd799439014",
 	message: "Reply",
-	datePublication: new Date("3025-10-02"),
+	datePublication: new Date("3025-10-02").toISOString(),
 	prediction_id: "507f1f77bcf86cd799439012",
 	parentPublication_id: "507f1f77bcf86cd799439011",
 	user_id: "507f1f77bcf86cd799439015",
-} as unknown as Publication;
+};
 
 const expectedPublications = [expectedPub1, expectedPub2];
 
@@ -112,12 +112,16 @@ describe("PublicationController", () => {
 	});
 
 	describe("createPublication", () => {
-		it("should create a publication and return 201", async () => {
-			mockPublicationService.createPublication.mockResolvedValue(expectedPub1);
+		it("should create a publication and be retrievable via getById", async () => {
+			// simulate create does not return the created object (void behavior)
+			mockPublicationService.createPublication.mockResolvedValue(undefined);
+			mockPublicationService.getById.mockResolvedValue(expectedPub1);
 
 			await publicationController.createPublication(expectedPub1);
 
 			expect(publicationService.createPublication).toHaveBeenCalledWith(expectedPub1);
+			const got = await publicationController.getPublicationById(expectedPub1._id!);
+			expect(got).toEqual(expectedPub1);
 		});
 
 		it("should return 400 when publication body is missing", async () => {
@@ -130,7 +134,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				message: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
 		});
@@ -139,7 +143,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				datePublication: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
 		});
@@ -147,8 +151,8 @@ describe("PublicationController", () => {
 		it("should return 400 when datePublication is before today", async () => {
 			const bad = {
 				...expectedPub1,
-				datePublication: new Date("2020-01-01"),
-			} as unknown as Publication;
+				datePublication: new Date("2020-01-01").toISOString(),
+			} as any;
 
 			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
 		});
@@ -157,7 +161,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				user_id: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
 		});
@@ -166,7 +170,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				prediction_id: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
 		});
@@ -183,12 +187,15 @@ describe("PublicationController", () => {
 	});
 
 	describe("createOrUpdatePublicationById", () => {
-		it("should update and return 200 when exists", async () => {
-			mockPublicationService.createOrUpdateById.mockResolvedValue(expectedPub1);
+		it("should update and be retrievable via getById when exists", async () => {
+			mockPublicationService.createOrUpdateById.mockResolvedValue(undefined);
+			mockPublicationService.getById.mockResolvedValue(expectedPub1);
 
 			await publicationController.createOrUpdatePublicationById(expectedPub1._id!, expectedPub1);
 
 			expect(publicationService.createOrUpdateById).toHaveBeenCalledWith(expectedPub1._id, expectedPub1);
+			const got = await publicationController.getPublicationById(expectedPub1._id!);
+			expect(got).toEqual(expectedPub1);
 		});
 
 		it("should return 400 when publication body is missing", async () => {
@@ -207,7 +214,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				message: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
 				BadRequestException,
@@ -218,7 +225,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				datePublication: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
 				BadRequestException,
@@ -228,8 +235,8 @@ describe("PublicationController", () => {
 		it("should return 400 when datePublication is before today", async () => {
 			const bad = {
 				...expectedPub1,
-				datePublication: new Date("2020-01-01"),
-			} as unknown as Publication;
+				datePublication: new Date("2020-01-01").toISOString(),
+			} as any;
 
 			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
 				BadRequestException,
@@ -240,7 +247,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				user_id: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
 				BadRequestException,
@@ -251,7 +258,7 @@ describe("PublicationController", () => {
 			const bad = {
 				...expectedPub1,
 				prediction_id: undefined,
-			} as unknown as Publication;
+			} as any;
 
 			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
 				BadRequestException,
@@ -272,12 +279,18 @@ describe("PublicationController", () => {
 	});
 
 	describe("deletePublicationById", () => {
-		it("should delete and return 200", async () => {
-			mockPublicationService.deleteById.mockResolvedValue(expectedPub1);
+		it("should delete and subsequent getById should throw NotFound", async () => {
+			// simulate delete returns nothing
+			mockPublicationService.deleteById.mockResolvedValue(undefined);
+			// after deletion, getById returns null
+			mockPublicationService.getById.mockResolvedValue(null);
 
 			await publicationController.deletePublicationById(expectedPub1._id!);
 
 			expect(publicationService.deleteById).toHaveBeenCalledWith(expectedPub1._id);
+			await expect(publicationController.getPublicationById(expectedPub1._id!)).rejects.toThrow(
+				NotFoundException,
+			);
 		});
 
 		it("should return 400 when id missing", async () => {
