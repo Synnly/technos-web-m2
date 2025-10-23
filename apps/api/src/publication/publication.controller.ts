@@ -13,6 +13,7 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { Publication } from "./publication.schema";
+import { PublicationDto } from "./dto/publication.dto";
 import { PublicationService } from "../publication/publication.service";
 import { AuthGuard } from "../guards/auth.guard";
 import { CreatePublicationDto } from "./dto/create-publication.dto";
@@ -35,9 +36,9 @@ export class PublicationController {
 	 * @returns Un tableau de publications
 	 */
 	@Get("")
-	async getPublications(): Promise<Publication[]> {
+	async getPublications(): Promise<PublicationDto[]> {
 		const publications = await this.publicationService.getAll();
-		return publications;
+		return publications.map((p) => new PublicationDto(p as any));
 	}
 
 	/**
@@ -48,7 +49,7 @@ export class PublicationController {
 	 * @throws {NotFoundException} si la publication n'est pas trouvée.
 	 */
 	@Get("/:id")
-	async getPublicationById(@Param("id") id: string): Promise<Publication | undefined> {
+	async getPublicationById(@Param("id") id: string): Promise<PublicationDto | undefined> {
 		if (!id)
 			throw new BadRequestException({
 				message: "L'identifiant est requis",
@@ -57,7 +58,7 @@ export class PublicationController {
 		const pub = await this.publicationService.getById(id);
 		if (!pub) throw new NotFoundException({ message: "Publication non trouvée" });
 
-		return pub;
+		return new PublicationDto(pub as any);
 	}
 
 	/**
@@ -149,7 +150,7 @@ export class PublicationController {
 	 * @throws {InternalServerErrorException} si la mise à jour de la publication échoue.
 	 */
 	@Put("/:id/toggle-like/:userId")
-	async toggleLikePublication(@Param("id") id: string, @Param("userId") userId: string): Promise<Publication> {
+	async toggleLikePublication(@Param("id") id: string, @Param("userId") userId: string): Promise<PublicationDto> {
 		if (!id)
 			throw new BadRequestException({
 				message: "L'identifiant de la publication est requis",
@@ -160,7 +161,7 @@ export class PublicationController {
 			});
 		try {
 			const updated = await this.publicationService.toggleLikePublication(id, userId);
-			return updated;
+			return new PublicationDto(updated as any);
 		} catch (e) {
 			throw new InternalServerErrorException({ message: e.message });
 		}

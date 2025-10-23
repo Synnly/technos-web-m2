@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { CreateVoteDto } from "./dto/createvote.dto";
 import { UpdateVoteDto } from "./dto/updatevote.dto";
+import { VoteDto } from "./dto/vote.dto";
 import { VoteService } from "../vote/vote.service";
 import { AuthGuard } from "../guards/auth.guard";
 
@@ -33,9 +34,9 @@ export class VoteController {
 	 * @returns La liste complète des votes
 	 */
 	@Get("")
-	async getVotes() {
+	async getVotes(): Promise<VoteDto[]> {
 		const votes = await this.voteService.getAll();
-		return votes;
+		return votes.map((v) => new VoteDto(v as any));
 	}
 
 	/**
@@ -46,10 +47,10 @@ export class VoteController {
 	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Get("/:id")
-	async getVoteById(@Param("id") id: string) {
+	async getVoteById(@Param("id") id: string): Promise<VoteDto> {
 		const vote = await this.voteService.getById(id);
 		if (!vote) throw new NotFoundException("Vote introuvable");
-		return vote;
+		return new VoteDto(vote as any);
 	}
 
 	/**

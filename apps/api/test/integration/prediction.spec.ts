@@ -115,7 +115,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 401 when creating without authentication", async () => {
 			const payload = {
 				title: "NoAuth",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -126,7 +126,7 @@ describe("Prediction Integration Tests", () => {
 		it("should create a prediction with valid data", async () => {
 			const payload = {
 				title: "Test Prediction",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -148,7 +148,7 @@ describe("Prediction Integration Tests", () => {
 		it("should create a prediction with valid data (admin)", async () => {
 			const payload = {
 				title: "Admin Test Prediction",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -165,7 +165,7 @@ describe("Prediction Integration Tests", () => {
 
 		it("should return 400 for invalid data (missing title)", async () => {
 			const payload = {
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -179,7 +179,7 @@ describe("Prediction Integration Tests", () => {
 
 		it("should return 400 for invalid data (missing title) (admin)", async () => {
 			const payload = {
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -194,7 +194,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when options are fewer than 2", async () => {
 			const payload = {
 				title: "Bad options",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0 },
 				status: "waiting",
 			};
@@ -209,7 +209,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when options are fewer than 2 (admin)", async () => {
 			const payload = {
 				title: "Bad options",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0 },
 				status: "waiting",
 			};
@@ -224,7 +224,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when dateFin is in the past", async () => {
 			const payload = {
 				title: "Past date",
-				dateFin: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() - 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -239,7 +239,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when dateFin is in the past (admin)", async () => {
 			const payload = {
 				title: "Past date",
-				dateFin: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() - 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -254,7 +254,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when title is too short", async () => {
 			const payload = {
 				title: "ab",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -269,7 +269,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when title is too short (admin)", async () => {
 			const payload = {
 				title: "ab",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -284,7 +284,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when status is invalid", async () => {
 			const payload = {
 				title: "Invalid status",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "not-a-status",
 			};
@@ -299,7 +299,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when status is invalid (admin)", async () => {
 			const payload = {
 				title: "Invalid status",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "not-a-status",
 			};
@@ -314,7 +314,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when trying to set result on create", async () => {
 			const payload = {
 				title: "Has result",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 				result: "A",
@@ -330,7 +330,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when trying to set result on create (admin)", async () => {
 			const payload = {
 				title: "Has result",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 				result: "A",
@@ -416,7 +416,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when intervalMinutes missing or invalid", async () => {
 			const payload = {
 				title: "TimelineTest",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -437,7 +437,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when intervalMinutes missing or invalid (admin)", async () => {
 			const payload = {
 				title: "TimelineTestAdmin",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -458,7 +458,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return a timeline with valid params", async () => {
 			const payload = {
 				title: "TimelineOK",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -481,7 +481,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return a timeline with valid params (admin)", async () => {
 			const payload = {
 				title: "TimelineOKAdmin",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -504,7 +504,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when intervalMinutes is non-positive", async () => {
 			const payload = {
 				title: "TimelineNeg",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -526,7 +526,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when intervalMinutes is non-positive (admin)", async () => {
 			const payload = {
 				title: "TimelineNegAdmin",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -548,7 +548,7 @@ describe("Prediction Integration Tests", () => {
 		it("should accept votesAsPercentage and fromStart params and return array", async () => {
 			const payload = {
 				title: "TimelineFlags",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -571,7 +571,7 @@ describe("Prediction Integration Tests", () => {
 		it("should accept votesAsPercentage and fromStart params and return array (admin)", async () => {
 			const payload = {
 				title: "TimelineFlagsAdmin",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
@@ -598,7 +598,7 @@ describe("Prediction Integration Tests", () => {
 		beforeEach(async () => {
 			const payload = {
 				title: "For CRUD",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { X: 0, Y: 0 },
 				status: "waiting",
 			};
@@ -636,7 +636,7 @@ describe("Prediction Integration Tests", () => {
 			const existing = await predictionService.getById(predId);
 			const update = {
 				title: "Updated title",
-				dateFin: new Date(existing!.dateFin).toISOString(),
+				dateFin: new Date(existing!.dateFin),
 				options: existing!.options,
 				status: existing!.status,
 			};
@@ -653,7 +653,7 @@ describe("Prediction Integration Tests", () => {
 			const existing = await predictionService.getById(predId);
 			const update = {
 				title: "Updated title admin",
-				dateFin: new Date(existing!.dateFin).toISOString(),
+				dateFin: existing!.dateFin,
 				options: existing!.options,
 				status: existing!.status,
 			};
@@ -678,7 +678,7 @@ describe("Prediction Integration Tests", () => {
 		it("should delete prediction by owner (admin)", async () => {
 			const payload = {
 				title: "For CRUD Admin Delete",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { X: 0, Y: 0 },
 				status: "waiting",
 			};
@@ -752,7 +752,7 @@ describe("Prediction Integration Tests", () => {
 		it("should validate a prediction (admin) and return structure", async () => {
 			const payload = {
 				title: "To Validate",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 10, B: 5 },
 				status: "Valid",
 			};
@@ -778,7 +778,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when winningOption is missing", async () => {
 			const payload = {
 				title: "To Validate Missing",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 10, B: 0 },
 				status: "Valid",
 			};
@@ -800,7 +800,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 403 when winningOption is missing and attempted by regular user", async () => {
 			const payload = {
 				title: "To Validate Missing User",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 10, B: 0 },
 				status: "Valid",
 			};
@@ -822,7 +822,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 400 when winningOption is invalid", async () => {
 			const payload = {
 				title: "To Validate InvalidOpt",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 10, B: 5 },
 				status: "Valid",
 			};
@@ -844,7 +844,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 403 when winningOption is invalid and attempted by regular user", async () => {
 			const payload = {
 				title: "To Validate InvalidOpt User",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 10, B: 5 },
 				status: "Valid",
 			};
@@ -866,7 +866,7 @@ describe("Prediction Integration Tests", () => {
 		it("should return 403 when a regular user attempts to validate a prediction", async () => {
 			const payload = {
 				title: "UserTryValidate",
-				dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
 				options: { A: 10, B: 5 },
 				status: "Valid",
 			};

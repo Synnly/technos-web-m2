@@ -15,15 +15,15 @@ export class PredictionDto {
     result: string;
     pronostics_ia?: Record<string, number>;
 
-    constructor(pred: Prediction & any) {
-        this._id = String((pred as any)._id);
+    constructor(pred: Prediction) {
+        this._id = pred._id;
         this.title = pred.title;
         this.description = pred.description;
-        this.status = String(pred.status);
+        this.status = pred.status;
         this.createdAt = pred.createdAt;
-        this.dateFin = new Date(pred.dateFin);
+        this.dateFin = pred.dateFin;
         this.options = pred.options || {};
-        this.user_id = pred.user_id && pred.user_id._id ? String(pred.user_id._id) : String(pred.user_id);
+        this.user_id = String(pred.user_id);
         this.result = pred.result || '';
         this.pronostics_ia = pred.pronostics_ia || {};
     }

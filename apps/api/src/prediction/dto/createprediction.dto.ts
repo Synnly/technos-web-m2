@@ -1,4 +1,5 @@
-import { IsDateString, IsNotEmpty, IsString, IsObject, MinLength, IsEnum, IsOptional, ValidateNested, IsNumber } from 'class-validator';
+import { IsDate, IsNotEmpty, IsString, IsObject, MinLength, IsEnum, IsOptional, ValidateNested, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PredictionStatus } from '../prediction.schema';
 
 /**
@@ -15,8 +16,9 @@ export class CreatePredictionDto {
     description?: string;
 
     @IsNotEmpty()
-    @IsDateString()
-    dateFin: string;
+    @IsDate()
+    @Type(() => Date)
+    dateFin: Date;
 
     @IsNotEmpty()
     @IsObject()

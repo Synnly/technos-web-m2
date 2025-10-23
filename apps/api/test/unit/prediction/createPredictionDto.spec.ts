@@ -8,7 +8,7 @@ describe("CreatePredictionDto", () => {
 		it("should pass when title is valid", async () => {
 			dto = new CreatePredictionDto({
 				title: "Valid title",
-				dateFin: new Date().toISOString(),
+				dateFin: new Date(),
 				options: { a: 1, b: 2 },
 			});
 			const errors = await validate(dto);
@@ -16,14 +16,14 @@ describe("CreatePredictionDto", () => {
 		});
 
 		it("should fail when title is missing", async () => {
-			dto = new CreatePredictionDto({ dateFin: new Date().toISOString(), options: { a: 1 } as any });
+			dto = new CreatePredictionDto({ dateFin: new Date(), options: { a: 1 } as any });
 			const errors = await validate(dto);
 			expect(errors.length).toBeGreaterThan(0);
 			expect(errors[0].property).toBe("title");
 		});
 
 		it("should fail when title is too short", async () => {
-			dto = new CreatePredictionDto({ title: "ab", dateFin: new Date().toISOString(), options: { a: 1 } as any });
+			dto = new CreatePredictionDto({ title: "ab", dateFin: new Date(), options: { a: 1 } as any });
 			const errors = await validate(dto);
 			expect(errors.length).toBeGreaterThan(0);
 			expect(errors[0].property).toBe("title");
@@ -34,7 +34,7 @@ describe("CreatePredictionDto", () => {
 		it("should pass when dateFin is a valid ISO date", async () => {
 			dto = new CreatePredictionDto({
 				title: "Valid title",
-				dateFin: new Date().toISOString(),
+				dateFin: new Date(),
 				options: { a: 1 },
 			});
 			const errors = await validate(dto);
@@ -64,7 +64,7 @@ describe("CreatePredictionDto", () => {
 		it("should pass when options is an object with numeric values", async () => {
 			dto = new CreatePredictionDto({
 				title: "Valid title",
-				dateFin: new Date().toISOString(),
+				dateFin: new Date(),
 				options: { a: 1, b: 2 },
 			});
 			const errors = await validate(dto);
@@ -72,7 +72,7 @@ describe("CreatePredictionDto", () => {
 		});
 
 		it("should fail when options is missing", async () => {
-			dto = new CreatePredictionDto({ title: "Valid title", dateFin: new Date().toISOString() } as any);
+			dto = new CreatePredictionDto({ title: "Valid title", dateFin: new Date() } as any);
 			const errors = await validate(dto);
 			expect(errors.length).toBeGreaterThan(0);
 			expect(errors[0].property).toBe("options");
@@ -81,7 +81,7 @@ describe("CreatePredictionDto", () => {
 		it("should fail when options is not an object", async () => {
 			dto = new CreatePredictionDto({
 				title: "Valid title",
-				dateFin: new Date().toISOString(),
+				dateFin: new Date(),
 				options: "not-an-object" as any,
 			});
 			const errors = await validate(dto);
@@ -94,7 +94,7 @@ describe("CreatePredictionDto", () => {
 		it("should pass when status is a valid enum value", async () => {
 			dto = new CreatePredictionDto({
 				title: "Valid title",
-				dateFin: new Date().toISOString(),
+				dateFin: new Date(),
 				options: { a: 1 },
 				status: undefined as any,
 			});

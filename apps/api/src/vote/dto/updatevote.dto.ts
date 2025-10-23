@@ -1,5 +1,4 @@
-import { IsOptional, IsNumber, IsString, IsDateString } from "class-validator";
-import { Types } from "mongoose";
+import { IsOptional, IsNumber, IsString, IsDate } from "class-validator";
 
 export class UpdateVoteDto {
     @IsOptional()
@@ -7,16 +6,20 @@ export class UpdateVoteDto {
     amount?: number;
 
     @IsOptional()
-    prediction_id?: Types.ObjectId | string;
+    prediction_id?: string;
 
     @IsOptional()
     @IsString()
     option?: string;
 
     @IsOptional()
-    @IsDateString()
-    date?: string;
+    @IsDate()
+    date?: Date;
 
     @IsOptional()
-    user_id?: Types.ObjectId | string;
+    user_id?: string;
+
+    constructor(partial: Partial<UpdateVoteDto>) {
+        Object.assign(this, partial);
+    }
 }

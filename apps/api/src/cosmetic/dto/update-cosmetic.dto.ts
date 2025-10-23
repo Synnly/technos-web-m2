@@ -21,4 +21,8 @@ export class UpdateCosmeticDto {
     @IsOptional()
     @IsBoolean()
     owned?: boolean;
+
+    constructor(partial: Partial<UpdateCosmeticDto>) {
+        Object.assign(this, partial);
+    }
 }

@@ -1,5 +1,4 @@
-import { IsOptional, IsString, IsDateString, IsArray, IsNotEmpty } from "class-validator";
-import { Types } from "mongoose";
+import { IsOptional, IsString, IsArray, IsNotEmpty, IsDate } from "class-validator";
 
 export class UpdatePublicationDto {
     @IsOptional()
@@ -8,20 +7,24 @@ export class UpdatePublicationDto {
     message?: string;
 
     @IsOptional()
-    @IsDateString()
-    datePublication?: string;
+    @IsDate()
+    datePublication?: Date;
 
     @IsOptional()
-    prediction_id?: Types.ObjectId | string;
+    prediction_id?: string;
 
     @IsOptional()
-    parentPublication_id?: Types.ObjectId | string;
+    parentPublication_id?: string;
 
     @IsOptional()
-    user_id?: Types.ObjectId | string;
+    user_id?: string;
 
     @IsOptional()
     @IsArray()
     @IsNotEmpty({ each: true })
-    likes?: (Types.ObjectId | string)[];
+    likes?: string[];
+
+    constructor(partial: Partial<UpdatePublicationDto>) {
+        Object.assign(this, partial);
+    }
 }

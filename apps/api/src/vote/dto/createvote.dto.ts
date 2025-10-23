@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString, IsDateString } from "class-validator";
-import { Types } from "mongoose";
+import { IsNotEmpty, IsNumber, IsString, IsDate } from "class-validator";
+import { Type } from 'class-transformer';
 
 export class CreateVoteDto {
     @IsNumber()
@@ -7,16 +7,21 @@ export class CreateVoteDto {
     amount: number;
 
     @IsNotEmpty()
-    prediction_id: Types.ObjectId | string;
+    prediction_id: string;
 
     @IsString()
     @IsNotEmpty()
     option: string;
 
-    @IsDateString()
+    @IsDate()
     @IsNotEmpty()
-    date: string;
+    @Type(() => Date)
+    date: Date;
 
     @IsNotEmpty()
-    user_id: Types.ObjectId | string;
+    user_id: string;
+
+    constructor(partial: Partial<CreateVoteDto>) {
+        Object.assign(this, partial);
+    }
 }

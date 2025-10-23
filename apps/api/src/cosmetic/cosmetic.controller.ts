@@ -13,7 +13,7 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { CosmeticService } from "./cosmetic.service";
-import { Cosmetic } from "./cosmetic.schema";
+import { CosmeticDto } from "./dto/cosmetic.dto";
 import { Role, User } from "../user/user.schema";
 import { AuthGuard } from "../guards/auth.guard";
 import { AdminGuard } from "../guards/admin.guard";
@@ -32,8 +32,9 @@ export class CosmeticController {
 	 * Récupère tous les cosmétiques.
 	 */
 	@Get("")
-	async getCosmetics(): Promise<Cosmetic[]> {
-		return await this.cosmeticService.findAll();
+	async getCosmetics(): Promise<CosmeticDto[]> {
+		const list = await this.cosmeticService.findAll();
+		return list.map((c) => new CosmeticDto(c));
 	}
 
 	/**
@@ -44,12 +45,12 @@ export class CosmeticController {
 	 * @returns le cosmétique
 	 */
 	@Get("/:id")
-	async getCosmeticById(@Param("id") id: string): Promise<Cosmetic> {
+	async getCosmeticById(@Param("id") id: string): Promise<CosmeticDto> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 		const cosmetic = await this.cosmeticService.findById(id);
 		if (!cosmetic) throw new NotFoundException("Prédiction non trouvée");
 
-		return cosmetic;
+		return new CosmeticDto(cosmetic);
 	}
 
 	/**
@@ -128,7 +129,7 @@ export class CosmeticController {
 			}
 		}
 
-		await this.cosmeticService.updateById(id, cosmetic as any);
+		await this.cosmeticService.updateById(id, cosmetic );
 	}
 
 	/**

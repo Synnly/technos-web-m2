@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { PublicationController } from "../../../src/publication/publication.controller";
 import { PublicationService } from "../../../src/publication/publication.service";
 import { Publication } from "../../../src/publication/publication.schema";
+import { PublicationDto } from "../../../src/publication/dto/publication.dto";
 import { BadRequestException, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
@@ -121,7 +122,7 @@ describe("PublicationController", () => {
 
 			expect(publicationService.createPublication).toHaveBeenCalledWith(expectedPub1);
 			const got = await publicationController.getPublicationById(expectedPub1._id!);
-			expect(got).toEqual(expectedPub1);
+			expect(got).toEqual(new PublicationDto(expectedPub1 as any));
 		});
 
 		it("should return 400 when publication body is missing", async () => {
@@ -194,8 +195,8 @@ describe("PublicationController", () => {
 			await publicationController.createOrUpdatePublicationById(expectedPub1._id!, expectedPub1);
 
 			expect(publicationService.createOrUpdateById).toHaveBeenCalledWith(expectedPub1._id, expectedPub1);
-			const got = await publicationController.getPublicationById(expectedPub1._id!);
-			expect(got).toEqual(expectedPub1);
+				const got = await publicationController.getPublicationById(expectedPub1._id!);
+				expect(got).toEqual(new PublicationDto(expectedPub1 as any));
 		});
 
 		it("should return 400 when publication body is missing", async () => {

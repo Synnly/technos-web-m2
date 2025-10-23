@@ -7,6 +7,8 @@ import {
 	PredictionDocument,
 	PredictionStatus,
 } from "./prediction.schema";
+import { CreatePredictionDto } from './dto/createprediction.dto';
+import { UpdatePredictionDto } from './dto/updateprediction.dto';
 import { User, UserDocument } from "../user/user.schema";
 import { Vote, VoteDocument } from "../vote/vote.schema";
 import OpenAI from "openai";
@@ -96,8 +98,8 @@ export class PredictionService {
 	 * @param pred Objet prédiction à créer.
 	 * @returns La promesse qui résout la prédiction créée.
 	 */
-	async createPrediction(pred: Prediction): Promise<Prediction> {
-		const newPred = new this.predictionModel(pred);
+	async createPrediction(pred: CreatePredictionDto | Prediction): Promise<Prediction> {
+		const newPred = new this.predictionModel(pred as any);
 		const created = await newPred.save();
 
 		// Si la prédiction a une référence user_id, ajouter cet identifiant de prédiction dans le tableau des
@@ -125,7 +127,7 @@ export class PredictionService {
 	 */
 	async createOrUpdateById(
 		id: string,
-		pred: Prediction,
+		pred: UpdatePredictionDto | Prediction,
 	): Promise<Prediction> {
 		const existing = await this.predictionModel.findById(id).exec();
 

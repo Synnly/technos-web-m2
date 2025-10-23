@@ -1,5 +1,6 @@
-import { IsOptional, IsString, IsDateString, IsObject, MinLength, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsDate, IsObject, MinLength, IsEnum } from 'class-validator';
 import { PredictionStatus } from '../prediction.schema';
+import { Type } from 'class-transformer';
 
 /**
  * DTO pour la mise à jour d'une prédiction.
@@ -15,8 +16,9 @@ export class UpdatePredictionDto {
     description?: string;
 
     @IsOptional()
-    @IsDateString()
-    dateFin?: string;
+    @IsDate()
+    @Type(() => Date)
+    dateFin?: Date;
 
     @IsOptional()
     @IsObject()

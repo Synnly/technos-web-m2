@@ -2,6 +2,8 @@ import { Injectable, HttpException, HttpStatus, NotFoundException } from "@nestj
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { Publication, PublicationDocument } from "../publication/publication.schema";
+import { CreatePublicationDto } from "./dto/create-publication.dto";
+import { UpdatePublicationDto } from "./dto/update-publication.dto";
 
 @Injectable()
 /**
@@ -81,7 +83,7 @@ export class PublicationService {
 	 * Crée une nouvelle publication.
 	 * @param pub publication à créer
 	 */
-	async createPublication(pub: Publication) {
+	async createPublication(pub: CreatePublicationDto | Publication) {
 		const safePub = { ...pub } as any;
 		const newPub = new this.publicationModel(safePub);
 		const created = await newPub.save();
@@ -92,7 +94,7 @@ export class PublicationService {
 	 * @param id Identifiant de la publication à créer ou mettre à jour
 	 * @param pub Publication à créer ou mettre à jour
 	 */
-	async createOrUpdateById(id: string, pub: Publication) {
+	async createOrUpdateById(id: string, pub: UpdatePublicationDto | Publication) {
 		const existing = await this.publicationModel.findById(id).exec();
 		if (existing) {
 			existing.message = pub.message ?? existing.message;

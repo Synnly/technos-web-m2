@@ -31,7 +31,7 @@ describe("UpdateVoteDto", () => {
 
 	it("should pass with valid date", async () => {
 		const dto = new UpdateVoteDto();
-		dto.date = new Date().toISOString();
+	dto.date = new Date();
 		const errors = await validate(dto as any);
 		expect(errors.length).toBe(0);
 	});

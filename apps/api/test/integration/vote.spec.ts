@@ -106,7 +106,7 @@ describe("Vote integration tests", () => {
 			amount: 10,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
 
@@ -126,7 +126,7 @@ describe("Vote integration tests", () => {
 			amount: 0,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
 
@@ -142,7 +142,7 @@ describe("Vote integration tests", () => {
 			amount: 10,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
 
@@ -154,7 +154,7 @@ describe("Vote integration tests", () => {
 			amount: 5,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testAdmin as any)._id || (testAdmin as any).id,
 		};
 
@@ -174,7 +174,7 @@ describe("Vote integration tests", () => {
 			amount: 7,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
 		await request(app.getHttpServer())
@@ -203,7 +203,7 @@ describe("Vote integration tests", () => {
 			amount: 12,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
 		await request(app.getHttpServer())
@@ -252,7 +252,7 @@ describe("Vote integration tests", () => {
 			amount: 5,
 			prediction_id: "000000000000000000000000",
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
 
@@ -268,7 +268,7 @@ describe("Vote integration tests", () => {
 			amount: 5,
 			prediction_id: (testPrediction as any)._id || (testPrediction as any).id,
 			option: "yes",
-			date: new Date().toISOString(),
+			date: new Date(),
 			user_id: "000000000000000000000000",
 		};
 

@@ -36,7 +36,7 @@ describe("UpdatePredictionDto", () => {
 
 	describe("dateFin validation", () => {
 		it("should pass when dateFin is a valid ISO date", async () => {
-			dto = new UpdatePredictionDto({ dateFin: new Date().toISOString() });
+			dto = new UpdatePredictionDto({ dateFin: new Date() });
 			const errors = await validate(dto);
 			expect(errors.length).toBe(0);
 		});

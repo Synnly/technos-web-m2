@@ -1,27 +1,30 @@
-import { IsNotEmpty, IsString, IsDateString, IsOptional, IsArray } from "class-validator";
-import { Types } from "mongoose";
+import { IsNotEmpty, IsString, IsOptional, IsArray, IsDate } from "class-validator";
 
 export class CreatePublicationDto {
     @IsString()
     @IsNotEmpty()
     message: string;
 
-    @IsDateString()
+    @IsDate()
     @IsNotEmpty()
-    datePublication: string;
+    datePublication: Date;
 
     @IsNotEmpty()
-    prediction_id: Types.ObjectId | string;
+    prediction_id: string;
 
     @IsOptional()
     @IsNotEmpty()
-    parentPublication_id?: Types.ObjectId | string;
+    parentPublication_id?: string;
 
     @IsNotEmpty()
-    user_id: Types.ObjectId | string;
+    user_id: string;
 
     @IsOptional()
     @IsArray()
     @IsNotEmpty({ each: true })
-    likes?: (Types.ObjectId | string)[];
+    likes?: string[];
+
+    constructor(partial: Partial<CreatePublicationDto>) {
+        Object.assign(this, partial);
+    }
 }

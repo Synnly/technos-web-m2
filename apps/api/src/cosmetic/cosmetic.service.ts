@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Cosmetic, CosmeticDocument } from "./cosmetic.schema";
+import { CreateCosmeticDto } from "./dto/create-cosmetic.dto";
+import { UpdateCosmeticDto } from "./dto/update-cosmetic.dto";
 
 /**
  * Service pour gérer les cosmétiques.
@@ -36,9 +38,9 @@ export class CosmeticService {
 	 * @param cosmetic les données du cosmétique à créer
 	 * @returns le cosmétique créé
 	 */
-	async create(cosmetic: Cosmetic) {
-		const newCosmetic = new this.cosmeticModel(cosmetic);
-		newCosmetic.save();
+	async create(cosmetic: CreateCosmeticDto) {
+		const newCosmetic = new this.cosmeticModel(cosmetic as any);
+		await newCosmetic.save();
 	}
 
 	/**
@@ -47,8 +49,8 @@ export class CosmeticService {
 	 * @param cosmetic les nouvelles données du cosmétique
 	 * @returns la cosmétique mis à jour
 	 */
-	async updateById(id: string, cosmetic: Cosmetic) {
-		await this.cosmeticModel.findByIdAndUpdate(id, cosmetic, { new: true }).exec();
+	async updateById(id: string, cosmetic: UpdateCosmeticDto) {
+		await this.cosmeticModel.findByIdAndUpdate(id, cosmetic as any, { new: true }).exec();
 	}
 
 	/**
