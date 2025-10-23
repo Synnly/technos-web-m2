@@ -12,6 +12,8 @@ import {
 	NotFoundException,
 	UseGuards,
 	Query,
+	ParseIntPipe,
+	ParseBoolPipe,
 } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
@@ -21,6 +23,7 @@ import { PredictionDto } from "./dto/prediction.dto";
 import { ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
 import { AdminGuard } from "../guards/admin.guard";
+import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
 
 /**
  * Contrôleur pour gérer les prédictions.
@@ -78,7 +81,7 @@ export class PredictionController {
 	 * @throws {NotFoundException} Si la prédiction n'existe pas.
 	 */
 	@Get("/:id")
-	async getPredictionById(@Param("id") id: string): Promise<PredictionDto> {
+	async getPredictionById(@Param('id', ParseObjectIdPipe) id: string): Promise<PredictionDto> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		const pred = await this.predictionService.getById(id);
@@ -95,7 +98,7 @@ export class PredictionController {
 	 */
 	@Post("")
 	@HttpCode(201)
-	async createPrediction(@Req() req: any, @Body(new ValidationPipe()) pred: CreatePredictionDto) {
+	async createPrediction(@Req() req: any, @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) pred: CreatePredictionDto) {
 		// Validation simple
 		const rawPred: any = pred;
 		const missing = [
@@ -128,21 +131,12 @@ export class PredictionController {
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
-	}
-
-	/**
-	 * Met à jour une prédiction par son id.
-	 * @param req Objet de requête HTTP.
-	 * @param id Identifiant de la prédiction à mettre à jour.
-	 * @param pred La prédiction mise à jour. Le titre, la date de fin, au moins 2 options, le statut et
-	 * l'utilisateur sont requis.
-	 * @throws {BadRequestException} Si l'id est manquant, si la validation échoue, ou si une erreur se produit lors de la mise à jour.
-	 */
+		}
 	@Put("/:id")
 	async updatePredictionById(
 		@Req() req: any,
-		@Param("id") id: string,
-		@Body(new ValidationPipe()) pred: UpdatePredictionDto,
+		@Param('id', ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) pred: UpdatePredictionDto,
 	) {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
@@ -184,8 +178,8 @@ export class PredictionController {
 	 * @param id Identifiant de la prédiction à supprimer.
 	 * @throws {BadRequestException} Si l'id est manquant ou si une erreur se produit lors de la suppression.
 	 */
-	@Delete("/:id")
-	async deletePrediction(@Param("id") id: string) {
+	@Delete('/:id')
+	async deletePrediction(@Param('id', ParseObjectIdPipe) id: string) {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		try {
@@ -205,8 +199,8 @@ export class PredictionController {
 	@Put("/:id/validate")
 	@UseGuards(AdminGuard)
 	async validatePrediction(
-		@Param("id") id: string,
-		@Body() body: { winningOption: string },
+		@Param('id', ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) body: { winningOption: string },
 	): Promise<{
 		predictionId: string;
 		winningOption: string;
@@ -227,22 +221,26 @@ export class PredictionController {
 
 	@Get("/:id/timeline")
 	async getPredictionTimeline(
-		@Param("id") id: string,
-		@Query("intervalMinutes") intervalMinutes: number,
-		@Query("votesAsPercentage") votesAsPercentage: boolean = false,
-		@Query("fromStart") fromStart: boolean = false,
-	): Promise<any> {
+		@Param('id', ParseObjectIdPipe) id: string,
+		@Query('intervalMinutes', ParseIntPipe) intervalMinutes: number,
+		@Query('votesAsPercentage') votesAsPercentage?: any,
+		@Query('fromStart') fromStart?: any,
+		): Promise<any> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 		if (!intervalMinutes || intervalMinutes <= 0) {
 			throw new BadRequestException("L'intervalle en minutes doit être un nombre positif");
 		}
 
+		// Normalize optional boolean flags (accepts 'true'|'false' or boolean)
+		const votesAsPercentageBool = votesAsPercentage === undefined ? false : (votesAsPercentage === true || votesAsPercentage === 'true');
+		const fromStartBool = fromStart === undefined ? false : (fromStart === true || fromStart === 'true');
+
 		try {
 			const timeline = await this.predictionService.getPredictionTimeline(
 				id,
 				intervalMinutes,
-				votesAsPercentage,
-				fromStart,
+				votesAsPercentageBool,
+				fromStartBool,
 			);
 			return timeline;
 		} catch (error) {

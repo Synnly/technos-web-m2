@@ -1,32 +1,37 @@
-import { IsNotEmpty, IsString, IsOptional, IsArray, IsDate } from "class-validator";
-import { Type } from 'class-transformer';
+import { IsNotEmpty, IsString, IsOptional, IsArray, IsDate, IsMongoId } from "class-validator";
+import { Type, Transform } from "class-transformer";
+import { IsFutureDate } from "../../validators/is-future-date.validator";
 
 export class CreatePublicationDto {
-    @IsString()
-    @IsNotEmpty()
-    message: string;
+	@IsString()
+	@IsNotEmpty()
+	message: string;
 
-    @IsDate()
-    @IsNotEmpty()
-    @Type(() => Date)
-    datePublication: Date;
+	@IsDate()
+	@IsNotEmpty()
+	@Type(() => Date)
+	@IsFutureDate({ message: "La date de publication doit être supérieure ou égale à aujourd'hui" })
+	datePublication: Date;
 
-    @IsNotEmpty()
-    prediction_id: string;
+	@IsNotEmpty()
+	@IsMongoId()
+	prediction_id: string;
 
-    @IsOptional()
-    @IsNotEmpty()
-    parentPublication_id?: string;
+	@IsOptional()
+	@Transform(({ value }) => (value === "" ? undefined : value))
+	@IsMongoId()
+	parentPublication_id?: string;
 
-    @IsNotEmpty()
-    user_id: string;
+	@IsNotEmpty()
+	@IsMongoId()
+	user_id: string;
 
-    @IsOptional()
-    @IsArray()
-    @IsNotEmpty({ each: true })
-    likes?: string[];
+	@IsOptional()
+	@IsArray()
+	@IsNotEmpty({ each: true })
+	likes?: string[];
 
-    constructor(partial: Partial<CreatePublicationDto>) {
-        Object.assign(this, partial);
-    }
+	constructor(partial: Partial<CreatePublicationDto>) {
+		Object.assign(this, partial);
+	}
 }

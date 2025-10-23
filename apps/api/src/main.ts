@@ -1,4 +1,5 @@
 import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
 import { UserMiddleware } from "./middleware/user.middleware";
 import { JwtService } from "@nestjs/jwt";
@@ -33,6 +34,9 @@ async function bootstrap() {
 
 	// Express/Nest attend une fonction middleware ; on passe la méthode `use` liée à l'instance.
 	app.use(userMiddleware.use.bind(userMiddleware));
+
+	// Global validation pipe for DTOs
+	app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 	await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

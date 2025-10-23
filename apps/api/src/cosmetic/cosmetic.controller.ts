@@ -12,6 +12,8 @@ import {
 	HttpCode,
 	UseGuards,
 } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
+import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
 import { CosmeticService } from "./cosmetic.service";
 import { CosmeticDto } from "./dto/cosmetic.dto";
 import { Role, User } from "../user/user.schema";
@@ -45,10 +47,10 @@ export class CosmeticController {
 	 * @returns le cosmétique
 	 */
 	@Get("/:id")
-	async getCosmeticById(@Param("id") id: string): Promise<CosmeticDto> {
+	async getCosmeticById(@Param("id", ParseObjectIdPipe) id: string): Promise<CosmeticDto> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 		const cosmetic = await this.cosmeticService.findById(id);
-		if (!cosmetic) throw new NotFoundException("Prédiction non trouvée");
+		if (!cosmetic) throw new NotFoundException("Cosmétique non trouvable");
 
 		return new CosmeticDto(cosmetic);
 	}
@@ -64,16 +66,14 @@ export class CosmeticController {
 	@UseGuards(AdminGuard)
 	@HttpCode(201)
 	async createCosmetic(
-		@Body() cosmetic: CreateCosmeticDto,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		cosmetic: CreateCosmeticDto,
 		@Req() req,
 		@Param("username") username,
 	) {
-
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
-			throw new BadRequestException(
-				"Seul l'administrateur peut créer un cosmétique",
-			);
+			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
 		const missing = [
@@ -101,16 +101,15 @@ export class CosmeticController {
 	@UseGuards(AdminGuard)
 	@HttpCode(200)
 	async updateCosmetic(
-		@Param("id") id: string,
-		@Body() cosmetic: UpdateCosmeticDto,
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		cosmetic: UpdateCosmeticDto,
 		@Req() req,
 		@Param("username") username: string,
 	) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
-			throw new BadRequestException(
-				"Seul l'administrateur peut créer un cosmétique",
-			);
+			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
 		const missing = [
@@ -129,7 +128,7 @@ export class CosmeticController {
 			}
 		}
 
-		await this.cosmeticService.updateById(id, cosmetic );
+		await this.cosmeticService.updateById(id, cosmetic);
 	}
 
 	/**
@@ -142,16 +141,10 @@ export class CosmeticController {
 	 */
 	@Delete("/:id/:username")
 	@UseGuards(AdminGuard)
-	async deleteCosmetic(
-		@Param("id") id: string,
-		@Req() req,
-		@Param("username") username: string,
-	) {
+	async deleteCosmetic(@Param("id", ParseObjectIdPipe) id: string, @Req() req, @Param("username") username: string) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
-			throw new BadRequestException(
-				"Seul l'administrateur peut créer un cosmétique",
-			);
+			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
 		const cosmetic = await this.cosmeticService.findById(id);

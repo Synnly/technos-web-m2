@@ -1,25 +1,31 @@
-import { IsOptional, IsNumber, IsString, IsDate } from "class-validator";
+import { IsOptional, IsNumber, IsString, IsDate, IsMongoId } from "class-validator";
+import { Type, Transform } from "class-transformer";
 
 export class UpdateVoteDto {
-    @IsOptional()
-    @IsNumber()
-    amount?: number;
+	@IsOptional()
+	@IsNumber()
+	amount?: number;
 
-    @IsOptional()
-    prediction_id?: string;
+	@IsOptional()
+	@IsMongoId()
+	@Transform(({ value }) => (value === "" ? undefined : value))
+	prediction_id?: string;
 
-    @IsOptional()
-    @IsString()
-    option?: string;
+	@IsOptional()
+	@IsString()
+	option?: string;
 
-    @IsOptional()
-    @IsDate()
-    date?: Date;
+	@IsOptional()
+	@IsDate()
+	@Transform(({ value }) => (value ? new Date(value) : value))
+	date?: Date;
 
-    @IsOptional()
-    user_id?: string;
+	@IsOptional()
+	@IsMongoId()
+	@Transform(({ value }) => (value === "" ? undefined : value))
+	user_id?: string;
 
-    constructor(partial: Partial<UpdateVoteDto>) {
-        Object.assign(this, partial);
-    }
+	constructor(partial: Partial<UpdateVoteDto>) {
+		Object.assign(this, partial);
+	}
 }

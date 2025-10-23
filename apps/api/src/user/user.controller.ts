@@ -58,7 +58,7 @@ export class UserController {
 		return users.map((user) => new UserDto(user));
 	}
 
-		/**
+	/**
 	 * Récupère la récompense quotidienne pour un utilisateur.
 	 * @param request la requête HTTP contenant l'utilisateur authentifié
 	 * @returns un objet contenant la récompense quotidienne
@@ -110,7 +110,10 @@ export class UserController {
 	 */
 	@Post("")
 	@HttpCode(201)
-	async createUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
+	async createUser(
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		createUserDto: CreateUserDto,
+	) {
 		if (!createUserDto) throw new BadRequestException({ message: "L'utilisateur est requis" });
 		try {
 			await this.userService.createUser(createUserDto);
@@ -132,7 +135,8 @@ export class UserController {
 	async updateUserByUsername(
 		@Req() request,
 		@Param("username") username: string,
-		@Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		updateUserDto: UpdateUserDto,
 	) {
 		if (request.user && request.user.username !== username && request.user.role !== Role.ADMIN) {
 			throw new ForbiddenException();

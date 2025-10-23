@@ -11,6 +11,7 @@ import {
 	Post,
 	Put,
 	UseGuards,
+	ValidationPipe,
 } from "@nestjs/common";
 import { Publication } from "./publication.schema";
 import { PublicationDto } from "./dto/publication.dto";
@@ -18,6 +19,7 @@ import { PublicationService } from "../publication/publication.service";
 import { AuthGuard } from "../guards/auth.guard";
 import { CreatePublicationDto } from "./dto/create-publication.dto";
 import { UpdatePublicationDto } from "./dto/update-publication.dto";
+import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
 
 /**
  * Contrôleur pour gérer les opérations liées aux publications.
@@ -49,15 +51,10 @@ export class PublicationController {
 	 * @throws {NotFoundException} si la publication n'est pas trouvée.
 	 */
 	@Get("/:id")
-	async getPublicationById(@Param("id") id: string): Promise<PublicationDto | undefined> {
-		if (!id)
-			throw new BadRequestException({
-				message: "L'identifiant est requis",
-			});
-
+	async getPublicationById(@Param("id", ParseObjectIdPipe) id: string): Promise<PublicationDto | undefined> {
+		if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
 		const pub = await this.publicationService.getById(id);
 		if (!pub) throw new NotFoundException({ message: "Publication non trouvée" });
-
 		return new PublicationDto(pub as any);
 	}
 
@@ -69,9 +66,13 @@ export class PublicationController {
 	 */
 	@Post("")
 	@HttpCode(201)
-	async createPublication(@Body() pub: CreatePublicationDto) {
+	async createPublication(
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		pub: CreatePublicationDto,
+	) {
+		if (!pub) throw new BadRequestException({ message: "La publication est requise" });
+		// basic manual validation so direct controller calls (unit tests) and HTTP requests behave similarly
 		const toleranceMs = 10 * 1000;
-		// Validation des champs requis
 		const missing = [
 			!pub && "La publication est requise",
 			!pub?.message && "Le message est requis",
@@ -98,12 +99,16 @@ export class PublicationController {
 	 * @throws {InternalServerErrorException} si la création ou la mise à jour de la publication échoue.
 	 */
 	@Put("/:id")
-	async createOrUpdatePublicationById(@Param("id") id: string, @Body() pub: UpdatePublicationDto) {
+	async createOrUpdatePublicationById(
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		pub: UpdatePublicationDto,
+	) {
+		if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
+		if (!pub) throw new BadRequestException({ message: "La publication est requise" });
 		const toleranceMs = 10 * 1000;
-		// Validation des champs requis
 		const missing = [
 			!pub && "La publication est requise",
-			!id && "L'identifiant est requis",
 			!pub?.message && "Le message est requis",
 			!pub?.datePublication && "La date est requise",
 			pub?.datePublication &&
@@ -112,9 +117,7 @@ export class PublicationController {
 			!pub?.user_id && "L'utilisateur est requis",
 			!pub?.prediction_id && "La prédiction est requise",
 		].filter(Boolean)[0];
-
 		if (missing) throw new BadRequestException({ message: missing });
-
 		try {
 			await this.publicationService.createOrUpdateById(id, pub as any);
 		} catch (e) {
@@ -129,11 +132,8 @@ export class PublicationController {
 	 * @throws {InternalServerErrorException} si la suppression de la publication échoue.
 	 */
 	@Delete("/:id")
-	async deletePublicationById(@Param("id") id: string) {
-		if (!id)
-			throw new BadRequestException({
-				message: "L'identifiant est requis",
-			});
+	async deletePublicationById(@Param("id", ParseObjectIdPipe) id: string) {
+		if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
 		try {
 			await this.publicationService.deleteById(id);
 		} catch (e) {
@@ -150,15 +150,12 @@ export class PublicationController {
 	 * @throws {InternalServerErrorException} si la mise à jour de la publication échoue.
 	 */
 	@Put("/:id/toggle-like/:userId")
-	async toggleLikePublication(@Param("id") id: string, @Param("userId") userId: string): Promise<PublicationDto> {
-		if (!id)
-			throw new BadRequestException({
-				message: "L'identifiant de la publication est requis",
-			});
-		if (!userId)
-			throw new BadRequestException({
-				message: "L'identifiant de l'utilisateur est requis",
-			});
+	async toggleLikePublication(
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Param("userId", ParseObjectIdPipe) userId: string,
+	): Promise<PublicationDto> {
+		if (!id) throw new BadRequestException({ message: "L'identifiant de la publication est requis" });
+		if (!userId) throw new BadRequestException({ message: "L'identifiant de l'utilisateur est requis" });
 		try {
 			const updated = await this.publicationService.toggleLikePublication(id, userId);
 			return new PublicationDto(updated as any);
