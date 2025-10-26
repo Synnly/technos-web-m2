@@ -5,17 +5,26 @@ import type { Toast } from "../../components/toast/Toast.interface";
 
 export const PredictionController = {
 	async createPrediction(
+		token: string | null,
 		values: PredictionFormValues & { options: Record<string, number> },
 		deps: CreatePredictionDeps = {},
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
 	) {
-		const { username, fetchPredictions, onClose, setToast, setLocalError } = deps;
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return { success: false, error: "Utilisateur non authentifié" };
+		}
 
+		const { fetchPredictions, onClose, setLocalError } = deps;
 		if (setLocalError) setLocalError(null);
 
 		try {
-			await PredictionResolver.create(values, username);
-
-			if (setToast) setToast("Prédiction créée");
+			await PredictionResolver.create(values, token);
+			if (setToast) setToast({ message: "Prédiction créée", type: "success" });
 			if (fetchPredictions) await fetchPredictions();
 			if (onClose) onClose();
 
@@ -27,6 +36,7 @@ export const PredictionController = {
 			return { success: false, error: msg };
 		}
 	},
+	
 	async getAllPredictions(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
 		if (!token) {
 			if (setToast)
@@ -72,6 +82,32 @@ export const PredictionController = {
 					type: "error",
 				});
 			return undefined;
+		}
+	},
+
+	async getTimelineData(
+		predictionId: string,
+		intervalMinutes: number,
+		votesAsPercentage: boolean,
+		fromStart: boolean,
+		token: string,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		try {
+			const data = await PredictionResolver.getTimelineData(
+				predictionId,
+				intervalMinutes,
+				votesAsPercentage,
+				fromStart,
+				token,
+			);
+			return data;
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la récupération de la timeline des votes",
+					type: "error",
+				});
 		}
 	},
 };

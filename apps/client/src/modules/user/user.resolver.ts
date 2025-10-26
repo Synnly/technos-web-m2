@@ -1,13 +1,12 @@
 import type { ToastType } from "../../components/toast/Toast.interface";
-import type { User } from "./user.interface";
+import type { PublicUser, User } from "./user.interface";
 import { userService } from "./user.service";
 
 export const userResolver = {
 	async claimDailyReward(user: any, token: string) {
 		if (
 			user.dateDerniereRecompenseQuotidienne &&
-			new Date(user.dateDerniereRecompenseQuotidienne).toDateString() ===
-				new Date().toDateString()
+			new Date(user.dateDerniereRecompenseQuotidienne).toDateString() === new Date().toDateString()
 		) {
 			return {
 				updatedUser: user,
@@ -17,10 +16,7 @@ export const userResolver = {
 			};
 		}
 
-		const updatedUser = await userService.claimDailyReward(
-			user.username,
-			token,
-		);
+		const updatedUser = await userService.claimDailyReward(token);
 
 		const newPoints = updatedUser.points || 0;
 		return {
@@ -31,8 +27,8 @@ export const userResolver = {
 		};
 	},
 
-	async getUsersMap(token: string) {
-		return userService.getUsersMap(token);
+	async getUsers(token: string): Promise<Array<PublicUser>> {
+		return Array.from(await userService.getUsers(token));
 	},
 
 	async getUserByUsername(username: string, token: string) {
@@ -44,22 +40,6 @@ export const userResolver = {
 	},
 
 	async register(username: string, password: string) {
-		if (password.length < 8) {
-			throw new Error(
-				"Le mot de passe doit contenir au moins 8 caractères",
-			);
-		}
-		if (
-			!/[A-Z]/.test(password) ||
-			!/[a-z]/.test(password) ||
-			!/[0-9]/.test(password) ||
-			!/[!@#$%^&*(),.?":{}|<>]/.test(password)
-		) {
-			throw new Error(
-				"Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial",
-			);
-		}
-
 		return userService.register(username, password);
 	},
 	async deleteUser(username: string, token: string) {
@@ -67,6 +47,6 @@ export const userResolver = {
 	},
 
 	async updateUser(username: string, data: Partial<User>, token: string) {
-		return userService.updateUser(username, data, token);
-	}
+		userService.updateUser(username, data, token);
+	},
 };

@@ -10,4 +10,28 @@ export const VoteService = {
 		});
 		return resp.data;
 	},
+
+	async createVote(
+		amount: number,
+		prediction_id: string,
+		option: string,
+		date: Date,
+		user_id: string,
+		token: string,
+	) {
+		const resp = await axios.post<Vote>(
+			`${API_URL}/vote`,
+			{
+				amount,
+				prediction_id,
+				option,
+				date,
+				user_id,
+			},
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
+		return resp.data;
+	},
 };

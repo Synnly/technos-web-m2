@@ -15,7 +15,7 @@ const IsAuthenticatedHome = ({
 	toast,
 	setToast,
 	predictions,
-	usersMap,
+	users,
 	handlePredictionClick,
 	fetchAllPredictions,
 	setPoints,
@@ -48,7 +48,7 @@ const IsAuthenticatedHome = ({
 				<XPSection user={user} />
 				<PredictionsSection
 					predictions={predictions}
-					usersMap={usersMap}
+					users={users}
 					onPredictionClick={handlePredictionClick}
 				/>
 			</main>

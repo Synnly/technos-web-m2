@@ -3,24 +3,18 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const userService = {
-	async claimDailyReward(username: string, token: string) {
-		const response = await axios.get(
-			`${API_URL}/user/${username}/daily-reward`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
-		return response.data;
-	},
-	async getUsersMap(token: string) {
-		const res = await axios.get(`${API_URL}/user`, {
+	async claimDailyReward(token: string) {
+		const response = await axios.get(`${API_URL}/user/daily-reward`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
-		const map: Record<string, string> = {};
-		(res.data || []).forEach((u: any) => {
-			if (u && u._id && u.username) map[u._id] = u.username;
+		return response.data;
+	},
+
+	async getUsers(token: string) {
+		const res = await axios.get(`${API_URL}/user/public`, {
+			headers: { Authorization: `Bearer ${token}` },
 		});
-		return map;
+		return res.data;
 	},
 
 	async getUserByUsername(username: string, token: string) {
@@ -37,6 +31,7 @@ export const userService = {
 		});
 		return response.data.token.token;
 	},
+
 	async register(username: string, password: string) {
 		const response = await axios.post(`${API_URL}/user`, {
 			username,
@@ -52,13 +47,8 @@ export const userService = {
 	},
 
 	async updateUser(username: string, data: Partial<any>, token: string) {
-		const response = await axios.put(
-			`${API_URL}/user/${username}`,
-			data,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
-		return response.data;
-	}
+		await axios.put(`${API_URL}/user/${username}`, data, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+	},
 };

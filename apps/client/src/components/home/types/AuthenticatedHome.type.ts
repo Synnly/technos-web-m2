@@ -2,7 +2,8 @@ import type { PredictionWithThisNbOfVotesAndNbOfPublications } from "../../../mo
 import type { User } from "../../../modules/user/user.interface";
 
 export type AuthenticatedHomeProps = {
-	user: any;
+	user: User;
+	users: User[];
 	username?: string | null;
 	token: string | null;
 	sidebarCollapsed: boolean;
@@ -13,7 +14,6 @@ export type AuthenticatedHomeProps = {
 	toast: any;
 	setToast: (t: any) => void;
 	predictions: PredictionWithThisNbOfVotesAndNbOfPublications[];
-	usersMap: Record<string, string>;
 	handlePredictionClick: (id: string) => void;
 	fetchAllPredictions: () => Promise<void>;
 	setError: (m: string | null) => void;

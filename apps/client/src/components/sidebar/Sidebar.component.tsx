@@ -12,7 +12,7 @@ import React from "react";
 import Modal from "../modal/modal.component";
 import GenericForm from "../form/Form.component";
 import InputDatePicker from "../input/DatePicker/InputDatePicker.component";
-import InputText  from "../input/Text/InputText.component";
+import InputText from "../input/Text/InputText.component";
 import InputOptions from "../input/Options/InputOptions.component";
 import { PredictionController } from "../../modules/prediction/prediction.controller";
 
@@ -45,13 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 	};
 
 	const handleClick = () => {
-		userController.claimDailyReward(
-			user,
-			token,
-			setUser,
-			setPoints,
-			setToast,
-		);
+		userController.claimDailyReward(user, token, setUser, setPoints, setToast);
 	};
 
 	const handleLogout = () => {
@@ -95,18 +89,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 							pointdejaRecup={Boolean(
 								user &&
 									user.dateDerniereRecompenseQuotidienne &&
-									new Date(
-										user.dateDerniereRecompenseQuotidienne,
-									).toDateString() ===
+									new Date(user.dateDerniereRecompenseQuotidienne).toDateString() ===
 										new Date().toDateString(),
 							)}
 						/>
 					)}
 
-					<Modal
-						isOpen={modalOpen}
-						onClose={() => setModalOpen(false)}
-					>
+					<Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
 						<GenericForm
 							form={undefined}
 							title="Création d'une prédiction"
@@ -140,11 +129,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 								},
 							]}
 							onFinish={async (values: any) => {
-								const rawDate =
-									values["date de fin"] ?? values.dateFin;
+								const rawDate = values["date de fin"] ?? values.dateFin;
 								const dateFin =
-									rawDate &&
-									typeof rawDate.toISOString === "function"
+									rawDate && typeof rawDate.toISOString === "function"
 										? rawDate.toISOString()
 										: rawDate;
 								const payload = {
@@ -153,26 +140,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 									dateFin,
 									options: values.options,
 								};
-								const result =
-									await PredictionController.createPrediction(
-										payload,
-										{
-											username: user?.username,
-											setToast: (msg: string) =>
-												setToast({
-													message: msg,
-													type: "success",
-												}),
-											onClose: () => setModalOpen(false),
-											fetchPredictions:
-												onPredictionCreated
-													? async () =>
-															onPredictionCreated()
-													: undefined,
-										},
-									);
-								if (result.success && onPredictionCreated)
-									onPredictionCreated();
+								const result = await PredictionController.createPrediction(token, payload, {
+									username: user?.username,
+									onClose: () => setModalOpen(false),
+									fetchPredictions: onPredictionCreated
+										? async () => onPredictionCreated()
+										: undefined,
+								}, setToast);
+								if (result.success && onPredictionCreated) onPredictionCreated();
 							}}
 						/>
 					</Modal>

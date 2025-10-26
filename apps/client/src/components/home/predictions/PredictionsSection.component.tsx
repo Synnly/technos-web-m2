@@ -1,10 +1,16 @@
+import type { User } from "../../../modules/user/user.interface";
 import PredictionCard from "../../predictions/PredictionCard";
-import type { PredictionSectionProps } from "../types/PredictionSection.type";
 import { useNavigate } from "react-router-dom";
 
-const PredictionsSection = ({
+interface PredictionSectionProps {
+	predictions: any[];
+	users: Array<User>;
+	onPredictionClick: (id: string) => void;
+}
+
+const PredictionsSection: React.FC<PredictionSectionProps> = ({
 	predictions,
-	usersMap,
+	users,
 	onPredictionClick,
 }: PredictionSectionProps) => {
 	const navigate = useNavigate();
@@ -36,7 +42,7 @@ const PredictionsSection = ({
 						key={prediction._id}
 						id={prediction._id}
 						title={prediction.title}
-						author={usersMap[prediction.user_id]}
+						author={users.find((user) => user._id === prediction.user_id)?.username}
 						votes={prediction.nbVotes}
 						comments={prediction.nbPublications}
 						percent={prediction.percent}

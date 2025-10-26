@@ -11,8 +11,7 @@ export const userController = {
 		setToast: React.Dispatch<React.SetStateAction<Toast | null>>,
 	) {
 		try {
-			const { updatedUser, newPoints, message, type } =
-				await userResolver.claimDailyReward(user, token);
+			const { updatedUser, newPoints, message, type } = await userResolver.claimDailyReward(user, token);
 			setUser(updatedUser);
 			setPoints(newPoints);
 			setToast({ message, type });
@@ -22,24 +21,21 @@ export const userController = {
 		}
 	},
 
-	async getAllUsers(
-		token: string | null,
-		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
-	) {
+	async getAllUsers(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>): Promise<Array<User>> {
 		if (!token) {
 			if (setToast)
 				setToast({
 					message: "Utilisateur non authentifié",
 					type: "error",
 				});
-			return {};
+			return [];
 		}
 		try {
-			return await userResolver.getUsersMap(token);
+			return await userResolver.getUsers(token);
 		} catch (err: any) {
 			const msg = "Erreur lors de la récupération des utilisateurs";
 			if (setToast) setToast({ message: msg, type: "error" });
-			return {};
+			return [];
 		}
 	},
 
@@ -66,29 +62,19 @@ export const userController = {
 		}
 	},
 
-	async login(
-		username: string,
-		password: string,
-		setError?: React.Dispatch<React.SetStateAction<string | null>>,
-	) {
+	async login(username: string, password: string, setError?: React.Dispatch<React.SetStateAction<string | null>>) {
 		try {
 			return await userResolver.login(username, password);
 		} catch (err: any) {
-			const msg =
-				err?.response?.data?.message || "Erreur lors de la connexion";
+			const msg = err?.response?.data?.message || "Erreur lors de la connexion";
 			if (setError) setError(msg);
 			return null;
 		}
 	},
 
-	async register(
-		username: string,
-		password: string,
-		setError?: React.Dispatch<React.SetStateAction<string | null>>,
-	) {
+	async register(username: string, password: string, setError?: React.Dispatch<React.SetStateAction<string | null>>) {
 		if (username.trim() === "") {
-			if (setError)
-				setError("Le nom d'utilisateur ne peut pas être vide");
+			if (setError) setError("Le nom d'utilisateur ne peut pas être vide");
 			return null;
 		}
 		if (password.trim() === "") {
@@ -96,23 +82,15 @@ export const userController = {
 			return null;
 		}
 		try {
-			return await userResolver.register(
-				username.trim(),
-				password.trim(),
-			);
+			return await userResolver.register(username.trim(), password.trim());
 		} catch (err: any) {
-			const msg =
-				err?.response?.data?.message || "Erreur lors de l'inscription";
+			const msg = err?.response?.data?.message || "Erreur lors de l'inscription";
 			if (setError) setError(msg);
 			return null;
 		}
 	},
 
-	async deleteUser(
-		username: string,
-		token: string,
-		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
-	) {
+	async deleteUser(username: string, token: string, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
 		if (!token) {
 			if (setToast)
 				setToast({
@@ -149,5 +127,5 @@ export const userController = {
 			const msg = "Erreur lors de la mise à jour de l'utilisateur";
 			if (setToast) setToast({ message: msg, type: "error" });
 		}
-	}
+	},
 };

@@ -9,6 +9,7 @@ import { PredictionController } from "../modules/prediction/prediction.controlle
 import { userController } from "../modules/user/user.controller";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import type { User } from "../modules/user/user.interface";
 
 function AllPredictions() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -17,7 +18,7 @@ function AllPredictions() {
 	const [___, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
 	const [predictions, setPredictions] = useState<any[]>([]);
-	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+	const [users, setUsers] = useState<Array<User>>([]);
 	const [search, setSearch] = useState<string>("");
 	const [filters, setFilters] = useState<FiltersState>({ dateRange: null });
 	const [__, setLoading] = useState(false);
@@ -43,8 +44,8 @@ function AllPredictions() {
 		setLoading(false);
 	};
 	const fetchAllUsers = async () => {
-		const map = await userController.getAllUsers(token, setToast);
-		setUsersMap(map);
+		const users = await userController.getAllUsers(token, setToast);
+		setUsers(users);
 	};
 
 	const navToPrediction = (id: string) => {
@@ -78,7 +79,7 @@ function AllPredictions() {
 				const d = new Date(p.dateFin);
 				if (d < from || d > to) return false;
 			}
-
+			
 			return true;
 		});
 	}, [predictions.reverse(), search, filters]);
@@ -125,7 +126,7 @@ function AllPredictions() {
 							key={prediction._id}
 							id={prediction._id}
 							title={prediction.title}
-							author={usersMap[prediction.user_id]}
+							author={users.find((u) => u._id === prediction.user_id)?.username}
 							votes={prediction.nbVotes}
 							comments={prediction.nbPublications}
 							percent={prediction.percent}
