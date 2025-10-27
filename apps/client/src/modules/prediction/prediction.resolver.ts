@@ -78,8 +78,17 @@ export const PredictionResolver = {
 	async refusePrediction(id: string, token: string) {
 		const res = await PredictionService.updatePredictionStatus(id, token, "refused");
 		return res;
+	},
+
+	async getExpiredPredictions(token: string, page: string, limit: string) {
+		const allPredictions = await PredictionService.getExpiredPredictions(token, page, limit);
+		return allPredictions;
+	},
+
+	async validateAPrediction(id: string, token: string, winningOption: string) {
+		const res = await PredictionService.confirmPredictionResult(id, token, winningOption);
+		return res;
 	}
-	
 };
 
 export default PredictionResolver;

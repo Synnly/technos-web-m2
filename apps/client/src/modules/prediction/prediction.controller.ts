@@ -1,5 +1,5 @@
 import PredictionResolver from "./prediction.resolver";
-import type { PredictionFormValues, CreatePredictionDeps } from "./prediction.interface";
+import type { PredictionFormValues, CreatePredictionDeps, ValidatedPrediction } from "./prediction.interface";
 import type React from "react";
 import type { Toast } from "../../components/toast/Toast.interface";
 
@@ -65,7 +65,14 @@ export const PredictionController = {
 		}
 		try {
 			const data = await PredictionResolver.getWaitingPredictions(token, page, limit);
-			return data;
+			
+			const validatedData = data.map((prediction) => ({
+				_id: prediction._id,
+				title: prediction.title,
+				user_id: prediction.user_id,
+				dateFin: prediction.dateFin,
+			})) as unknown as ValidatedPrediction[];
+			return validatedData;
 		} catch (err: any) {
 			if (setToast)
 				setToast({
@@ -150,6 +157,75 @@ export const PredictionController = {
 							: "Erreur lors du refus de la prédiction",
 					type: "error",
 				});
+		}
+	},
+
+	async getExpiredPredictions(
+		token: string | null,
+		page: string,
+		limit: string,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return ;
+		}
+		try {
+			const data = await PredictionResolver.getExpiredPredictions(token, page, limit);
+			return data;
+		}
+		catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la récupération des prédictions expirées",
+					type: "error",
+				});
+			return ;
+		}
+	},
+
+	async validateAPrediction(
+		id: string | null,
+		token: string | null,
+		winningOption: string,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return ;
+		}
+		if (!id) {
+			if (setToast)
+				setToast({
+					message: "Identifiant de prédiction manquant",
+					type: "error",
+				});
+			return ;
+		}
+
+		try {
+			await PredictionResolver.validateAPrediction(id, token, winningOption);
+			if (setToast)
+				setToast({
+					message: "Résultats de la prédiction confirmés",
+					type: "success",
+				});
+			return ;
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la confirmation des résultats",
+					type: "error",
+				});
+			return ;
 		}
 	},
 };

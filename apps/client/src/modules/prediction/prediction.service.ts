@@ -50,13 +50,24 @@ export const PredictionService = {
 
 	async updatePredictionStatus(id: string, token: string, status: "validated" | "refused") {
 		const headers = { Authorization: `Bearer ${token}` };
-		const resp = await axios.put<Prediction>(
-			`${API_URL}/prediction/${id}/`,
-			{ status },
-			{ headers },
-		);
+		const resp = await axios.put<Prediction>(`${API_URL}/prediction/${id}/`, { status }, { headers });
 		return resp.data;
 	},
+
+	async getExpiredPredictions(token: string, page: string, limit: string) {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/expired`, {
+			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit },
+		});
+
+		return resp.data || [];
+	},
+
+	async confirmPredictionResult(id: string, token: string, winningOption: string) {
+		const headers = { Authorization: `Bearer ${token}` };
+		const resp = await axios.put(`${API_URL}/prediction/${id}/validate`, { winningOption }, { headers });
+		return resp.data;
+	}
 };
 
 export default PredictionService;

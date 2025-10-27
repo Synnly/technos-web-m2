@@ -12,6 +12,7 @@ import AllPredictions from "./pages/AllPredictions";
 import "./App.css";
 import ValidatePrediction from "./pages/ValidatePrediction";
 import "@ant-design/v5-patch-for-react-19";
+import ConfirmResults from "./pages/confirmResults";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -65,6 +66,14 @@ createRoot(document.getElementById("root")!).render(
 					}
 				/>
 
+				<Route 
+					path="/confirm-results" 
+					element={
+						<ProtectedRoute>
+							<ConfirmResults />
+						</ProtectedRoute>
+					}
+				/>
 				<Route path="/" element={<Index />} />
 
 				{/* Route 404 */}

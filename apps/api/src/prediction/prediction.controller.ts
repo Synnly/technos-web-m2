@@ -47,8 +47,11 @@ export class PredictionController {
 	 * @returns une réponse HTTP (OK) avec la liste des prédictions expirées
 	 */
 	@Get("/expired")
-	async getExpiredPredictions(): Promise<PredictionDto[]> {
-		const preds = await this.predictionService.getExpiredPredictions();
+	async getExpiredPredictions(
+		@Query('page', ParseIntPipe) page: number,
+		@Query('limit', ParseIntPipe) limit: number,
+	): Promise<PredictionDto[]> {
+		const preds = await this.predictionService.getExpiredPredictions(page, limit);
 		return preds.map((p) => new PredictionDto(p));
 	}
 
@@ -70,8 +73,11 @@ export class PredictionController {
 	 * @returns une réponse HTTP (OK) avec la liste des prédictions validées
 	 */
 	@Get("/valid")
-	async getValidPredictions(): Promise<PredictionDto[]> {
-		const preds = await this.predictionService.getValidPredictions();
+	async getValidPredictions(
+		@Query('page', ParseIntPipe) page: number,
+		@Query('limit', ParseIntPipe) limit: number,
+	): Promise<PredictionDto[]> {
+		const preds = await this.predictionService.getValidPredictions(page, limit);
 		return preds.map((p) => new PredictionDto(p));
 	}
 

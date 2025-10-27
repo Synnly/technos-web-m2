@@ -384,6 +384,7 @@ describe("Prediction Integration Tests", () => {
 		it("should list valid predictions", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/valid")
+				.query({ page: 1, limit: 10 })
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
@@ -392,6 +393,7 @@ describe("Prediction Integration Tests", () => {
 		it("should list valid predictions (admin)", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/valid")
+				.query({ page: 1, limit: 10 })
 				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
@@ -400,6 +402,7 @@ describe("Prediction Integration Tests", () => {
 		it("should list expired predictions (array)", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/expired")
+				.query({ page: 1, limit: 10 })
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
@@ -408,6 +411,7 @@ describe("Prediction Integration Tests", () => {
 		it("should list expired predictions (array) (admin)", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/expired")
+				.query({ page: 1, limit: 10 })
 				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);

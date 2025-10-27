@@ -40,7 +40,10 @@ export interface Prediction {
 	status: PredictionStatus;
 	dateFin: Date;
 	options: Record<string, number>;
-	user_id: string;
+	user_id: {
+		_id: string;
+		username: string;
+	},
 	result: string;
 }
 

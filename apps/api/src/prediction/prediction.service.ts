@@ -283,7 +283,7 @@ export class PredictionService {
 		};
 
 		if (!page || !limit) {
-			return this.predictionModel.find(filter).populate("user_id", "username").lean().exec();
+			return this.predictionModel.find(filter).lean().exec();
 		}
 
 		return this.paginatePredictions(filter, page, limit);

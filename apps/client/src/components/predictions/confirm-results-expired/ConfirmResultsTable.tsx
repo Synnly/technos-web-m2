@@ -2,32 +2,33 @@ import React, { useEffect } from "react";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import Pagination from "../pagination/Pagination";
-import ValidateRefuseButtons from "./button-table/ValidateRefuseButtons";
-import type { ValidatedPrediction } from "../../modules/prediction/prediction.interface";
-import PredictionController from "../../modules/prediction/prediction.controller";
+import Pagination from "../../pagination/Pagination";
+import type { Prediction } from "../../../modules/prediction/prediction.interface";
+import PredictionController from "../../../modules/prediction/prediction.controller";
+
+import type { Toast } from "../../../components/toast/Toast.interface";
 
 interface Props {
-	data: ValidatedPrediction[];
-	usersMap?: Record<string, string>;
+	usersMap: Record<string, string>;
 	pageSize?: number;
-	onValidate: (id: string) => Promise<void> | void;
-	onRefuse: (id: string) => Promise<void> | void;
+	setToast?: React.Dispatch<React.SetStateAction<Toast | null>>;
 }
 
-export const ValidatePredictionsTable: React.FC<Props> = ({
-	data,
-	usersMap = {},
-	pageSize = 10,
-	onValidate,
-	onRefuse,
-}) => {
+const ConfirmResultsTable: React.FC<Props> = ({ usersMap, pageSize = 10, setToast }) => {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
-	const [waitingPredictions, setWaitingPredictions] = React.useState<ValidatedPrediction[]>(data || []);
+	const [expiredPredictions, setExpiredPredictions] = React.useState<Prediction[]>([]);
 	const [totalCount, setTotalCount] = React.useState<number | null>(null);
+	const [selectedOptions, setSelectedOptions] = React.useState<Record<string, string>>({});
+	const handleValidateClick = React.useCallback(
+		async (predictionId: string) => {
+			const winningOption = selectedOptions[predictionId] ?? "";
+			await PredictionController.validateAPrediction(predictionId, token, winningOption, setToast);
+		},
+		[selectedOptions, token],
+	);
 
-	const columns = React.useMemo<ColumnDef<ValidatedPrediction>[]>(
+	const columns = React.useMemo<ColumnDef<Prediction>[]>(
 		() => [
 			{
 				header: "Titre",
@@ -58,47 +59,58 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 				),
 			},
 			{
-				id: "actions",
-				header: "Actions",
-				cell: ({ row }: any) => (
-					<div className="flex items-center justify-between">
-						<button
-							onClick={() => navigate(`/prediction/${row.original._id}`)}
-							className="px-3 py-1 rounded bg-gray-700 text-white text-sm hover:bg-gray-600 cursor-pointer"
-						>
-							Voir
-						</button>
-						<ValidateRefuseButtons
-							id={row.original._id}
-							validateOnOk={onValidate}
-							refuseOnOk={onRefuse}
-							validateTitle="Valider la prédiction"
-							validateContent="Êtes-vous sûr de vouloir valider cette prédiction ?"
-							refuseTitle="Refuser la prédiction"
-							refuseContent="Êtes-vous sûr de vouloir refuser cette prédiction ? Cette action mettra à jour son statut."
-						/>
-					</div>
-				),
+				id: "select",
+				header: "Choix gagnant",
+				cell: ({ row }: any) => {
+					const opts = row.original.options || {};
+					const optionKeys = Object.keys(opts);
+					const value = selectedOptions[row.original._id] ?? "";
+
+					return (
+						<div className="flex items-center gap-3">
+							<select
+								value={value}
+								onChange={(e) =>
+									setSelectedOptions((s) => ({ ...s, [row.original._id]: e.target.value }))
+								}
+								className="bg-gray-700 text-white text-sm px-2 py-1 rounded"
+							>
+								<option value="">Sélectionner</option>
+								{optionKeys.map((k) => (
+									<option key={k} value={k}>
+										{k} {typeof opts[k] === "number" ? `(${opts[k]})` : ""}
+									</option>
+								))}
+							</select>
+
+							<button
+								onClick={() => handleValidateClick(row.original._id)}
+								className="px-3 py-1 rounded bg-green-600 text-white text-sm hover:bg-green-500"
+							>
+								Valider
+							</button>
+						</div>
+					);
+				},
 			},
 		],
-		[navigate, usersMap, onValidate, onRefuse],
+		[navigate, usersMap, selectedOptions],
 	);
 
 	const [currentPage, setCurrentPage] = React.useState(0);
 	const [rowsPerPage, setRowsPerPage] = React.useState(pageSize);
 
 	const table = useReactTable({
-		data: waitingPredictions,
+		data: expiredPredictions,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	});
 
 	const rows = table.getRowModel().rows;
-
 	const fetchTotalCount = async () => {
 		if (!token) return;
 		try {
-			const all = await PredictionController.getWaitingPredictions("1", String(1000000), token);
+			const all = await PredictionController.getExpiredPredictions(token, "1", String(1000000));
 			setTotalCount((all || []).length);
 		} catch (_) {
 			setTotalCount(null);
@@ -108,10 +120,10 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 	const fetchPage = async (pageIndex: number, limitNum: number) => {
 		if (!token) return;
 		try {
-			const data = await PredictionController.getWaitingPredictions(String(pageIndex), String(limitNum), token);
-			setWaitingPredictions(data || []);
+			const data = await PredictionController.getExpiredPredictions(token, String(pageIndex), String(limitNum));
+			setExpiredPredictions(data || []);
 		} catch (_) {
-			setWaitingPredictions([]);
+			setExpiredPredictions([]);
 		}
 	};
 
@@ -153,7 +165,7 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 						{rows.length === 0 && (
 							<tr>
 								<td colSpan={columns.length} className="text-center text-sm text-gray-400 py-6">
-									Aucune prédiction en attente
+									Aucune prédiction expirée
 								</td>
 							</tr>
 						)}
@@ -163,7 +175,7 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 
 			<div className="mt-3">
 				<Pagination
-					totalItems={totalCount ?? waitingPredictions.length}
+					totalItems={totalCount ?? expiredPredictions.length}
 					currentPage={currentPage}
 					pageSize={rowsPerPage}
 					onPageChange={(p) => setCurrentPage(p)}
@@ -176,3 +188,5 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 		</div>
 	);
 };
+
+export default ConfirmResultsTable;
