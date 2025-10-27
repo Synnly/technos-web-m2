@@ -121,11 +121,9 @@ function Prediction() {
 	};
 
 	const onConfirmVoteClick = () => {
-		console.log(`${customAmount} ${currentAmount} ${optionSelected}`);
 	};
 
 	const addPublication = (newPublication: Publication) => {
-		console.log("Adding publication", newPublication);
 		setPublications([...publications, newPublication]);
 	};
 

@@ -14,6 +14,7 @@ import ValidatePrediction from "./pages/ValidatePrediction";
 import "@ant-design/v5-patch-for-react-19";
 import ConfirmResults from "./pages/confirmResults";
 import CreateCosmetic from "./pages/CreateCosmetic";
+import AdminRoute from "./AdminRoute";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -61,26 +62,26 @@ createRoot(document.getElementById("root")!).render(
 				<Route
 					path="/validate-prediction"
 					element={
-						<ProtectedRoute>
+						<AdminRoute>
 							<ValidatePrediction />
-						</ProtectedRoute>
+						</AdminRoute>
 					}
 				/>
 
-				<Route 
-					path="/confirm-results" 
+				<Route
+					path="/confirm-results"
 					element={
-						<ProtectedRoute>
+						<AdminRoute>
 							<ConfirmResults />
-						</ProtectedRoute>
+						</AdminRoute>
 					}
 				/>
-				<Route 
+				<Route
 					path="/create-cosmetic"
 					element={
-						<ProtectedRoute>
+						<AdminRoute>
 							<CreateCosmetic />
-						</ProtectedRoute>
+						</AdminRoute>
 					}
 				/>
 				<Route path="/" element={<Index />} />

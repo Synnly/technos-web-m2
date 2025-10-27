@@ -44,7 +44,6 @@ export const CosmeticController = {
 		setError: (msg: string | null) => void,
 		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
 	) {
-		console.log("On m'appel", token, username, id);
 		if (!token) {
 			setToast?.({
 				type: "error",

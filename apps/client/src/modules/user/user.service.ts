@@ -4,12 +4,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const userService = {
 	async claimDailyReward(username: string, token: string) {
-		const response = await axios.get(
-			`${API_URL}/user/${username}/daily-reward`,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
+		const response = await axios.get(`${API_URL}/user/${username}/daily-reward`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
 		return response.data;
 	},
 	async getUsersMap(token: string) {
@@ -52,13 +49,9 @@ export const userService = {
 	},
 
 	async updateUser(username: string, data: Partial<any>, token: string) {
-		const response = await axios.put(
-			`${API_URL}/user/${username}`,
-			data,
-			{
-				headers: { Authorization: `Bearer ${token}` },
-			},
-		);
+		const response = await axios.put(`${API_URL}/user/${username}`, data, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
 		return response.data;
-	}
+	},
 };

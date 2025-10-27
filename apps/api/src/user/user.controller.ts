@@ -51,7 +51,7 @@ export class UserController {
 	 * @returns La liste des DTOs de tous les utilisateur.
 	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission d'accéder à cette ressource.
 	 */
-	@UseGuards(AuthGuard, AdminGuard)
+	@UseGuards(AuthGuard)
 	@Get("")
 	async getUsers(): Promise<UserDto[]> {
 		const users = await this.userService.getAll();

@@ -2,9 +2,7 @@ import React from "react";
 import { Grid2X2, Home, Plus, ShoppingBag, UserRound } from "lucide-react";
 import type { NavigationSectionProps } from "./navigation/navigation-section/NavigationSection.interface";
 
-export const getActions = (
-	onCreatePrediction: () => void,
-): NavigationSectionProps[] => [
+export const getActions = (onCreatePrediction: () => void): NavigationSectionProps[] => [
 	{
 		title: "Compte",
 		items: [
@@ -67,6 +65,35 @@ export const getActions = (
 				description: "Customise ton profil",
 				colorScheme: "pink",
 				path: "/shop",
+			},
+		],
+	},
+	{
+		title: "Administrateur",
+		items: [
+			{
+				id: "validate-prediction",
+				icon: React.createElement(Plus, { className: "w-5 h-5" }),
+				title: "Valider une prédiction",
+				description: "",
+				colorScheme: "red",
+				path: "/validate-prediction",
+			},
+			{
+				id: "confirm-results",
+				icon: React.createElement(Plus, { className: "w-5 h-5" }),
+				title: "Confirmer les résultats",
+				description: "",
+				colorScheme: "red",
+				path: "/confirm-results",
+			},
+			{
+				id: "create-cosmetic",
+				icon: React.createElement(Plus, { className: "w-5 h-5" }),
+				title: "Créer un cosmetic",
+				description: "",
+				colorScheme: "red",
+				path: "/create-cosmetic",
 			},
 		],
 	},
