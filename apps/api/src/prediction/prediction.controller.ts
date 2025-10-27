@@ -13,14 +13,13 @@ import {
 	UseGuards,
 	Query,
 	ParseIntPipe,
-	ParseBoolPipe,
+	ValidationPipe,
 } from "@nestjs/common";
 import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
 import { CreatePredictionDto } from "./dto/createprediction.dto";
 import { UpdatePredictionDto } from "./dto/updateprediction.dto";
 import { PredictionDto } from "./dto/prediction.dto";
-import { ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
 import { AdminGuard } from "../guards/admin.guard";
 import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
@@ -58,8 +57,11 @@ export class PredictionController {
 	 * @returns une réponse HTTP (OK) avec la liste des prédictions en attente
 	 */
 	@Get("/waiting")
-	async getWaitingPredictions(): Promise<PredictionDto[]> {
-		const preds = await this.predictionService.getWaitingPredictions();
+	async getWaitingPredictions(
+		@Query('page', ParseIntPipe) page: number,
+		@Query('limit', ParseIntPipe) limit: number,
+	): Promise<PredictionDto[]> {
+		const preds = await this.predictionService.getWaitingPredictions(page, limit);
 		return preds.map((p) => new PredictionDto(p));
 	}
 

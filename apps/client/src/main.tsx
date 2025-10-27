@@ -10,6 +10,8 @@ import Prediction from "./pages/Prediction";
 import Shop from "./Shop";
 import AllPredictions from "./pages/AllPredictions";
 import "./App.css";
+import ValidatePrediction from "./pages/ValidatePrediction";
+import "@ant-design/v5-patch-for-react-19";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -46,12 +48,21 @@ createRoot(document.getElementById("root")!).render(
 				/>
 
 				<Route
-				path="/predictions"
-				element={
-					<ProtectedRoute>
-						<AllPredictions />
-					</ProtectedRoute>
-				}
+					path="/predictions"
+					element={
+						<ProtectedRoute>
+							<AllPredictions />
+						</ProtectedRoute>
+					}
+				/>
+
+				<Route
+					path="/validate-prediction"
+					element={
+						<ProtectedRoute>
+							<ValidatePrediction />
+						</ProtectedRoute>
+					}
 				/>
 
 				<Route path="/" element={<Index />} />

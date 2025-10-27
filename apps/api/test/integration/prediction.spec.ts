@@ -366,6 +366,7 @@ describe("Prediction Integration Tests", () => {
 		it("should list waiting predictions", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/waiting")
+				.query({ page: 1, limit: 10 })
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);
@@ -374,6 +375,7 @@ describe("Prediction Integration Tests", () => {
 		it("should list waiting predictions (admin)", async () => {
 			const res = await request(app.getHttpServer())
 				.get("/api/prediction/waiting")
+				.query({ page: 1, limit: 10 })
 				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 			expect(Array.isArray(res.body)).toBe(true);

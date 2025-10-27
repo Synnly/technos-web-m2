@@ -73,6 +73,18 @@ mockPredModel.findById = jest.fn();
 mockPredModel.findByIdAndDelete = jest.fn();
 mockPredModel.findByIdAndUpdate = jest.fn();
 
+// helper that builds a chainable mock object mimicking Mongoose Query API used by the service
+function createQueryMock(result: any) {
+	return {
+		sort: jest.fn().mockReturnThis(),
+		populate: jest.fn().mockReturnThis(),
+		lean: jest.fn().mockReturnThis(),
+		skip: jest.fn().mockReturnThis(),
+		limit: jest.fn().mockReturnThis(),
+		exec: jest.fn().mockResolvedValue(result),
+	};
+}
+
 const mockUserModel = {
 	findByIdAndUpdate: jest
 		.fn()
@@ -135,10 +147,7 @@ describe("PredictionService", () => {
 
 	describe("getAll", () => {
 		it("should return predictions when found", async () => {
-			mockPredModel.find.mockReturnValue({
-				populate: jest.fn().mockReturnThis(),
-				exec: jest.fn().mockResolvedValue(expectedPredictions),
-			});
+			mockPredModel.find.mockReturnValue(createQueryMock(expectedPredictions));
 
 			const result = await predictionService.getAll();
 
@@ -147,10 +156,7 @@ describe("PredictionService", () => {
 		});
 
 		it("should return empty array when none found", async () => {
-			mockPredModel.find.mockReturnValue({
-				populate: jest.fn().mockReturnThis(),
-				exec: jest.fn().mockResolvedValue([]),
-			});
+			mockPredModel.find.mockReturnValue(createQueryMock([]));
 
 			const result = await predictionService.getAll();
 
@@ -437,9 +443,7 @@ describe("PredictionService", () => {
 				dateFin: new Date(now.getTime() - 1000),
 			};
 
-			mockPredModel.find.mockReturnValue({
-				exec: jest.fn().mockResolvedValue([expired]),
-			});
+			mockPredModel.find.mockReturnValue(createQueryMock([expired]));
 
 			const result = await predictionService.getExpiredPredictions();
 
@@ -453,8 +457,8 @@ describe("PredictionService", () => {
   	});
 
   	describe('getWaitingPredictions', () => {
-  	  it('should return waiting predictions with no result', async () => {
-  	    mockPredModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue([expectedPred1]) });
+	it('should return waiting predictions with no result', async () => {
+	mockPredModel.find.mockReturnValue(createQueryMock([expectedPred1]));
 
 			const result = await predictionService.getWaitingPredictions();
 
@@ -483,9 +487,7 @@ describe("PredictionService", () => {
 			};
 
 			// Simuler find pour qu'il ne retourne que la prédiction future
-			mockPredModel.find.mockReturnValue({
-				exec: jest.fn().mockResolvedValue([futurePred]),
-			});
+			mockPredModel.find.mockReturnValue(createQueryMock([futurePred]));
 
 			const result = await predictionService.getValidPredictions();
 

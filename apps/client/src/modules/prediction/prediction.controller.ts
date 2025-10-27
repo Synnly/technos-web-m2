@@ -49,6 +49,33 @@ export const PredictionController = {
 		}
 	},
 
+	async getWaitingPredictions(
+		page: string,
+		limit: string,
+		token: string | null,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return [];
+		}
+		try {
+			const data = await PredictionResolver.getWaitingPredictions(token, page, limit);
+			return data;
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la récupération des prédictions",
+					type: "error",
+				});
+			return [];
+		}
+	},
+
 	async getPredictionById(
 		id: string,
 		token: string | null,
@@ -72,6 +99,57 @@ export const PredictionController = {
 					type: "error",
 				});
 			return undefined;
+		}
+	},
+
+	async updatePredictionStatus(
+		id: string | null,
+		action: "validate" | "refuse",
+		token: string,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return;
+		}
+		if (!id) {
+			if (setToast)
+				setToast({
+					message: "Identifiant de prédiction manquant",
+					type: "error",
+				});
+			return;
+		}
+
+		try {
+			if (action === "validate") {
+				await PredictionResolver.validatePrediction(id, token);
+				if (setToast)
+					setToast({
+						message: "Prédiction validée",
+						type: "success",
+					});
+			} else {
+				await PredictionResolver.refusePrediction(id, token);
+				if (setToast)
+					setToast({
+						message: "Prédiction refusée",
+						type: "success",
+					});
+			}
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message:
+						action === "validate"
+							? "Erreur lors de la validation de la prédiction"
+							: "Erreur lors du refus de la prédiction",
+					type: "error",
+				});
 		}
 	},
 };

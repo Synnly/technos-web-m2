@@ -39,6 +39,24 @@ export const PredictionService = {
 			return undefined;
 		}
 	},
+
+	async getWaitingPredictions(token: string, page: string, limit: string) {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/waiting`, {
+			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit },
+		});
+		return resp.data || [];
+	},
+
+	async updatePredictionStatus(id: string, token: string, status: "validated" | "refused") {
+		const headers = { Authorization: `Bearer ${token}` };
+		const resp = await axios.put<Prediction>(
+			`${API_URL}/prediction/${id}/`,
+			{ status },
+			{ headers },
+		);
+		return resp.data;
+	},
 };
 
 export default PredictionService;

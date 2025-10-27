@@ -2,13 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import axios from "axios";
-import {
-	Prediction,
-	PredictionDocument,
-	PredictionStatus,
-} from "./prediction.schema";
-import { CreatePredictionDto } from './dto/createprediction.dto';
-import { UpdatePredictionDto } from './dto/updateprediction.dto';
+import { Prediction, PredictionDocument, PredictionStatus } from "./prediction.schema";
+import { CreatePredictionDto } from "./dto/createprediction.dto";
+import { UpdatePredictionDto } from "./dto/updateprediction.dto";
 import { User, UserDocument } from "../user/user.schema";
 import { Vote, VoteDocument } from "../vote/vote.schema";
 import OpenAI from "openai";
@@ -43,13 +39,33 @@ export class PredictionService {
 	 * @returns L'objet normalisé.
 	 */
 	private normalizePred(pred: any) {
-		const obj =
-			typeof pred.toObject === "function" ? pred.toObject() : { ...pred };
-		if (obj.user_id && typeof obj.user_id === "object" && obj.user_id._id)
-			obj.user_id = String(obj.user_id._id);
-		if (obj.user && typeof obj.user === "object" && obj.user._id)
-			obj.user_id = String(obj.user._id);
+		const obj = typeof pred.toObject === "function" ? pred.toObject() : { ...pred };
+		if (obj.user_id && typeof obj.user_id === "object" && obj.user_id._id) obj.user_id = String(obj.user_id._id);
+		if (obj.user && typeof obj.user === "object" && obj.user._id) obj.user_id = String(obj.user._id);
 		return obj;
+	}
+
+	/**
+	 * Récupère les prédictions avec pagination simple (facultative)
+	 */
+	private async paginatePredictions(
+		filter: Record<string, any>,
+		page = 1,
+		limit = 10,
+		sort: Record<string, 1 | -1> = { createdAt: -1 },
+	): Promise<Prediction[]> {
+		const skip = (page - 1) * limit;
+
+		const items = await this.predictionModel
+			.find(filter)
+			.sort(sort)
+			.skip(skip)
+			.limit(limit)
+			.populate("user_id", "username")
+			.lean()
+			.exec();
+
+		return items.map((p) => this.normalizePred(p));
 	}
 
 	/**
@@ -57,13 +73,14 @@ export class PredictionService {
 	 *
 	 * @returns Une promesse qui résout un tableau de prédictions.
 	 */
-	async getAll(): Promise<Prediction[]> {
-		// Peupler le champ user_id avec uniquement le username
-		const preds = await this.predictionModel
-			.find()
-			.populate("user_id", "username")
-			.exec();
-		return (preds as any[]).map((p) => this.normalizePred(p));
+	async getAll(page?: number, limit?: number): Promise<Prediction[]> {
+		if (!page || !limit) {
+			const preds = await this.predictionModel.find().populate("user_id", "username").lean().exec();
+
+			return preds.map((p) => this.normalizePred(p));
+		}
+
+		return this.paginatePredictions({}, page, limit);
 	}
 
 	/**
@@ -73,11 +90,7 @@ export class PredictionService {
 	 * @returns Une promesse qui résout la prédiction si elle est trouvée, ou `undefined` sinon.
 	 */
 	async getById(id: string): Promise<Prediction | undefined> {
-		const pred =
-			(await this.predictionModel
-				.findById(id)
-				.populate("user_id", "username")
-				.exec()) ?? undefined;
+		const pred = (await this.predictionModel.findById(id).populate("user_id", "username").exec()) ?? undefined;
 		if (!pred) return undefined;
 		return this.normalizePred(pred) as Prediction;
 	}
@@ -125,10 +138,7 @@ export class PredictionService {
 	 * @param pred - Données à appliquer à la prédiction.
 	 * @returns La prédiction mise à jour ou nouvellement créée.
 	 */
-	async createOrUpdateById(
-		id: string,
-		pred: UpdatePredictionDto | Prediction,
-	): Promise<Prediction> {
+	async createOrUpdateById(id: string, pred: UpdatePredictionDto | Prediction): Promise<Prediction> {
 		const existing = await this.predictionModel.findById(id).exec();
 
 		if (existing) {
@@ -211,30 +221,21 @@ export class PredictionService {
 		rewards: { user_id: string; gain: number }[];
 	}> {
 		// Récupérer la prédiction
-		const prediction = await this.predictionModel
-			.findById(predictionId)
-			.exec();
+		const prediction = await this.predictionModel.findById(predictionId).exec();
 		if (!prediction) throw new Error("Prédiction introuvable");
 
 		// Vérifier que l'option gagnante est valide
-		if (!(winningOption in prediction.options))
-			throw new Error("Option gagnante invalide");
+		if (!(winningOption in prediction.options)) throw new Error("Option gagnante invalide");
 
 		// Récupérer tous les votes liés
-		const votes = await this.voteModel
-			.find({ prediction_id: predictionId })
-			.exec();
+		const votes = await this.voteModel.find({ prediction_id: predictionId }).exec();
 
 		// Somme totale et somme sur l’option gagnante
-		const totalPoints = Object.values(prediction.options).reduce(
-			(a, b) => a + b,
-			0,
-		);
+		const totalPoints = Object.values(prediction.options).reduce((a, b) => a + b, 0);
 		const winningPoints = prediction.options[winningOption];
 
 		// Si pas de points sur l’option gagnante, on ne peut pas récompenser
-		if (winningPoints === 0)
-			throw new Error("Aucun point sur l’option gagnante");
+		if (winningPoints === 0) throw new Error("Aucun point sur l’option gagnante");
 
 		// Calcul du ratio
 		const ratio = totalPoints / winningPoints;
@@ -249,11 +250,7 @@ export class PredictionService {
 				const gain = Math.floor(vote.amount * ratio);
 
 				// Crédite le user en base
-				await this.userModel.findByIdAndUpdate(
-					vote.user_id,
-					{ $inc: { points: gain } },
-					{ new: true },
-				);
+				await this.userModel.findByIdAndUpdate(vote.user_id, { $inc: { points: gain } }, { new: true });
 
 				rewards.push({ user_id: vote.user_id.toString(), gain });
 			}
@@ -277,15 +274,19 @@ export class PredictionService {
 	 * les résultats ne sont pas définis et le statut est "Valid".
 	 * @returns Les prédictions expirées
 	 */
-	async getExpiredPredictions() {
+	async getExpiredPredictions(page?: number, limit?: number): Promise<Prediction[]> {
 		const now = new Date();
-		return this.predictionModel
-			.find({
-				dateFin: { $lte: now },
-				result: "",
-				status: PredictionStatus.Valid,
-			})
-			.exec();
+		const filter = {
+			dateFin: { $lte: now },
+			result: "",
+			status: PredictionStatus.Valid,
+		};
+
+		if (!page || !limit) {
+			return this.predictionModel.find(filter).populate("user_id", "username").lean().exec();
+		}
+
+		return this.paginatePredictions(filter, page, limit);
 	}
 
 	/**
@@ -293,27 +294,35 @@ export class PredictionService {
 	 * et les résultats ne sont pas encore définis.
 	 * @returns les prédictions en attente
 	 */
-	async getWaitingPredictions() {
-		return this.predictionModel
-			.find({
-				status: PredictionStatus.Waiting,
-				result: "",
-			})
-			.exec();
+	async getWaitingPredictions(page?: number, limit?: number): Promise<Prediction[]> {
+		const filter = {
+			status: PredictionStatus.Waiting,
+			result: "",
+		};
+
+		if (!page || !limit) {
+			return this.predictionModel.find(filter).populate("user_id", "username").lean().exec();
+		}
+
+		return this.paginatePredictions(filter, page, limit);
 	}
 
 	/**
 	 * Récupère les prédictions validées (status "Valid") qui ne sont pas encore expirées.
 	 * @returns la liste des prédictions
 	 */
-	async getValidPredictions(): Promise<Prediction[]> {
+	async getValidPredictions(page?: number, limit?: number): Promise<Prediction[]> {
 		const now = new Date();
-		return this.predictionModel
-			.find({
-				status: PredictionStatus.Valid,
-				dateFin: { $gt: now }, // uniquement les non-expirées
-			})
-			.exec();
+		const filter = {
+			status: PredictionStatus.Valid,
+			dateFin: { $gt: now },
+		};
+
+		if (!page || !limit) {
+			return this.predictionModel.find(filter).populate("user_id", "username").lean().exec();
+		}
+
+		return this.paginatePredictions(filter, page, limit);
 	}
 
 	/**
@@ -323,10 +332,8 @@ export class PredictionService {
 	 * @throws Error si la clé API LangSearch est absente
 	 */
 	async queryWebSearch(title: string): Promise<String[]> {
-		const LANGSEARCH_API_KEY =
-			this.configService.get<string>("LANGSEARCH_API_KEY");
-		if (!LANGSEARCH_API_KEY)
-			throw new Error("Clé API LangSearch manquante");
+		const LANGSEARCH_API_KEY = this.configService.get<string>("LANGSEARCH_API_KEY");
+		if (!LANGSEARCH_API_KEY) throw new Error("Clé API LangSearch manquante");
 
 		const result = await axios.post(
 			"https://api.langsearch.com/v1/web-search",
@@ -344,8 +351,7 @@ export class PredictionService {
 			},
 		);
 
-		if (result.data.data.webPages.value === null)
-			throw new Error("Aucune recherche ne correspond aux mots clés");
+		if (result.data.data.webPages.value === null) throw new Error("Aucune recherche ne correspond aux mots clés");
 
 		return result.data.data.webPages.value.map((page: any) =>
 			page.summary.replace(/\\n/g, " ").replace(/\s+/g, " ").trim(),
@@ -359,14 +365,9 @@ export class PredictionService {
 	 * @returns La liste réordonnée des 5 documents les plus pertinents
 	 * @throws Error si la clé API LangSearch est absente
 	 */
-	async rerankDocuments(
-		title: string,
-		documents: String[],
-	): Promise<String[]> {
-		const LANGSEARCH_API_KEY =
-			this.configService.get<string>("LANGSEARCH_API_KEY");
-		if (!LANGSEARCH_API_KEY)
-			throw new Error("Clé API LangSearch manquante");
+	async rerankDocuments(title: string, documents: String[]): Promise<String[]> {
+		const LANGSEARCH_API_KEY = this.configService.get<string>("LANGSEARCH_API_KEY");
+		if (!LANGSEARCH_API_KEY) throw new Error("Clé API LangSearch manquante");
 
 		const result = await axios.post(
 			"https://api.langsearch.com/v1/rerank",
@@ -428,8 +429,7 @@ export class PredictionService {
 			text: { verbosity: "low" },
 		});
 
-		if (response.output_text === "")
-			throw new Error("L'IA n'a pas pu identifier au moins 2 mots clés");
+		if (response.output_text === "") throw new Error("L'IA n'a pas pu identifier au moins 2 mots clés");
 
 		return response.output_text || "";
 	}
@@ -442,8 +442,7 @@ export class PredictionService {
 	 */
 	async updatePronosticsByAI(id: string) {
 		if (this.configService.get<string>("ENABLE_AI_PRONOSTICS") === "true") {
-			const OPENAI_API_KEY =
-				this.configService.get<string>("OPENAI_API_KEY");
+			const OPENAI_API_KEY = this.configService.get<string>("OPENAI_API_KEY");
 			if (!OPENAI_API_KEY) throw new Error("Clé API OpenAI manquante");
 		} else return;
 
@@ -456,13 +455,8 @@ export class PredictionService {
 		const documents = await this.queryWebSearch(query);
 
 		// S'assurer qu'au moins une seconde s'ecoule entre les appels à l'API LangSearch
-		await new Promise((resolve) =>
-			setTimeout(resolve, Math.max(3000 - (Date.now() - startTime), 0)),
-		);
-		const rankedDocuments = await this.rerankDocuments(
-			prediction.title,
-			documents,
-		);
+		await new Promise((resolve) => setTimeout(resolve, Math.max(3000 - (Date.now() - startTime), 0)));
+		const rankedDocuments = await this.rerankDocuments(prediction.title, documents);
 
 		const client = new OpenAI();
 		const response = await client.responses.create({
@@ -554,15 +548,11 @@ export class PredictionService {
 			fromStart = (fromStart as unknown) == "true";
 		}
 
-		const prediction = await this.predictionModel
-			.findById(predictionId)
-			.exec();
+		const prediction = await this.predictionModel.findById(predictionId).exec();
 		if (!prediction) throw new Error("Prédiction introuvable");
 
 		// Récupérer tous les votes liés
-		const votes = await this.voteModel
-			.find({ prediction_id: predictionId })
-			.exec();
+		const votes = await this.voteModel.find({ prediction_id: predictionId }).exec();
 
 		// Déterminer le début et la fin de la timeline
 		const startTime = prediction.createdAt;
@@ -574,9 +564,7 @@ export class PredictionService {
 		while (currentTime <= endTime) {
 			intervals.push(new Date(currentTime));
 			// javascript de con, pq intervalMinutes est un string et pas un number
-			currentTime.setMinutes(
-				currentTime.getMinutes() + Number(intervalMinutes),
-			);
+			currentTime.setMinutes(currentTime.getMinutes() + Number(intervalMinutes));
 		}
 
 		// Calculer le total des votes à chaque intervalle
@@ -591,14 +579,9 @@ export class PredictionService {
 			votes.forEach((vote) => {
 				if (
 					(fromStart || vote.date >= interval) &&
-					vote.date <
-						new Date(
-							interval.getTime() +
-								Number(intervalMinutes) * 60000,
-						)
+					vote.date < new Date(interval.getTime() + Number(intervalMinutes) * 60000)
 				) {
-					optionsCount[vote.option] =
-						(optionsCount[vote.option] || 0) + vote.amount;
+					optionsCount[vote.option] = (optionsCount[vote.option] || 0) + vote.amount;
 					totalVotes += vote.amount;
 				}
 			});
@@ -608,14 +591,7 @@ export class PredictionService {
 				// Convertir en pourcentages (protéger contre la division par zéro) et arrondir à 1 décimale
 				for (const option in optionsCount) {
 					optionsData[option] =
-						totalVotes > 0
-							? Number(
-									(
-										((optionsCount[option] / totalVotes) *
-											100) as number
-									).toFixed(1),
-								)
-							: 0;
+						totalVotes > 0 ? Number((((optionsCount[option] / totalVotes) * 100) as number).toFixed(1)) : 0;
 				}
 			} else {
 				// Garder les comptes bruts

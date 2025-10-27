@@ -64,6 +64,22 @@ export const PredictionResolver = {
 			publications: publications.filter((pub) => pub.prediction_id === prediction._id),
 		};
 	},
+
+	async getWaitingPredictions(token: string, page: string, limit: string) {
+		const allPredictions = await PredictionService.getWaitingPredictions(token, page, limit);
+		return allPredictions;
+	},
+
+	async validatePrediction(id: string, token: string) {
+		const res = await PredictionService.updatePredictionStatus(id, token, "validated");
+		return res;
+	},
+
+	async refusePrediction(id: string, token: string) {
+		const res = await PredictionService.updatePredictionStatus(id, token, "refused");
+		return res;
+	}
+	
 };
 
 export default PredictionResolver;

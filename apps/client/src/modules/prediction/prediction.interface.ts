@@ -7,6 +7,13 @@ export interface PredictionFormValues {
 	dateFin: string;
 }
 
+export type ValidatedPrediction = {
+	_id: string;
+	title: string;
+	user_id: string;
+	dateFin: string | Date;
+};
+
 export interface PredictionPayload {
 	title: string;
 	description?: string;
