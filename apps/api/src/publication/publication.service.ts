@@ -94,15 +94,15 @@ export class PublicationService {
 	 * @param id Identifiant de la publication à créer ou mettre à jour
 	 * @param pub Publication à créer ou mettre à jour
 	 */
-	async createOrUpdateById(id: string, pub: UpdatePublicationDto | Publication) {
+	async createOrUpdateById(id: string, pub: UpdatePublicationDto) {
 		const existing = await this.publicationModel.findById(id).exec();
 		if (existing) {
 			existing.message = pub.message ?? existing.message;
 			existing.datePublication = pub.datePublication ?? existing.datePublication;
-			existing.prediction_id = pub.prediction_id ?? existing.prediction_id;
-			existing.parentPublication_id = pub.parentPublication_id ?? existing.parentPublication_id;
-			existing.user_id = pub.user_id ?? existing.user_id;
-			existing.likes = pub.likes ?? existing.likes;
+			existing.prediction_id = new Types.ObjectId(pub.prediction_id) ?? existing.prediction_id;
+			existing.parentPublication_id = new Types.ObjectId(pub.parentPublication_id) ?? existing.parentPublication_id;
+			existing.user_id = new Types.ObjectId(pub.user_id ?? existing.user_id);
+			existing.likes = pub.likes?.map((id) => new Types.ObjectId(id)) ?? existing.likes;
 			await existing.save();
 		} else {
 			const toCreate = { ...pub } as any;

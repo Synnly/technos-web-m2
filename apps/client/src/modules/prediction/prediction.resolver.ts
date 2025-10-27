@@ -9,27 +9,20 @@ import { VoteService } from "../vote/vote.service";
 import { PublicationService } from "../publication/publication.service";
 
 export const PredictionResolver = {
-	async create(values: PredictionFormValues & { options: Record<string, number> }, username?: string | null) {
-		const token = localStorage.getItem("token");
-		if (!token) throw new Error("Utilisateur non authentifié");
-
-		const user_id = username ? await PredictionService.fetchUserIdByUsername(username, token) : undefined;
-
+	async create(values: PredictionFormValues & { options: Record<string, number> }, token: string) {
 		const payload: PredictionPayload = {
 			title: values.title,
 			description: values.description,
-			dateFin: new Date(values.dateFin).toISOString(),
+			dateFin: new Date(values.dateFin),
 			status: "waiting",
-			result: "",
 			options: values.options,
 		};
-		if (user_id) payload.user_id = user_id;
 
 		const res = await PredictionService.createPrediction(payload, token);
 		return res.data;
 	},
-	async getAllPredictions(token: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
-		const predictions = await PredictionService.getAllPredictions(token);
+	async getAllValidPredictions(token: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
+		const predictions = await PredictionService.getAllValidPredictions(token);
 		const votes = await VoteService.getAllVotes(token);
 		const publications = await PublicationService.getAllPublications(token);
 
@@ -48,10 +41,7 @@ export const PredictionResolver = {
 		}));
 	},
 
-	async getPredictionById(
-		id: string,
-		token: string,
-	): Promise<PredictionWithThisVotesAndPublications | undefined> {
+	async getPredictionById(id: string, token: string): Promise<PredictionWithThisVotesAndPublications | undefined> {
 		const prediction = await PredictionService.getPredictionById(id, token);
 		if (!prediction) return undefined;
 
@@ -63,6 +53,16 @@ export const PredictionResolver = {
 			votes: votes.filter((vote) => vote.prediction_id === prediction._id),
 			publications: publications.filter((pub) => pub.prediction_id === prediction._id),
 		};
+	},
+
+	async getTimelineData(
+		predictionId: string,
+		intervalMinutes: number,
+		votesAsPercentage: boolean,
+		fromStart: boolean,
+		token: string,
+	) {
+		return PredictionService.getTimelineData(predictionId, intervalMinutes, votesAsPercentage, fromStart, token);
 	},
 };
 

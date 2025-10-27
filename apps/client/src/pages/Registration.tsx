@@ -75,7 +75,7 @@ function Register() {
 			values.password,
 			setError,
 		);
-		if (result) navigate("/signin", { replace: true });
+		if (result !== null) navigate("/signin", { replace: true });
 	};
 
 	return (

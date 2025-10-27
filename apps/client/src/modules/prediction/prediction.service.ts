@@ -5,8 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const PredictionService = {
 	async createPrediction(payload: PredictionPayload, token?: string) {
-		const headers = token ? { Authorization: `Bearer ${token}` } : {};
-		return axios.post(`${API_URL}/prediction`, payload, { headers });
+		return axios.post(`${API_URL}/prediction`, payload, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
 	},
 
 	async fetchUserIdByUsername(username: string, token?: string): Promise<string | undefined> {
@@ -22,8 +25,8 @@ export const PredictionService = {
 		}
 	},
 
-	async getAllPredictions(token: string): Promise<Prediction[]> {
-		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction`, {
+	async getAllValidPredictions(token: string): Promise<Prediction[]> {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/valid`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 		return resp.data || [];
@@ -38,6 +41,26 @@ export const PredictionService = {
 		} catch (error) {
 			return undefined;
 		}
+	},
+
+	async getTimelineData(
+		predictionId: string,
+		intervalMinutes: number,
+		votesAsPercentage: boolean,
+		fromStart: boolean,
+		token: string,
+	) {
+		const resp = await axios.get(`${API_URL}/prediction/${predictionId}/timeline`, {
+			params: {
+				intervalMinutes,
+				votesAsPercentage,
+				fromStart,
+			},
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		return resp.data;
 	},
 };
 

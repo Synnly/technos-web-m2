@@ -82,11 +82,7 @@ const DailyRewards: React.FC<{
 				<div className="flex items-center space-x-3">
 					<div
 						className={`w-12 h-12 rounded-xl flex items-center justify-center 
-            ${
-				pointdejaRecup
-					? "bg-gray-600"
-					: "bg-gradient-to-r from-yellow-400 to-orange-400 bounce-gentle"
-			}`}
+            ${pointdejaRecup ? "bg-gray-600" : "bg-gradient-to-r from-yellow-400 to-orange-400 bounce-gentle"}`}
 					>
 						{pointdejaRecup ? (
 							<Coins className="w-6 h-6 text-gray-300" />
@@ -97,33 +93,24 @@ const DailyRewards: React.FC<{
 
 					<div className="text-left">
 						<span
-							className={`font-bold text-lg block ${
-								pointdejaRecup
-									? "text-gray-300"
-									: "gradient-text"
-							}`}
+							className={`font-bold text-lg block ${pointdejaRecup ? "text-gray-300" : "gradient-text"}`}
 						>
 							Bonus du jour
 						</span>
 
 						{pointdejaRecup ? (
 							<span className="text-xs text-green-400 font-semibold flex items-center gap-1">
-								<CheckCircle2 className="w-3 h-3" /> Récompense
-								récupérée
+								<CheckCircle2 className="w-3 h-3" /> Récompense récupérée
 							</span>
 						) : (
-							<span className="text-xs text-yellow-300 font-semibold">
-								Récompense disponible
-							</span>
+							<span className="text-xs text-yellow-300 font-semibold">Récompense disponible</span>
 						)}
 					</div>
 				</div>
 
 				<div className="mt-2 flex items-center justify-between">
 					<span className="text-xs text-yellow-200">
-						{pointdejaRecup
-							? "Revenez demain !"
-							: "+10 Points disponibles"}
+						{pointdejaRecup ? "Revenez demain !" : "+10 Points disponibles"}
 					</span>
 
 					{!pointdejaRecup && (

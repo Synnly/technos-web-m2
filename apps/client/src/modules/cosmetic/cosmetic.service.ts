@@ -14,11 +14,14 @@ export const CosmeticService = {
 		return res.data;
 	},
 
-	async applyCosmetic(username: string, current: string[], token: string) {
+	async applyCosmetic(username: string, current: (string | null)[], token: string) {
 		const headers = { Authorization: `Bearer ${token}` };
 		const res = await axios.put(
 			`${API_URL}/user/${username}`,
-			{ currentCosmetic: current },
+			{
+				username: username,
+				currentCosmetic: current,
+			},
 			{ headers },
 		);
 		return res.data;

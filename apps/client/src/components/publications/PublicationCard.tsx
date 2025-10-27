@@ -2,10 +2,12 @@ import React from "react";
 import type { Publication } from "../../modules/publication/publication.interface";
 import { Heart, MessageSquare, MessageSquarePlus } from "lucide-react";
 import WritePublication from "./WritePublication";
+import type { PublicUser } from "../../modules/user/user.interface";
 
 interface PublicationCardProps {
 	predictionId: string;
-	username: string;
+	user_id: string;
+	users: Array<PublicUser>;
 	publication: Publication;
 	publications: Publication[];
 	addPublication: (message: Publication) => void;
@@ -14,7 +16,8 @@ interface PublicationCardProps {
 
 const PublicationCard: React.FC<PublicationCardProps> = ({
 	predictionId,
-	username,
+	user_id,
+	users,
 	publication,
 	publications,
 	addPublication,
@@ -22,7 +25,11 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 }) => {
 	const [showChildren, setShowChildren] = React.useState(false);
 	const [showPublicationBox, setShowPublicationBox] = React.useState(false);
-	const childPublications = publications.filter((pub) => pub.parentPublication_id === publication._id);
+	const childPublications = publications
+		.filter((pub) => pub.parentPublication_id === publication._id)
+		.sort((a, b) => {
+			return a.likes.length > b.likes.length ? -1 : 1;
+		});
 	const publicationDivRef = React.useRef<HTMLDivElement>(null);
 
 	const addPublicationAndShowChildren = (newPublication: Publication) => {
@@ -30,11 +37,11 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 		setShowPublicationBox(false);
 		setShowChildren(true);
 	};
-
+	
 	return (
 		<div>
 			<div className="text-sm md:text-base bg-gray-800/50 text-white border border-gray-700 rounded-lg p-4 shadow-md">
-				<p className="font-bold">{publication.user_id}</p>
+				<p className="font-bold">{users.find((user) => user._id === publication.user_id)?.username}</p>
 				<h3>{publication.message}</h3>
 				<div className="flex gap-4 mt-1">
 					<p className="text-gray-400">{publication.datePublication.toLocaleDateString()}</p>
@@ -42,7 +49,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 						<Heart
 							strokeWidth={1.25}
 							className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ease-in-out hover:fill-red-500
-                            hover:scale-110 active:scale-95 fill-${publication.likes.includes(username) ? "red-500" : "transparent"} 
+                            hover:scale-110 active:scale-95 ${publication.likes.includes(user_id) ? "fill-red-500" : "fill-transparent"} 
 							`}
 							onClick={() => toggleLike(publication._id)}
 						/>
@@ -71,7 +78,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 				{showPublicationBox && (
 					<WritePublication
 						predictionId={predictionId}
-						username={username}
+						user_id={user_id}
 						parentPublication={publication}
 						placeholder={"Écrivez votre réponse ..."}
 						addPublication={addPublicationAndShowChildren}
@@ -84,8 +91,9 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 						<PublicationCard
                             key={child._id}
 							predictionId={predictionId}
-							username={username}
+							user_id={user_id}
 							publication={child}
+							users={users}
 							publications={publications}
 							addPublication={addPublicationAndShowChildren}
 							toggleLike={toggleLike}

@@ -11,7 +11,7 @@ interface OptionGridProps {
 const OptionGrid: React.FC<OptionGridProps> = ({ options, userBets, onOptionSelect, optionSelected, aiPronostics }) => {
 	const maxCols = Math.min(Object.keys(options).length, 3);
 	return (
-		<div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-${maxCols} gap-2 md:gap-10`}>
+			<div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-${maxCols} gap-2 md:gap-10`}>
 			{Object.keys(options).map((optionKey) => (
 				<OptionCard
 					key={optionKey}

@@ -2,7 +2,6 @@ import { renderWithEmojis } from "../emoji";
 import type { CosmeticCardProps } from "./CosmeticCard.interface";
 
 const CosmeticCard = ({ id, name, type, isApplied, onApply }: CosmeticCardProps) => {
-	console.log(type);
 	return (
 		<div
 			className="group relative p-4 rounded-xl border border-gray-700 bg-gray-800/70 

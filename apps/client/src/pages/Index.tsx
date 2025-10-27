@@ -8,6 +8,7 @@ import { Form } from "antd";
 import IsNotAuthenticatedHome from "../components/home/home-page/IsNotAuthenticatedHome.component";
 import IsAuthenticatedHome from "../components/home/home-page/IsAuthenticatedHome.component";
 import { userController } from "../modules/user/user.controller";
+import type { PublicUser } from "../modules/user/user.interface";
 
 function Index() {
 	const [form] = Form.useForm();
@@ -19,7 +20,7 @@ function Index() {
 
 	const [predictions, setPredictions] = useState<any[]>([]);
 	const [__, setLoading] = useState(false);
-	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+	const [users, setUsers] = useState<Array<PublicUser>>([]);
 	const [_, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
 	const [open, setOpen] = useState(false);
@@ -30,7 +31,7 @@ function Index() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllPredictions(
+		const data = await PredictionController.getAllValidPredictions(
 			token,
 			setToast,
 		);
@@ -39,8 +40,8 @@ function Index() {
 	};
 
 	const fetchAllUsers = async () => {
-		const map = await userController.getAllUsers(token, setToast);
-		setUsersMap(map);
+		const list = await userController.getAllUsers(token, setToast);
+		setUsers(list);
 	};
 
 	const fetchUserByUsername = async (username: string) => {
@@ -81,7 +82,7 @@ function Index() {
 			toast={toast}
 			setToast={setToast}
 			predictions={predictions}
-			usersMap={usersMap}
+			users={users}
 			handlePredictionClick={handlePredictionClick}
 			fetchAllPredictions={fetchAllPredictions}
 			setError={(m: string | null) => setError(m)}

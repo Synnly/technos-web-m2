@@ -10,4 +10,39 @@ export const PublicationService = {
 		});
 		return resp.data;
 	},
+
+	async createPublication(
+		message: string,
+		prediction_id: string,
+		parentPublication_id: string | undefined,
+		user_id: string,
+		token: string,
+	) {
+		const resp = await axios.post<Publication>(
+			`${API_URL}/publication`,
+			{
+				message: message,
+				datePublication: new Date(),
+				prediction_id: prediction_id,
+				parentPublication_id: parentPublication_id,
+				user_id: user_id,
+				likes: [],
+			},
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
+		return resp.data;
+	},
+
+	async toggleLike(publicationId: string, userId: string, token: string) {
+		const resp = await axios.put<Publication>(
+			`${API_URL}/publication/${publicationId}/toggle-like/${userId}`,
+			{},
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
+		return resp.data;
+	},
 };

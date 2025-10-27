@@ -8,8 +8,8 @@ export const CosmeticsLabel = (
 	</span>
 );
 
-const CosmeticsTab = ({ user }: any) => {
-	return <div className="p-4 text-gray-200">{user && <CosmeticPicker user={user} />}</div>;
+const CosmeticsTab = ({ user, setCurrentCosmetics }: any) => {
+	return <div className="p-4 text-gray-200">{user && <CosmeticPicker user={user} setCurrentCosmetics={setCurrentCosmetics} />}</div>;
 }
 
 export default CosmeticsTab;

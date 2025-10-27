@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, MessageSquare } from "lucide-react";
+import { Vote, MessageSquare } from "lucide-react";
 import type { PredictionCardProps } from "./PredictionCard.interface";
 import TimeUntilEnd from "../time-until-end/TimeUntilEnd";
 
@@ -27,12 +27,8 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 			}}
 		>
 			<div className="flex flex-col gap-1 overflow-hidden text-center mb-2">
-				<p className="font-medium text-white text-base sm:text-lg truncate">
-					{title}
-				</p>
-				<p className="text-xs sm:text-sm text-gray-400 truncate">
-					de : {author}
-				</p>
+				<p className="font-medium text-white text-base sm:text-lg truncate">{title}</p>
+				<p className="text-xs sm:text-sm text-gray-400 truncate">de : {author}</p>
 			</div>
 
 			<div className="flex items-center justify-start sm:justify-start mt-4">
@@ -40,7 +36,7 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 					className="flex items-center gap-1 px-1 py-1 rounded-full text-xs sm:text-sm font-medium
      text-gray-200"
 				>
-					<Users className="w-4 h-4 text-pink-400" />
+					<Vote className="w-4 h-4 text-pink-400" />
 					{votes}
 				</span>
 
