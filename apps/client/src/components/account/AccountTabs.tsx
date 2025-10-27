@@ -6,8 +6,16 @@ import SettingsTab, { SettingsLabel } from "./SettingsTab";
 import { useAuth } from "../../hooks/useAuth";
 import { userController } from "../../modules/user/user.controller";
 import type { User } from "../../modules/user/user.interface";
+import { Package2 } from "lucide-react";
 
-const AccountTabs: React.FC = () => {
+export const AccountLabel = (
+	<span className="flex items-center gap-2 text-gray-300">
+		<Package2 className="w-4 h-4" />
+		Mon compte
+	</span>
+);
+
+const AccountTabs: React.FC<any> = ({ setCurrentCosmetics }: any) => {
 	const { username } = useAuth();
 	const [user, setUser] = useState<User | null>(null);
 
@@ -27,11 +35,11 @@ const AccountTabs: React.FC = () => {
 	}, [username]);
 
 	const items = [
-		{ key: "1", label: "Mon compte", children: <AccountInfoTab /> },
+		{ key: "1", label: AccountLabel, children: <AccountInfoTab /> },
 		{
 			key: "2",
 			label: CosmeticsLabel,
-			children: <CosmeticsTab user={user!} />,
+			children: <CosmeticsTab user={user!} setCurrentCosmetics={setCurrentCosmetics} />,
 		},
 		{ key: "3", label: SettingsLabel, children: <SettingsTab /> },
 	];

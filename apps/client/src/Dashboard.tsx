@@ -18,7 +18,7 @@ function Dashboard() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllPredictions(token, setToast);
+		const data = await PredictionController.getAllValidPredictions(token, setToast);
 		setPredictions(data);
 		setLoading(false);
 	};
@@ -26,6 +26,13 @@ function Dashboard() {
 	const fetchUserByUsername = async (username: string) => {
 		const u = await userController.getUserByUsername(username, token, setToast);
 		setUser(u);
+	};
+
+	const setCurrentCosmetics = (cosmetics: (string | null)[]) => {
+		setUser((prevUser: any) => ({
+			...prevUser,
+			currentCosmetic: cosmetics,
+		}));
 	};
 
 	useEffect(() => {
@@ -52,7 +59,7 @@ function Dashboard() {
 						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-80"
 				}
 			>
-				<AccountTabs />
+				<AccountTabs setCurrentCosmetics={setCurrentCosmetics}/>
 			</main>
 		</div>
 	);

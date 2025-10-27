@@ -8,7 +8,7 @@ interface ColorPreviewCardProps {
 }
 
 const ColorPreviewCard: React.FC<ColorPreviewCardProps> = ({ colorHex, username, userCosmetics }) => {
-	const badge = userCosmetics?.find((c) => c.type === "badge") || undefined;
+	const badge = userCosmetics?.find((c) => c?.type === "badge") || undefined;
 	return <div><Username username={username} color={colorHex} badge={badge?.value} /></div>;
 };
 

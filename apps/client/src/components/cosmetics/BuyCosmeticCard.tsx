@@ -16,9 +16,21 @@ const BuyCosmeticCard: React.FC<BuyCosmeticCardProps> = ({ cosmetic, user, onBuy
 		<div className="min-w-fit border border-gray-700 rounded-lg">
 			<div className="m-4 flex flex-col items-center space-y-4">
 				<h1 className="text-white text-center font-bold text-lg">{cosmetic.name}</h1>
-				{cosmetic.type === "color" && <ColorPreviewCard colorHex={cosmetic.value ?? "#FFFFFF"} username={user.username} userCosmetics={userCosmetics} />}
-				{cosmetic.type === "badge" && <BadgePreviewCard emoji={cosmetic.value ?? ""} username={user.username} userCosmetics={userCosmetics} />}
-				<BuyButton cosmetic={cosmetic} onBuyCosmetic={onBuyCosmetic} user={user}/>
+				{cosmetic.type === "color" && (
+					<ColorPreviewCard
+						colorHex={cosmetic.value ?? "#FFFFFF"}
+						username={user.username}
+						userCosmetics={userCosmetics}
+					/>
+				)}
+				{cosmetic.type === "badge" && (
+					<BadgePreviewCard
+						emoji={cosmetic.value ?? ""}
+						username={user.username}
+						userCosmetics={userCosmetics}
+					/>
+				)}
+				<BuyButton cosmetic={cosmetic} onBuyCosmetic={onBuyCosmetic} user={user} />
 			</div>
 		</div>
 	);

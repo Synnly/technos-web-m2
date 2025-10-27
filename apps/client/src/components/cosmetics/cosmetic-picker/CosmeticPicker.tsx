@@ -1,46 +1,25 @@
 import { useEffect, useState } from "react";
 import CosmeticController from "../../../modules/cosmetic/cosmetic.controller";
 import CosmeticList from "../CosmeticList";
-import type { Cosmetic } from "../../../modules/cosmetic/cosmetic.interface";
 import type { CosmeticPickerProps } from "./cosmetic-picker.interface";
 import type { Toast } from "../../toast/Toast.interface";
 import ToastComponent from "../../toast/Toast.component";
+import type { Cosmetic } from "../../../modules/cosmetic/cosmetic.interface";
 
-const CosmeticPicker = ({ user }: CosmeticPickerProps) => {
-	const [cosmeticsOwned, setCosmeticsOwned] = useState<Cosmetic[]>([]);
+const CosmeticPicker = ({ user, setCurrentCosmetics }: CosmeticPickerProps) => {
 	const [toast, setToast] = useState<Toast | null>(null);
+	const [cosmeticsOwned, setCosmeticsOwned] = useState<Cosmetic[]>([]);
 	const clearToast = () => setToast(null);
-	const normalize = (arr?: Array<string | any | null>) =>
-		(arr || [])
-			.map((v) =>
-				v && typeof v === "object"
-					? String((v as any)._id ?? v)
-					: String(v),
-			)
-			.filter(Boolean as any) as string[];
-
-	const [applied, setApplied] = useState<string[]>(
-		normalize(user?.currentCosmetic),
-	);
 	const token = localStorage.getItem("token");
 
-	useEffect(() => {
-		if (!token || !user?.cosmeticsOwned) return;
-
-		const fetchCosmetics = async () => {
-			const ownedCosmetics = await CosmeticController.getUserCosmetics(
-				user.cosmeticsOwned,
-				token,
-			);
-			setCosmeticsOwned(ownedCosmetics);
-		};
-
-		fetchCosmetics();
-	}, [token, user?.cosmeticsOwned]);
+	const fetchAllCosmetics = async () => {
+		const allCosmetics = await CosmeticController.getAllCosmetics(token, setToast);
+		setCosmeticsOwned(allCosmetics.filter((cosmetic) => user.cosmeticsOwned?.includes(cosmetic._id)));
+	};
 
 	useEffect(() => {
-		setApplied(normalize(user?.currentCosmetic));
-	}, [user?.currentCosmetic]);
+		fetchAllCosmetics();
+	}, [user?.cosmeticsOwned]);
 
 	const handleApply = async (id: string) => {
 		const setError = (m: string | null) => {
@@ -51,9 +30,9 @@ const CosmeticPicker = ({ user }: CosmeticPickerProps) => {
 			user.username,
 			id,
 			token,
-			cosmeticsOwned,
-			applied,
-			(arr: string[]) => setApplied(arr),
+			user.cosmeticsOwned || [],
+			user.currentCosmetic || [],
+			(cosmetics: (string | null)[]) => setCurrentCosmetics(cosmetics),
 			(msg: string | null) => setError(msg),
 			setToast,
 		);
@@ -61,25 +40,13 @@ const CosmeticPicker = ({ user }: CosmeticPickerProps) => {
 
 	return (
 		<div className="my-6">
-			<h3 className="font-semibold text-lg text-white mb-3">
-				Vos cosmétiques
-			</h3>
+			<h3 className="font-semibold text-lg text-white mb-3">Vos cosmétiques</h3>
 
-			<CosmeticList
-				owned={cosmeticsOwned}
-				applied={applied}
-				apply={handleApply}
-			/>
+			<CosmeticList owned={cosmeticsOwned} applied={user?.currentCosmetic || []} apply={handleApply} />
 
-			{toast && (
-				<ToastComponent
-					message={toast.message!}
-					type={toast.type!}
-					onClose={clearToast}
-				/>
-			)}
+			{toast && <ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} />}
 		</div>
 	);
-}
+};
 
 export default CosmeticPicker;

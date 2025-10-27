@@ -9,7 +9,7 @@ interface BuyCosmeticListProps {
 	userCosmetics: Cosmetic[];
 }
 
-const BuyCosmeticList: React.FC<BuyCosmeticListProps> = ({ cosmetics, user, onBuyCosmetic, userCosmetics }) => {
+const BuyCosmeticList: React.FC<BuyCosmeticListProps> = ({ cosmetics, user, onBuyCosmetic, userCosmetics }) => {		
 	return (
 		<div className="flex flex-row flex-wrap gap-4 justify-between">
 			{cosmetics.map((cosmetic) => (
