@@ -7,17 +7,21 @@ export interface OptionCardProps {
 	onClick: (optionKey: string) => void;
 	optionSelected?: string | null;
 	aiPronostic?: number;
+	result?: string;
 }
 
-const OptionCard: React.FC<OptionCardProps> = ({ name, points, userBet, onClick, optionSelected, aiPronostic }) => {
+const OptionCard: React.FC<OptionCardProps> = ({ name, points, userBet, onClick, optionSelected, aiPronostic, result }) => {
+	const bgColor = result === name ? "bg-green-800/50" : optionSelected === name ? "bg-gray-700" : "bg-gray-800";
+	const borderColor = result === name ? "border-green-700" : "border-gray-700";
+	const textColor = result === name ? "text-green-400" : "text-white";
 	return (
 		<div
-			className={`bg-gray-${optionSelected === name ? "700" : "800"} border border-gray-700 rounded-lg cursor-pointer shadow-md
-        transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-xl`}
+			className={`${bgColor} border ${borderColor} rounded-lg shadow-md transition-all duration-300 
+        	${result ? "" : "hover:scale-105 active:scale-95 hover:shadow-xl cursor-pointer"}`}
 			onClick={() => onClick(name)}
 		>
 			<div className="m-4 flex items-center justify-between">
-				<div className="text-white">
+				<div className={textColor}>
 					<h1 className="font-semibold">{name}</h1>
 					<div className="text-sm flex flex-row items-center gap-2">
 						<Bot strokeWidth={1.5}/>
@@ -25,8 +29,8 @@ const OptionCard: React.FC<OptionCardProps> = ({ name, points, userBet, onClick,
 					</div>
 				</div>
 				<div>
-					<p className="text-white font-semibold">{points ?? 0} points</p>
-					<p className="text-white italic text-sm font-light">Misé {userBet ?? 0} points</p>
+					<p className={`${textColor} font-semibold`}>{points ?? 0} points</p>
+					<p className={`${textColor} italic text-sm font-light`}>Misé {userBet ?? 0} points</p>
 				</div>
 			</div>
 		</div>

@@ -228,10 +228,10 @@ function Prediction() {
 						<PredictionTimeline votesAsPercentage={votesAsPercentage} timelineData={timelineData} />
 					</div>
 				</div>
-				<div className="text-white mt-5">
+				<div className={`${prediction?.result ? "hidden" : "text-white mt-5"}`}>
 					Vous avez <b>{points}</b> points.
 				</div>
-				<div className="mt-5">
+				<div className={`${prediction?.result ? "hidden" : "mt-5"}`}>
 					<AmountButtonRow
 						currentAmount={currentAmount}
 						customAmount={customAmount}
@@ -247,10 +247,11 @@ function Prediction() {
 						userBets={userBets}
 						onOptionSelect={onOptionSelect}
 						optionSelected={optionSelected}
+						result={prediction?.result}
 						aiPronostics={aiPronostics}
 					/>
 				</div>
-				<div className="mt-4">
+				<div className={`${prediction?.result ? "hidden" : "mt-4"}`}>
 					<ConfirmVote onClick={onConfirmVoteClick} />
 				</div>
 				<div className="mt-5">
