@@ -33,6 +33,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
 	});
+	const [pointdejaRecup, setPointdejaRecup] = React.useState<boolean>(
+		Boolean(
+			user?.dateDerniereRecompenseQuotidienne &&
+				new Date().toDateString() === new Date(user.dateDerniereRecompenseQuotidienne).toDateString(),
+		),
+	);	
+
 	React.useEffect(() => {
 		if (onCollapsedChange) {
 			onCollapsedChange(collapsed);
@@ -40,12 +47,21 @@ const Sidebar: React.FC<SidebarProps> = ({
 		localStorage.setItem("sidebar-collapsed", JSON.stringify(collapsed));
 	}, [collapsed, onCollapsedChange]);
 
+	React.useEffect(() => {
+		setPointdejaRecup(
+			Boolean(
+				user?.dateDerniereRecompenseQuotidienne &&
+					new Date().toDateString() === new Date(user.dateDerniereRecompenseQuotidienne).toDateString(),
+			),
+		);
+	}, [user]);
+
 	const toggleSidebar = () => {
 		setCollapsed((prev: Boolean) => !prev);
 	};
 
 	const handleClick = () => {
-		userController.claimDailyReward(user, token, setUser, setPoints, setToast);
+		userController.claimDailyReward(user, token, setUser, setPoints, setToast, setPointdejaRecup);
 	};
 
 	const handleLogout = () => {
@@ -84,15 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 					))}
 
 					{!collapsed && (
-						<DailyRewards
-							onClick={handleClick}
-							pointdejaRecup={Boolean(
-								user &&
-									user.dateDerniereRecompenseQuotidienne &&
-									new Date(user.dateDerniereRecompenseQuotidienne).toDateString() ===
-										new Date().toDateString(),
-							)}
-						/>
+						<DailyRewards onClick={handleClick} pointdejaRecup={pointdejaRecup} />
 					)}
 
 					<Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
@@ -140,13 +148,18 @@ const Sidebar: React.FC<SidebarProps> = ({
 									dateFin,
 									options: values.options,
 								};
-								const result = await PredictionController.createPrediction(token, payload, {
-									username: user?.username,
-									onClose: () => setModalOpen(false),
-									fetchPredictions: onPredictionCreated
-										? async () => onPredictionCreated()
-										: undefined,
-								}, setToast);
+								const result = await PredictionController.createPrediction(
+									token,
+									payload,
+									{
+										username: user?.username,
+										onClose: () => setModalOpen(false),
+										fetchPredictions: onPredictionCreated
+											? async () => onPredictionCreated()
+											: undefined,
+									},
+									setToast,
+								);
 								if (result.success && onPredictionCreated) onPredictionCreated();
 							}}
 						/>

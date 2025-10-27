@@ -1,7 +1,29 @@
 import type { Toast } from "../../components/toast/Toast.interface";
+import type { Cosmetic } from "./cosmetic.interface";
 import { CosmeticResolver } from "./cosmetic.resolver";
 
 export const CosmeticController = {
+	async getAllCosmetics(token: string | null, setToast?: (t: Toast | null) => void): Promise<Cosmetic[]> {
+		if (!token) {
+			setToast?.({
+				type: "error",
+				message: "Utilisateur non authentifié",
+			});
+			return [];
+		}
+
+		try {
+			const cosmetics = await CosmeticResolver.getAll(token);
+			return cosmetics;
+		} catch (err: any) {
+			setToast?.({
+				type: "error",
+				message: err?.response?.data?.message || "Erreur lors du chargement des cosmétiques",
+			});
+			return [];
+		}
+	},
+
 	async getUserCosmetics(
 		CosmeticOwned: string[] | any[],
 		token: string | null,
@@ -27,9 +49,7 @@ export const CosmeticController = {
 			console.error(err);
 			setToast?.({
 				type: "error",
-				message:
-					err?.response?.data?.message ||
-					"Erreur lors du chargement des cosmétiques",
+				message: err?.response?.data?.message || "Erreur lors du chargement des cosmétiques",
 			});
 			return [];
 		}
@@ -45,7 +65,6 @@ export const CosmeticController = {
 		setError: (msg: string | null) => void,
 		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
 	) {
-		console.log("On m'appel", token, username, id);
 		if (!token) {
 			setToast?.({
 				type: "error",
@@ -65,14 +84,8 @@ export const CosmeticController = {
 			setApplied(current);
 			localStorage.setItem("appliedCosmetics", JSON.stringify(current));
 
-			const updatedUser = await CosmeticResolver.apply(
-				username,
-				current,
-				token,
-			);
-			const arr = CosmeticResolver.normalize(
-				updatedUser?.currentCosmetic,
-			);
+			const updatedUser = await CosmeticResolver.apply(username, current, token);
+			const arr = CosmeticResolver.normalize(updatedUser?.currentCosmetic);
 
 			setApplied(arr);
 			localStorage.setItem("appliedCosmetics", JSON.stringify(arr));
@@ -85,9 +98,7 @@ export const CosmeticController = {
 			return { success: true, applied: arr };
 		} catch (err: any) {
 			console.error(err);
-			const msg =
-				err?.response?.data?.message ||
-				"Erreur lors de l'application du cosmétique";
+			const msg = err?.response?.data?.message || "Erreur lors de l'application du cosmétique";
 			setError(msg);
 			setToast?.({ type: "error", message: msg });
 			return { success: false, error: msg };

@@ -26,7 +26,7 @@ function Prediction() {
 	const { username } = useAuth();
 	const token = localStorage.getItem("token");
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-	const [_, setPoints] = useState<number>(0);
+	const [points, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
 	const [users, setUsers] = useState<Array<PublicUser>>([]);
 	const [prediction, setPrediction] = useState<PredictionWithThisVotesAndPublications | null>(null);
@@ -56,8 +56,8 @@ function Prediction() {
 		setPrediction({ ...predictionFetched } as PredictionWithThisVotesAndPublications);
 		setOptions(predictionFetched?.options || {});
 
-		if (predictionFetched?.options) {
-			setAIPronostics(Object.fromEntries(Object.keys(predictionFetched.options).map((option) => [option, 0])));
+		if (predictionFetched?.pronostics_ia) {
+			setAIPronostics(predictionFetched.pronostics_ia);
 		}
 	};
 
@@ -127,11 +127,11 @@ function Prediction() {
 		fetchTimelineData(10, votesAsPercentage, true);
 
 		const updatedUserBets = { ...userBets };
-		updatedUserBets[optionSelected!] += amount;
+		updatedUserBets[optionSelected!] = (updatedUserBets[optionSelected!] ?? 0) + amount;
 		setUserBets(updatedUserBets);
 
 		const updatedOptions = { ...options };
-		updatedOptions[optionSelected!] += amount;
+		updatedOptions[optionSelected!] = (updatedOptions[optionSelected!] ?? 0) + amount;
 		setOptions(updatedOptions);
 	};
 
@@ -164,7 +164,6 @@ function Prediction() {
 	useEffect(() => {
 		if (username) {
 			fetchUserByUsername(username);
-			setPoints(user?.points || 0);
 		}
 	}, [username]);
 
@@ -229,6 +228,9 @@ function Prediction() {
 						<PredictionTimeline votesAsPercentage={votesAsPercentage} timelineData={timelineData} />
 					</div>
 				</div>
+				<div className="text-white mt-5">
+					Vous avez <b>{points}</b> points.
+				</div>
 				<div className="mt-5">
 					<AmountButtonRow
 						currentAmount={currentAmount}
@@ -239,7 +241,7 @@ function Prediction() {
 						setCustomAmountSelected={setCustomAmountSelected}
 					/>
 				</div>
-				<div className="mt-3">
+				<div className="mt-4">
 					<OptionGrid
 						options={options}
 						userBets={userBets}
@@ -248,7 +250,7 @@ function Prediction() {
 						aiPronostics={aiPronostics}
 					/>
 				</div>
-				<div className="mt-3">
+				<div className="mt-4">
 					<ConfirmVote onClick={onConfirmVoteClick} />
 				</div>
 				<div className="mt-5">

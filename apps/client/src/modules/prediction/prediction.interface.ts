@@ -33,6 +33,7 @@ export interface Prediction {
 	options: Record<string, number>;
 	user_id: string;
 	result: string;
+	pronostics_ia?: Record<string, number>;
 }
 
 export interface PredictionWithThisNbOfVotesAndNbOfPublications extends Prediction {

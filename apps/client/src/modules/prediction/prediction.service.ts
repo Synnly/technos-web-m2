@@ -25,8 +25,8 @@ export const PredictionService = {
 		}
 	},
 
-	async getAllPredictions(token: string): Promise<Prediction[]> {
-		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction`, {
+	async getAllValidPredictions(token: string): Promise<Prediction[]> {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/valid`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 		return resp.data || [];

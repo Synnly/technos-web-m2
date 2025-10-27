@@ -21,8 +21,8 @@ export const PredictionResolver = {
 		const res = await PredictionService.createPrediction(payload, token);
 		return res.data;
 	},
-	async getAllPredictions(token: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
-		const predictions = await PredictionService.getAllPredictions(token);
+	async getAllValidPredictions(token: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
+		const predictions = await PredictionService.getAllValidPredictions(token);
 		const votes = await VoteService.getAllVotes(token);
 		const publications = await PublicationService.getAllPublications(token);
 

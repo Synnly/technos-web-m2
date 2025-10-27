@@ -25,7 +25,11 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 }) => {
 	const [showChildren, setShowChildren] = React.useState(false);
 	const [showPublicationBox, setShowPublicationBox] = React.useState(false);
-	const childPublications = publications.filter((pub) => pub.parentPublication_id === publication._id);
+	const childPublications = publications
+		.filter((pub) => pub.parentPublication_id === publication._id)
+		.sort((a, b) => {
+			return a.likes.length > b.likes.length ? -1 : 1;
+		});
 	const publicationDivRef = React.useRef<HTMLDivElement>(null);
 
 	const addPublicationAndShowChildren = (newPublication: Publication) => {

@@ -6,15 +6,15 @@ export const getActions = (
 	onCreatePrediction: () => void,
 ): NavigationSectionProps[] => [
 	{
-		title: "Compte",
+		title: "Explorer",
 		items: [
 			{
-				id: "edit-profile",
-				icon: React.createElement(UserRound, { className: "w-5 h-5" }),
-				title: "Gestion du compte",
+				id: "home",
+				icon: React.createElement(Home, { className: "w-5 h-5" }),
+				title: "Page d'accueil",
 				description: "",
-				colorScheme: "green",
-				path: "/dashboard",
+				colorScheme: "blue",
+				path: "/",
 			},
 		],
 	},
@@ -26,22 +26,9 @@ export const getActions = (
 				icon: React.createElement(Plus, { className: "w-5 h-5" }),
 				title: "Créer une prédiction",
 				description: "",
-				colorScheme: "blue",
+				colorScheme: "yellow",
 				path: "",
 				onClick: onCreatePrediction,
-			},
-		],
-	},
-	{
-		title: "Explorer",
-		items: [
-			{
-				id: "home",
-				icon: React.createElement(Home, { className: "w-5 h-5" }),
-				title: "Page d'accueil",
-				description: "",
-				colorScheme: "yellow",
-				path: "/",
 			},
 			{
 				id: "all-predictions",
@@ -56,7 +43,20 @@ export const getActions = (
 		],
 	},
 	{
-		title: "Cosmetics",
+		title: "Compte",
+		items: [
+			{
+				id: "edit-profile",
+				icon: React.createElement(UserRound, { className: "w-5 h-5" }),
+				title: "Gestion du compte",
+				description: "",
+				colorScheme: "green",
+				path: "/dashboard",
+			},
+		],
+	},
+	{
+		title: "Cosmetiques",
 		items: [
 			{
 				id: "buy-cosmetic",

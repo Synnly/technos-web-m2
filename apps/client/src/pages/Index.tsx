@@ -8,7 +8,7 @@ import { Form } from "antd";
 import IsNotAuthenticatedHome from "../components/home/home-page/IsNotAuthenticatedHome.component";
 import IsAuthenticatedHome from "../components/home/home-page/IsAuthenticatedHome.component";
 import { userController } from "../modules/user/user.controller";
-import type { User } from "../modules/user/user.interface";
+import type { PublicUser } from "../modules/user/user.interface";
 
 function Index() {
 	const [form] = Form.useForm();
@@ -20,7 +20,7 @@ function Index() {
 
 	const [predictions, setPredictions] = useState<any[]>([]);
 	const [__, setLoading] = useState(false);
-	const [users, setUsers] = useState<Array<User>>([]);
+	const [users, setUsers] = useState<Array<PublicUser>>([]);
 	const [_, setPoints] = useState<number>(0);
 	const [user, setUser] = useState<any>(null);
 	const [open, setOpen] = useState(false);
@@ -31,7 +31,7 @@ function Index() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllPredictions(
+		const data = await PredictionController.getAllValidPredictions(
 			token,
 			setToast,
 		);

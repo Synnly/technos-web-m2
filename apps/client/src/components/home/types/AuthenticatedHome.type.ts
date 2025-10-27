@@ -1,9 +1,9 @@
 import type { PredictionWithThisNbOfVotesAndNbOfPublications } from "../../../modules/prediction/prediction.interface";
-import type { User } from "../../../modules/user/user.interface";
+import type { User, PublicUser } from "../../../modules/user/user.interface";
 
 export type AuthenticatedHomeProps = {
 	user: User;
-	users: User[];
+	users: PublicUser[];
 	username?: string | null;
 	token: string | null;
 	sidebarCollapsed: boolean;

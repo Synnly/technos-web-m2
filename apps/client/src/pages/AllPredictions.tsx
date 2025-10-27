@@ -9,7 +9,7 @@ import { PredictionController } from "../modules/prediction/prediction.controlle
 import { userController } from "../modules/user/user.controller";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import type { User } from "../modules/user/user.interface";
+import type { PublicUser } from "../modules/user/user.interface";
 
 function AllPredictions() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -18,7 +18,7 @@ function AllPredictions() {
 	const [___, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
 	const [predictions, setPredictions] = useState<any[]>([]);
-	const [users, setUsers] = useState<Array<User>>([]);
+	const [users, setUsers] = useState<Array<PublicUser>>([]);
 	const [search, setSearch] = useState<string>("");
 	const [filters, setFilters] = useState<FiltersState>({ dateRange: null });
 	const [__, setLoading] = useState(false);
@@ -36,7 +36,7 @@ function AllPredictions() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllPredictions(
+		const data = await PredictionController.getAllValidPredictions(
 			token,
 			setToast,
 		);

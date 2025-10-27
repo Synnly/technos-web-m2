@@ -1,10 +1,10 @@
-import type { User } from "../../../modules/user/user.interface";
+import type { PublicUser } from "../../../modules/user/user.interface";
 import PredictionCard from "../../predictions/PredictionCard";
 import { useNavigate } from "react-router-dom";
 
 interface PredictionSectionProps {
 	predictions: any[];
-	users: Array<User>;
+	users: Array<PublicUser>;
 	onPredictionClick: (id: string) => void;
 }
 

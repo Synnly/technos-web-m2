@@ -37,7 +37,7 @@ export const PredictionController = {
 		}
 	},
 	
-	async getAllPredictions(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
+	async getAllValidPredictions(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
 		if (!token) {
 			if (setToast)
 				setToast({
@@ -47,7 +47,7 @@ export const PredictionController = {
 			return [];
 		}
 		try {
-			const data = await PredictionResolver.getAllPredictions(token);
+			const data = await PredictionResolver.getAllValidPredictions(token);
 			return data;
 		} catch (err: any) {
 			if (setToast)

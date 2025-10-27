@@ -19,7 +19,11 @@ const PublicationList: React.FC<PublicationListProps> = ({
 	addPublication,
 	toggleLike,
 }) => {
-	const parentsPublications = publications.filter((pub) => pub.parentPublication_id === undefined);
+	const parentsPublications = publications
+		.filter((pub) => pub.parentPublication_id === undefined)
+		.sort((a, b) => {
+			return a.likes.length > b.likes.length ? -1 : 1;
+		});
 
 	return (
 		<div className="flex flex-col gap-4">

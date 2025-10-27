@@ -51,4 +51,17 @@ export const userService = {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 	},
+
+	async buyCosmetic(username: string, cosmeticId: string, token: string) {
+		const response = await axios.post(
+			`${API_URL}/user/${username}/buy/cosmetic/${cosmeticId}`,
+			{},
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			},
+		);
+		return response.data;
+	},
+
+	
 };

@@ -3,7 +3,7 @@ import type { PublicUser, User } from "./user.interface";
 import { userService } from "./user.service";
 
 export const userResolver = {
-	async claimDailyReward(user: any, token: string) {
+	async claimDailyReward(user: User, token: string) {
 		if (
 			user.dateDerniereRecompenseQuotidienne &&
 			new Date(user.dateDerniereRecompenseQuotidienne).toDateString() === new Date().toDateString()
@@ -16,12 +16,16 @@ export const userResolver = {
 			};
 		}
 
-		const updatedUser = await userService.claimDailyReward(token);
+		const response = await userService.claimDailyReward(token);
+		const updatedUser = {
+			...user,
+			dateDerniereRecompenseQuotidienne: new Date(),
+			points: user.points + response.reward || 0,
+		};
 
-		const newPoints = updatedUser.points || 0;
 		return {
 			updatedUser,
-			newPoints,
+			newPoints: updatedUser.points,
 			message: "Récompense quotidienne réclamée ! +10 points",
 			type: "success" as ToastType,
 		};
@@ -32,7 +36,9 @@ export const userResolver = {
 	},
 
 	async getUserByUsername(username: string, token: string) {
-		return userService.getUserByUsername(username, token);
+		const user = await userService.getUserByUsername(username, token);
+		user.dateDerniereRecompenseQuotidienne = new Date(user.dateDerniereRecompenseQuotidienne);
+		return user;
 	},
 
 	async login(username: string, password: string) {
@@ -48,5 +54,9 @@ export const userResolver = {
 
 	async updateUser(username: string, data: Partial<User>, token: string) {
 		userService.updateUser(username, data, token);
+	},
+
+	async buyCosmetic(username: string, cosmeticId: string, token: string) {
+		return userService.buyCosmetic(username, cosmeticId, token);
 	},
 };
