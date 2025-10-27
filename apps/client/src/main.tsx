@@ -13,6 +13,7 @@ import "./App.css";
 import ValidatePrediction from "./pages/ValidatePrediction";
 import "@ant-design/v5-patch-for-react-19";
 import ConfirmResults from "./pages/confirmResults";
+import CreateCosmetic from "./pages/CreateCosmetic";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -71,6 +72,14 @@ createRoot(document.getElementById("root")!).render(
 					element={
 						<ProtectedRoute>
 							<ConfirmResults />
+						</ProtectedRoute>
+					}
+				/>
+				<Route 
+					path="/create-cosmetic"
+					element={
+						<ProtectedRoute>
+							<CreateCosmetic />
 						</ProtectedRoute>
 					}
 				/>
