@@ -58,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 	}, [user]);
 
 	React.useEffect(() => {
-		const isSmall = window.matchMedia("(max-width: 1023px)").matches; // < lg
+		const isSmall = window.matchMedia("(max-width: 1023px)").matches;
 		if (isSmall) setCollapsed(true);
 	}, [location.pathname]);
 
