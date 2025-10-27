@@ -24,7 +24,7 @@ const IsAuthenticatedHome = ({
 	const clearToast = () => setToast(null);
 
 	return (
-		<div className="bg-gray-900 mx-auto px-6 py-8 w-full min-h-screen  flex flex-col">
+		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -37,11 +37,11 @@ const IsAuthenticatedHome = ({
 			{toast && <ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} />}
 
 			<main
-				className={
+				className={`mx-5 lg:mx-20 py-8 pt-19 ${
 					sidebarCollapsed
-						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all"
-						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
-				}
+						? "flex-1 p-2 sm:p-4 md:p-6 md:pt-19 lg:pt-6 lg:ml-40 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
+				}`}
 			>
 				<Header username={username} user={user} />
 				<StatsGrid user={user} />

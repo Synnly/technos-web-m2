@@ -13,7 +13,7 @@ interface BuyCosmeticCardProps {
 
 const BuyCosmeticCard: React.FC<BuyCosmeticCardProps> = ({ cosmetic, user, onBuyCosmetic, userCosmetics }) => {
 	return (
-		<div className="min-w-fit border border-gray-700 rounded-lg">
+		<div className="min-w-fit w-40 border border-gray-700 rounded-lg">
 			<div className="m-4 flex flex-col items-center space-y-4">
 				<h1 className="text-white text-center font-bold text-lg">{cosmetic.name}</h1>
 				{cosmetic.type === "color" && (

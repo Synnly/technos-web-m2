@@ -85,7 +85,7 @@ function AllPredictions() {
 	}, [predictions.reverse(), search, filters]);
 
 	return (
-		<>
+		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -98,8 +98,11 @@ function AllPredictions() {
 				}
 			/>
 			<main
-				className={`flex-1 transition-all h-screen bg-gray-900 backdrop-blur-sm
-    ${sidebarCollapsed ? "ml-20 p-6 sm:p-8 md:p-10" : "ml-0 lg:ml-80 p-6 sm:p-8 md:p-10"}`}
+				className={`mx-5 lg:mx-20 py-8 pt-19 ${
+					sidebarCollapsed
+						? "flex-1 p-2 sm:p-4 md:p-6 md:pt-19 lg:pt-6 lg:ml-40 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
+				}`}
 			>
 				<div className="mb-8">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -137,7 +140,7 @@ function AllPredictions() {
 					))}
 				</div>
 			</main>
-		</>
+		</div>
 	);
 }
 

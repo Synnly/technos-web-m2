@@ -196,7 +196,7 @@ function Prediction() {
 	}, [votesAsPercentage]);
 
 	return (
-		<div className="bg-gray-900 mx-auto px-6 py-8 w-screen min-h-screen flex flex-col select-none">
+		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -209,11 +209,11 @@ function Prediction() {
 			{toast && <ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} />}
 
 			<main
-				className={
+				className={`mx-5 lg:mx-20 py-8 pt-19 ${
 					sidebarCollapsed
-						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all"
-						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
-				}
+						? "flex-1 p-2 sm:p-4 md:p-6 md:pt-19 lg:pt-6 lg:ml-40 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
+				}`}
 			>
 				<p className="text-xl md:text-3xl font-bold mb-2 text-white">{prediction?.title}</p>
 				<div className="text-sm md:text-base text-gray-400 mb-2 flex gap-2">

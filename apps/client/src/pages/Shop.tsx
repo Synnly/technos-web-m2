@@ -62,7 +62,7 @@ function Shop() {
 	};
 
 	return (
-		<div className="bg-gray-900 mx-auto px-6 py-8 w-screen min-h-screen flex flex-col select-none">
+		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -74,11 +74,11 @@ function Shop() {
 			/>
 			{toast && <ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} />}
 			<main
-				className={
+				className={`mx-5 lg:mx-20 py-8 pt-19 ${
 					sidebarCollapsed
-						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all"
-						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-72"
-				}
+						? "flex-1 p-2 sm:p-4 md:p-6 md:pt-19 lg:pt-6 lg:ml-40 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
+				}`}
 			>
 				<h1 className="text-white text-3xl text-center font-bold mb-4">Boutique des cosmétiques</h1>
 				<p className="text-white text-lg mb-2 italic">Vous avez {points} points.</p>

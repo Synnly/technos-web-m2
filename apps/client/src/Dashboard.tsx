@@ -42,7 +42,7 @@ function Dashboard() {
 	}, [username]);
 
 	return (
-		<div className="bg-gray-900 min-h-screen">
+		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -53,11 +53,11 @@ function Dashboard() {
 				onCollapsedChange={(value: boolean) => setSidebarCollapsed(value)}
 			/>
 			<main
-				className={
+				className={`mx-5 lg:mx-20 py-8 pt-19 ${
 					sidebarCollapsed
-						? "flex-1 p-2 sm:p-4 md:p-6 ml-20 transition-all"
-						: "flex-1 p-2 sm:p-4 md:p-6 ml-0 lg:ml-80"
-				}
+						? "flex-1 p-2 sm:p-4 md:p-6 md:pt-19 lg:pt-6 lg:ml-40 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
+				}`}
 			>
 				<AccountTabs setCurrentCosmetics={setCurrentCosmetics}/>
 			</main>
