@@ -33,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
 	});
+	const { isAdmin } = useAuth();
 	React.useEffect(() => {
 		if (onCollapsedChange) {
 			onCollapsedChange(collapsed);
@@ -61,11 +62,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 	return (
 		<aside
-			className={`fixed left-0 top-0 h-full transition-all duration-300 bg-gray-800 border-r border-gray-700 overflow-visible hidden lg:block
-        ${collapsed ? "w-20" : "w-80"}`}
+			className={`fixed left-0 top-0 min-h-screen transition-all duration-300 bg-gray-800 border-r border-gray-700 hidden lg:block ${
+				collapsed ? "w-20" : "w-80"
+			} overflow-hidden`}
 		>
-			<div className="p-4 flex flex-col h-full">
-				<nav className="space-y-2 flex-1">
+			<div className="p-4 flex flex-col min-h-screen">
+				<nav className="space-y-2 flex-1 relative">
 					<div
 						onClick={toggleSidebar}
 						className={
@@ -83,6 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 					{Actions.map((section) => (
 						<NavigationSectionComponent
 							key={section.title}
+							roles={section.roles}
 							title={collapsed ? "" : section.title}
 							items={section.items}
 							collapsed={collapsed}
@@ -177,7 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 						/>
 					</Modal>
 
-					<div className=" absolute bottom-5 ">
+					<div className="absolute bottom-5">
 						<NavigationItemComponent
 							id="disconnect"
 							icon={<LogOut className="w-5 h-5" />}

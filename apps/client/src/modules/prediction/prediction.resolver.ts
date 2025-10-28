@@ -71,12 +71,12 @@ export const PredictionResolver = {
 	},
 
 	async validatePrediction(id: string, token: string) {
-		const res = await PredictionService.updatePredictionStatus(id, token, "validated");
+		const res = await PredictionService.updatePredictionStatus(id, token, "Valid");
 		return res;
 	},
 
 	async refusePrediction(id: string, token: string) {
-		const res = await PredictionService.updatePredictionStatus(id, token, "refused");
+		const res = await PredictionService.updatePredictionStatus(id, token, "Invalid");
 		return res;
 	},
 

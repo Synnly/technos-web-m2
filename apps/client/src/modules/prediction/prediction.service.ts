@@ -48,7 +48,7 @@ export const PredictionService = {
 		return resp.data || [];
 	},
 
-	async updatePredictionStatus(id: string, token: string, status: "validated" | "refused") {
+	async updatePredictionStatus(id: string, token: string, status: "Valid" | "Invalid") {
 		const headers = { Authorization: `Bearer ${token}` };
 		const resp = await axios.put<Prediction>(`${API_URL}/prediction/${id}/`, { status }, { headers });
 		return resp.data;

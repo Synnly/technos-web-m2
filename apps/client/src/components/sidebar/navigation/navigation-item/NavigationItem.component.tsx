@@ -42,7 +42,7 @@ const NavigationItemComponent: React.FC<NavigationItemProps> = ({
 				onClick={path ? () => navigate(path) : onClick}
 				onMouseEnter={() => setShowTooltip(true)}
 				onMouseLeave={() => setShowTooltip(false)}
-				className={`!bg-transparent w-full flex items-center py-3 rounded-lg transition-colors cursor-pointer 
+				className={`!bg-transparent w-full flex items-center py-2 rounded-lg transition-colors cursor-pointer 
           ${collapsed ? "justify-center space-x-0" : "space-x-3"} hover:bg-gray-800`}
 			>
 				<div

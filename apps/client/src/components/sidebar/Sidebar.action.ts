@@ -1,10 +1,11 @@
 import React from "react";
-import { Grid2X2, Home, Plus, ShoppingBag, UserRound } from "lucide-react";
+import { Crown, Grid2X2, Home, Plus, Shirt, ShoppingBag, TicketPlus, UserRound } from "lucide-react";
 import type { NavigationSectionProps } from "./navigation/navigation-section/NavigationSection.interface";
 
 export const getActions = (onCreatePrediction: () => void): NavigationSectionProps[] => [
 	{
 		title: "Compte",
+		roles: ["user", "admin"],
 		items: [
 			{
 				id: "edit-profile",
@@ -18,6 +19,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 	},
 	{
 		title: "Predictions",
+		roles: ["user", "admin"],
 		items: [
 			{
 				id: "create-prediction",
@@ -32,6 +34,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 	},
 	{
 		title: "Explorer",
+		roles: ["user", "admin"],
 		items: [
 			{
 				id: "home",
@@ -55,6 +58,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 	},
 	{
 		title: "Cosmetics",
+		roles: ["user", "admin"],
 		items: [
 			{
 				id: "buy-cosmetic",
@@ -70,10 +74,11 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 	},
 	{
 		title: "Administrateur",
+		roles: ["admin"],
 		items: [
 			{
 				id: "validate-prediction",
-				icon: React.createElement(Plus, { className: "w-5 h-5" }),
+				icon: React.createElement(TicketPlus, { className: "w-5 h-5" }),
 				title: "Valider une prédiction",
 				description: "",
 				colorScheme: "red",
@@ -81,7 +86,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 			},
 			{
 				id: "confirm-results",
-				icon: React.createElement(Plus, { className: "w-5 h-5" }),
+				icon: React.createElement(Crown, { className: "w-5 h-5" }),
 				title: "Confirmer les résultats",
 				description: "",
 				colorScheme: "red",
@@ -89,7 +94,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 			},
 			{
 				id: "create-cosmetic",
-				icon: React.createElement(Plus, { className: "w-5 h-5" }),
+				icon: React.createElement(Shirt, { className: "w-5 h-5" }),
 				title: "Créer un cosmetic",
 				description: "",
 				colorScheme: "red",
