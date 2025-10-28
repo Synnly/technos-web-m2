@@ -26,6 +26,7 @@ import { AdminGuard } from "../guards/admin.guard";
 import { UserDto } from "./dto/user.dto";
 import { CreateUserDto } from "./dto/createuser.dto";
 import { UpdateUserDto } from "./dto/updateuser.dto";
+import { PublicUserDto } from "./dto/publicuser.dto";
 
 /**
  * Contrôleur pour gérer les opérations liées aux utilisateurs.
@@ -56,6 +57,17 @@ export class UserController {
 	async getUsers(): Promise<UserDto[]> {
 		const users = await this.userService.getAll();
 		return users.map((user) => new UserDto(user));
+	}
+	/**
+	 * Recupère tous les utilisateurs avec leurs informations publiques.
+	 * @returns La liste des DTOs de tous les utilisateur.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission d'accéder à cette ressource.
+	 */
+	@UseGuards(AuthGuard)
+	@Get("/public")
+	async getUsersPublic(): Promise<PublicUserDto[]> {
+		const users = await this.userService.getAll();
+		return users.map((user) => new PublicUserDto(user));
 	}
 
 	/**

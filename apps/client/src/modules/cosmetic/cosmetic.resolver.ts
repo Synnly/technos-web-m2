@@ -11,8 +11,8 @@ export const CosmeticResolver = {
 		return await userService.getUserByUsername(username, token);
 	},
 
-	async apply(username: string, current: string[], token: string) {
-		return await CosmeticService.applyCosmetic(username, current, token);
+	async apply(username: string, current: (string | null)[], token: string) {
+		await CosmeticService.applyCosmetic(username, current, token);
 	},
 
 	normalize(arr?: Array<string | null | any>): string[] {

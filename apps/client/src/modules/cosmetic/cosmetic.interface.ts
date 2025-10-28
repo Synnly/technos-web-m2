@@ -3,7 +3,7 @@ export interface Cosmetic {
 	name: string;
 	cost: number;
 	type: "badge" | "color";
-	hexColor?: string;
+	value?: string;
 }
 
 export interface CreateCosmetic {

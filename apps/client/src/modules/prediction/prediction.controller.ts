@@ -5,17 +5,26 @@ import type { Toast } from "../../components/toast/Toast.interface";
 
 export const PredictionController = {
 	async createPrediction(
+		token: string | null,
 		values: PredictionFormValues & { options: Record<string, number> },
 		deps: CreatePredictionDeps = {},
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
 	) {
-		const { username, fetchPredictions, onClose, setToast, setLocalError } = deps;
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return { success: false, error: "Utilisateur non authentifié" };
+		}
 
+		const { fetchPredictions, onClose, setLocalError } = deps;
 		if (setLocalError) setLocalError(null);
 
 		try {
-			await PredictionResolver.create(values, username);
-
-			if (setToast) setToast("Prédiction créée");
+			await PredictionResolver.create(values, token);
+			if (setToast) setToast({ message: "Prédiction créée", type: "success" });
 			if (fetchPredictions) await fetchPredictions();
 			if (onClose) onClose();
 
@@ -27,7 +36,13 @@ export const PredictionController = {
 			return { success: false, error: msg };
 		}
 	},
-	async getAllPredictions(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
+
+	async getAllValidPredictions(
+		token: string | null,
+		page: string = "1",
+		limit: string = "10",
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
 		if (!token) {
 			if (setToast)
 				setToast({
@@ -37,7 +52,7 @@ export const PredictionController = {
 			return [];
 		}
 		try {
-			const data = await PredictionResolver.getAllPredictions(token);
+			const data = await PredictionResolver.getAllValidPredictions(token, page, limit);
 			return data;
 		} catch (err: any) {
 			if (setToast)
@@ -65,7 +80,7 @@ export const PredictionController = {
 		}
 		try {
 			const data = await PredictionResolver.getWaitingPredictions(token, page, limit);
-			
+
 			const validatedData = data.map((prediction) => ({
 				_id: prediction._id,
 				title: prediction.title,
@@ -172,19 +187,18 @@ export const PredictionController = {
 					message: "Utilisateur non authentifié",
 					type: "error",
 				});
-			return ;
+			return;
 		}
 		try {
 			const data = await PredictionResolver.getExpiredPredictions(token, page, limit);
 			return data;
-		}
-		catch (err: any) {
+		} catch (err: any) {
 			if (setToast)
 				setToast({
 					message: "Erreur lors de la récupération des prédictions expirées",
 					type: "error",
 				});
-			return ;
+			return;
 		}
 	},
 
@@ -200,7 +214,7 @@ export const PredictionController = {
 					message: "Utilisateur non authentifié",
 					type: "error",
 				});
-			return ;
+			return;
 		}
 		if (!id) {
 			if (setToast)
@@ -208,7 +222,7 @@ export const PredictionController = {
 					message: "Identifiant de prédiction manquant",
 					type: "error",
 				});
-			return ;
+			return;
 		}
 
 		try {
@@ -218,14 +232,40 @@ export const PredictionController = {
 					message: "Résultats de la prédiction confirmés",
 					type: "success",
 				});
-			return ;
+			return;
 		} catch (err: any) {
 			if (setToast)
 				setToast({
 					message: "Erreur lors de la confirmation des résultats",
 					type: "error",
 				});
-			return ;
+			return;
+		}
+	},
+
+	async getTimelineData(
+		predictionId: string,
+		intervalMinutes: number,
+		votesAsPercentage: boolean,
+		fromStart: boolean,
+		token: string,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		try {
+			const data = await PredictionResolver.getTimelineData(
+				predictionId,
+				intervalMinutes,
+				votesAsPercentage,
+				fromStart,
+				token,
+			);
+			return data;
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la récupération de la timeline des votes",
+					type: "error",
+				});
 		}
 	},
 };

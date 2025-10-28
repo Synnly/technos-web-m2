@@ -17,18 +17,16 @@ export type ValidatedPrediction = {
 export interface PredictionPayload {
 	title: string;
 	description?: string;
-	dateFin: string;
+	dateFin: Date;
 	status?: string;
 	result?: string;
 	options: Record<string, number>;
-	user_id?: string;
 }
 
 export interface CreatePredictionDeps {
 	username?: string | null;
 	fetchPredictions?: () => Promise<void>;
 	onClose?: () => void;
-	setToast?: (msg: string) => void;
 	setLocalError?: (msg: string | null) => void;
 }
 export type PredictionStatus = "waiting" | "valid" | "invalid";
@@ -45,6 +43,7 @@ export interface Prediction {
 		username: string;
 	},
 	result: string;
+	pronostics_ia?: Record<string, number>;
 }
 
 export interface PredictionWithThisNbOfVotesAndNbOfPublications extends Prediction {
@@ -57,4 +56,9 @@ export interface PredictionWithThisNbOfVotesAndNbOfPublications extends Predicti
 export interface PredictionWithThisVotesAndPublications extends Prediction {
 	votes: Vote[];
 	publications: Publication[];
+}
+
+export interface TimelineDataPoint {
+	date: Date;
+	options: { [option: string]: number };
 }

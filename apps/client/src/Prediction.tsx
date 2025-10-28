@@ -2,7 +2,6 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { PredictionTimeline } from "./components/predictions/PredictionTimeline";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -47,7 +46,7 @@ function Prediction() {
     return (
         <div>
             <h1>{prediction?.title}</h1>
-            <PredictionTimeline predictionId={id!} />
+            {/* PredictionTimeline expects timeline data props; removed direct predictionId prop usage here. If you want a timeline, fetch timelineData and pass votesAsPercentage and timelineData props. */}
             <p>Description : {prediction?.description}</p>
             <p>Status : {prediction?.status}</p>
             <p>Fin dans {Math.floor((new Date(prediction?.dateFin).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} jours&nbsp; 

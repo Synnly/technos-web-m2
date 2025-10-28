@@ -7,13 +7,14 @@ import ValidateRefuseButtons from "./button-table/ValidateRefuseButtons";
 import type { ValidatedPrediction } from "../../modules/prediction/prediction.interface";
 import PredictionController from "../../modules/prediction/prediction.controller";
 import type { Toast } from "../toast/Toast.interface";
+import type { PublicUser } from "../../modules/user/user.interface";
 
 interface Props {
-	usersMap?: Record<string, string>;
+	usersMap?: Array<PublicUser> | null;
 	setToast?: React.Dispatch<React.SetStateAction<Toast | null>>;
 }
 
-export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = {}, setToast }) => {
+export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = null, setToast }) => {
 	const navigate = useNavigate();
 	const pageSize = 10;
 	const token = localStorage.getItem("token");
@@ -71,7 +72,7 @@ export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = {}, setTo
 				header: "Auteur",
 				accessorKey: "user_id",
 				cell: ({ getValue }: any) => (
-					<span className="text-sm text-gray-300">{usersMap[String(getValue())] || "–"}</span>
+					<span className="text-sm text-gray-300">{usersMap?.find((u) => u._id === getValue())?.username || "–"}</span>
 				),
 			},
 			{

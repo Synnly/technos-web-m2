@@ -4,7 +4,7 @@ import type { Publication } from "../../modules/publication/publication.interfac
 
 interface WritePublicationProps {
 	predictionId: string;
-	username: string;
+	user_id: string;
 	placeholder: string;
 	parentPublication?: Publication;
 	addPublication: (message: Publication) => void;
@@ -12,7 +12,7 @@ interface WritePublicationProps {
 
 const WritePublication: React.FC<WritePublicationProps> = ({
 	predictionId,
-	username,
+	user_id,
 	placeholder,
 	parentPublication,
 	addPublication,
@@ -29,12 +29,12 @@ const WritePublication: React.FC<WritePublicationProps> = ({
 	const sendPublication = () => {
 		if (textareaRef.current) {
 			const publication = {
-				_id: ((Math.random() * 1000) % 10) + "",
+				_id: "",
 				message: textareaRef.current.value,
 				datePublication: new Date(),
 				prediction_id: predictionId,
 				parentPublication_id: parentPublication ? parentPublication._id : undefined,
-				user_id: username,
+				user_id: user_id,
 				likes: [],
 			};
 			addPublication(publication);

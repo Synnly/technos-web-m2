@@ -1,8 +1,7 @@
 import type { FC } from "react";
-import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { useEffect, useRef } from "react";
 import * as echarts from "echarts/core";
-import type { EChartsOption } from "echarts";
+import { type EChartsOption } from "echarts";
 import { LineChart } from "echarts/charts";
 import {
 	GridComponent,
@@ -11,6 +10,7 @@ import {
 	TitleComponent,
 } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
+import type { TimelineDataPoint } from "../../modules/prediction/prediction.interface";
 
 echarts.use([
 	LineChart,
@@ -22,43 +22,13 @@ echarts.use([
 ]);
 
 interface Props {
-	predictionId: string;
+	votesAsPercentage: boolean;
+	timelineData: Array<TimelineDataPoint>;
 }
 
-export const PredictionTimeline: FC<Props> = ({ predictionId }) => {
-	const API_URL = import.meta.env.VITE_API_URL;
-	const [timelineData, setTimelineData] = useState<
-		{ date: Date; options: { [option: string]: number } }[]
-	>([]);
-	const [votesAsPercentage, setVotesAsPercentage] = useState(true);
+export const PredictionTimeline: FC<Props> = ({ votesAsPercentage, timelineData }) => {
 	const chartElementRef = useRef<HTMLDivElement | null>(null);
 	const chartRef = useRef<echarts.EChartsType | null>(null);
-
-	const fetchTimelineData = async (
-		intervalMinutes: number,
-		votesAsPercentage: boolean,
-		fromStart: boolean,
-	) => {
-		const response = await axios.get(
-			`${API_URL}/prediction/${predictionId}/timeline`,
-			{
-				params: {
-					intervalMinutes,
-					votesAsPercentage,
-					fromStart,
-				},
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem("token")}`,
-				},
-			},
-		);
-		setTimelineData(response.data);
-		setVotesAsPercentage(votesAsPercentage);
-	};
-
-	useEffect(() => {
-		fetchTimelineData(10, votesAsPercentage, true);
-	}, [API_URL, predictionId, votesAsPercentage]);
 
 	// Init chart once
 	useEffect(() => {
@@ -75,7 +45,7 @@ export const PredictionTimeline: FC<Props> = ({ predictionId }) => {
 
 	// Update options when data changes
 	useEffect(() => {
-		if (!chartRef.current) return;
+		if (!chartRef.current || !timelineData) return;
 
 		const optionKeys = Array.from(
 			new Set(timelineData.flatMap((item) => Object.keys(item.options))),

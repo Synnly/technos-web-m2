@@ -94,23 +94,16 @@ export class PublicationService {
 	 * @param id Identifiant de la publication à créer ou mettre à jour
 	 * @param pub Publication à créer ou mettre à jour
 	 */
-	async createOrUpdateById(id: string, pub: UpdatePublicationDto | Publication) {
+	async createOrUpdateById(id: string, pub: UpdatePublicationDto) {
 		const existing = await this.publicationModel.findById(id).exec();
 		if (existing) {
 			existing.message = pub.message ?? existing.message;
 			existing.datePublication = pub.datePublication ?? existing.datePublication;
-			if (pub.prediction_id !== undefined && pub.prediction_id !== null) {
-				existing.prediction_id = typeof pub.prediction_id === 'string' ? new Types.ObjectId(pub.prediction_id) : (pub.prediction_id as any);
-			}
-			if (pub.parentPublication_id !== undefined) {
-				existing.parentPublication_id = typeof pub.parentPublication_id === 'string' ? new Types.ObjectId(pub.parentPublication_id) : (pub.parentPublication_id as any);
-			}
-			if (pub.user_id !== undefined && pub.user_id !== null) {
-				existing.user_id = typeof pub.user_id === 'string' ? new Types.ObjectId(pub.user_id) : (pub.user_id as any);
-			}
-			if (pub.likes !== undefined && pub.likes !== null) {
-				existing.likes = (pub.likes as any[]).map((id) => (typeof id === 'string' ? new Types.ObjectId(id) : id));
-			}
+			existing.prediction_id = new Types.ObjectId(pub.prediction_id) ?? existing.prediction_id;
+			existing.parentPublication_id =
+				new Types.ObjectId(pub.parentPublication_id) ?? existing.parentPublication_id;
+			existing.user_id = new Types.ObjectId(pub.user_id ?? existing.user_id);
+			existing.likes = pub.likes?.map((id) => new Types.ObjectId(id)) ?? existing.likes;
 			await existing.save();
 		} else {
 			const toCreate = { ...pub } as any;

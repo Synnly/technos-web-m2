@@ -48,8 +48,8 @@ export class PredictionController {
 	 */
 	@Get("/expired")
 	async getExpiredPredictions(
-		@Query('page', ParseIntPipe) page: number,
-		@Query('limit', ParseIntPipe) limit: number,
+		@Query("page", ParseIntPipe) page: number,
+		@Query("limit", ParseIntPipe) limit: number,
 	): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getExpiredPredictions(page, limit);
 		return preds.map((p) => new PredictionDto(p));
@@ -61,8 +61,8 @@ export class PredictionController {
 	 */
 	@Get("/waiting")
 	async getWaitingPredictions(
-		@Query('page', ParseIntPipe) page: number,
-		@Query('limit', ParseIntPipe) limit: number,
+		@Query("page", ParseIntPipe) page: number,
+		@Query("limit", ParseIntPipe) limit: number,
 	): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getWaitingPredictions(page, limit);
 		return preds.map((p) => new PredictionDto(p));
@@ -74,8 +74,8 @@ export class PredictionController {
 	 */
 	@Get("/valid")
 	async getValidPredictions(
-		@Query('page', ParseIntPipe) page: number,
-		@Query('limit', ParseIntPipe) limit: number,
+		@Query("page", ParseIntPipe) page: number,
+		@Query("limit", ParseIntPipe) limit: number,
 	): Promise<PredictionDto[]> {
 		const preds = await this.predictionService.getValidPredictions(page, limit);
 		return preds.map((p) => new PredictionDto(p));
@@ -89,7 +89,7 @@ export class PredictionController {
 	 * @throws {NotFoundException} Si la prédiction n'existe pas.
 	 */
 	@Get("/:id")
-	async getPredictionById(@Param('id', ParseObjectIdPipe) id: string): Promise<PredictionDto> {
+	async getPredictionById(@Param("id", ParseObjectIdPipe) id: string): Promise<PredictionDto> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		const pred = await this.predictionService.getById(id);
@@ -106,7 +106,11 @@ export class PredictionController {
 	 */
 	@Post("")
 	@HttpCode(201)
-	async createPrediction(@Req() req: any, @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) pred: CreatePredictionDto) {
+	async createPrediction(
+		@Req() req: any,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		pred: CreatePredictionDto,
+	) {
 		// Validation simple
 		const rawPred: any = pred;
 		const missing = [
@@ -120,7 +124,7 @@ export class PredictionController {
 			rawPred?.status === undefined || rawPred?.status.toString() === ""
 				? "Le statut est requis"
 				: !Object.values(PredictionStatus).includes(rawPred.status) && "Le statut est invalide",
-			!req.user?._id && !rawPred?.user_id && "L'utilisateur authentifié est requis",
+			!req.user?._id && "L'utilisateur authentifié est requis",
 			rawPred?.result !== undefined &&
 				rawPred?.result !== "" &&
 				"On ne peut voter pour une prédiction déjà validée",
@@ -139,12 +143,13 @@ export class PredictionController {
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
-		}
+	}
 	@Put("/:id")
 	async updatePredictionById(
 		@Req() req: any,
-		@Param('id', ParseObjectIdPipe) id: string,
-		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) pred: UpdatePredictionDto,
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		pred: UpdatePredictionDto,
 	) {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
@@ -186,8 +191,8 @@ export class PredictionController {
 	 * @param id Identifiant de la prédiction à supprimer.
 	 * @throws {BadRequestException} Si l'id est manquant ou si une erreur se produit lors de la suppression.
 	 */
-	@Delete('/:id')
-	async deletePrediction(@Param('id', ParseObjectIdPipe) id: string) {
+	@Delete("/:id")
+	async deletePrediction(@Param("id", ParseObjectIdPipe) id: string) {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 
 		try {
@@ -207,8 +212,9 @@ export class PredictionController {
 	@Put("/:id/validate")
 	@UseGuards(AdminGuard)
 	async validatePrediction(
-		@Param('id', ParseObjectIdPipe) id: string,
-		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) body: { winningOption: string },
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		body: { winningOption: string },
 	): Promise<{
 		predictionId: string;
 		winningOption: string;
@@ -229,19 +235,20 @@ export class PredictionController {
 
 	@Get("/:id/timeline")
 	async getPredictionTimeline(
-		@Param('id', ParseObjectIdPipe) id: string,
-		@Query('intervalMinutes', ParseIntPipe) intervalMinutes: number,
-		@Query('votesAsPercentage') votesAsPercentage?: any,
-		@Query('fromStart') fromStart?: any,
-		): Promise<any> {
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Query("intervalMinutes", ParseIntPipe) intervalMinutes: number,
+		@Query("votesAsPercentage") votesAsPercentage?: any,
+		@Query("fromStart") fromStart?: any,
+	): Promise<any> {
 		if (!id) throw new BadRequestException("L'identifiant est requis");
 		if (!intervalMinutes || intervalMinutes <= 0) {
 			throw new BadRequestException("L'intervalle en minutes doit être un nombre positif");
 		}
 
 		// Normalize optional boolean flags (accepts 'true'|'false' or boolean)
-		const votesAsPercentageBool = votesAsPercentage === undefined ? false : (votesAsPercentage === true || votesAsPercentage === 'true');
-		const fromStartBool = fromStart === undefined ? false : (fromStart === true || fromStart === 'true');
+		const votesAsPercentageBool =
+			votesAsPercentage === undefined ? false : votesAsPercentage === true || votesAsPercentage === "true";
+		const fromStartBool = fromStart === undefined ? false : fromStart === true || fromStart === "true";
 
 		try {
 			const timeline = await this.predictionService.getPredictionTimeline(

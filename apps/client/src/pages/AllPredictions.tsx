@@ -9,6 +9,7 @@ import { PredictionController } from "../modules/prediction/prediction.controlle
 import { userController } from "../modules/user/user.controller";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import type { PublicUser } from "../modules/user/user.interface";
 
 function AllPredictions() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -17,7 +18,7 @@ function AllPredictions() {
 	const [___, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
 	const [predictions, setPredictions] = useState<any[]>([]);
-	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+	const [users, setUsers] = useState<Array<PublicUser>>([]);
 	const [search, setSearch] = useState<string>("");
 	const [filters, setFilters] = useState<FiltersState>({ dateRange: null });
 	const [__, setLoading] = useState(false);
@@ -35,16 +36,18 @@ function AllPredictions() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllPredictions(
+		const data = await PredictionController.getAllValidPredictions(
 			token,
+			"1",
+			"1000",
 			setToast,
 		);
 		setPredictions(data);
 		setLoading(false);
 	};
 	const fetchAllUsers = async () => {
-		const map = await userController.getAllUsers(token, setToast);
-		setUsersMap(map);
+		const users = await userController.getAllUsers(token, setToast);
+		setUsers(users);
 	};
 
 	const navToPrediction = (id: string) => {
@@ -78,13 +81,13 @@ function AllPredictions() {
 				const d = new Date(p.dateFin);
 				if (d < from || d > to) return false;
 			}
-
+			
 			return true;
 		});
 	}, [predictions.reverse(), search, filters]);
 
 	return (
-		<>
+		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
 				user={user}
 				token={token!}
@@ -97,8 +100,11 @@ function AllPredictions() {
 				}
 			/>
 			<main
-				className={`flex-1 transition-all h-screen bg-gray-900 backdrop-blur-sm
-    ${sidebarCollapsed ? "ml-20 p-6 sm:p-8 md:p-10" : "ml-0 lg:ml-80 p-6 sm:p-8 md:p-10"}`}
+				className={`mx-5 lg:mx-20 py-8 pt-19 ${
+					sidebarCollapsed
+						? "flex-1 p-2 sm:p-4 md:p-6 md:pt-19 lg:pt-6 lg:ml-40 transition-all"
+						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
+				}`}
 			>
 				<div className="mb-8">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -125,7 +131,7 @@ function AllPredictions() {
 							key={prediction._id}
 							id={prediction._id}
 							title={prediction.title}
-							author={usersMap[prediction.user_id]}
+							author={users.find((u) => u._id === prediction.user_id)?.username}
 							votes={prediction.nbVotes}
 							comments={prediction.nbPublications}
 							percent={prediction.percent}
@@ -136,7 +142,7 @@ function AllPredictions() {
 					))}
 				</div>
 			</main>
-		</>
+		</div>
 	);
 }
 

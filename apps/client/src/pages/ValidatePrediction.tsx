@@ -5,6 +5,7 @@ import type { Toast } from "../components/toast/Toast.interface";
 import PredictionController from "../modules/prediction/prediction.controller";
 import { userController } from "../modules/user/user.controller";
 import ToastComponent from "../components/toast/Toast.component";
+import type { PublicUser } from "../modules/user/user.interface";
 
 function ValidatePrediction() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -13,12 +14,17 @@ function ValidatePrediction() {
 	const [_points, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
 	const [_, setPredictions] = useState<any[]>([]);
-	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+	const [usersMap, setUsersMap] = useState<Array<PublicUser> | null>(null);
 	const clearToast = () => setToast(null);
 
 
 	const fetchAllPredictions = async () => {
-		const data = await PredictionController.getAllPredictions(token, setToast);
+		const data = await PredictionController.getAllValidPredictions(
+			token,
+			"1",
+			"1000",
+			setToast,
+		);
 		setPredictions(data);
 	};
 	const fetchAllUsers = async () => {

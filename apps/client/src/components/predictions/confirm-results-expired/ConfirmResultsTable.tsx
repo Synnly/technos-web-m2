@@ -7,9 +7,10 @@ import type { Prediction } from "../../../modules/prediction/prediction.interfac
 import PredictionController from "../../../modules/prediction/prediction.controller";
 
 import type { Toast } from "../../../components/toast/Toast.interface";
+import type { PublicUser } from "../../../modules/user/user.interface";
 
 interface Props {
-	usersMap: Record<string, string>;
+	usersMap: Array<PublicUser> | null;
 	pageSize?: number;
 	setToast?: React.Dispatch<React.SetStateAction<Toast | null>>;
 }
@@ -50,7 +51,7 @@ const ConfirmResultsTable: React.FC<Props> = ({ usersMap, pageSize = 10, setToas
 				header: "Auteur",
 				accessorKey: "user_id",
 				cell: ({ getValue }: any) => (
-					<span className="text-sm text-gray-300">{usersMap[String(getValue())] || "–"}</span>
+					<span className="text-sm text-gray-300">{usersMap?.find((u) => u._id === getValue())?.username || "–"}</span>
 				),
 			},
 			{

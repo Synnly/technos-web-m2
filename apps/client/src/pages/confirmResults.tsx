@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import Sidebar from "../components/sidebar/Sidebar.component";
 import ConfirmResultsTable from "../components/predictions/confirm-results-expired/ConfirmResultsTable";
 import ToastComponent from "../components/toast/Toast.component";
+import type { PublicUser } from "../modules/user/user.interface";
 
 function confirmResults() {
 	const token = localStorage.getItem("token");
@@ -15,7 +16,7 @@ function confirmResults() {
 	const [__, setLoading] = useState(false);
 	const { username } = useAuth();
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+	const [usersMap, setUsersMap] = useState<Array<PublicUser> | null>(null);
 	const [____, setPredictions] = useState<any[]>([]);
 	const clearToast = () => setToast(null);
 
@@ -26,7 +27,12 @@ function confirmResults() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllPredictions(token, setToast);
+		const data = await PredictionController.getAllValidPredictions(
+			token,
+			"1",
+			"1000",
+			setToast,
+		);
 		setPredictions(data);
 		setLoading(false);
 	};

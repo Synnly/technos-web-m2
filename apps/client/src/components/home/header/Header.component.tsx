@@ -1,6 +1,8 @@
+import type { User } from "../../../modules/user/user.interface";
+
 type Props = {
 	username?: string | null;
-	user?: any;
+	user?: User;
 };
 
 function Header({ username, user }: Props) {

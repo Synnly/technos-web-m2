@@ -6,9 +6,10 @@ import {
 	Crown,
 	CircleUser,
 } from "lucide-react";
+import type { User } from "../../../modules/user/user.interface";
 
 type Props = {
-	user?: any;
+	user?: User;
 };
 
 export default function StatsGrid({ user }: Props) {
