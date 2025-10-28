@@ -33,7 +33,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
 	});
-	const { isAdmin } = useAuth();
 	React.useEffect(() => {
 		if (onCollapsedChange) {
 			onCollapsedChange(collapsed);

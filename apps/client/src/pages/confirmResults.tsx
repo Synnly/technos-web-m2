@@ -5,17 +5,19 @@ import type { Toast } from "../components/toast/Toast.interface";
 import { useAuth } from "../hooks/useAuth";
 import Sidebar from "../components/sidebar/Sidebar.component";
 import ConfirmResultsTable from "../components/predictions/confirm-results-expired/ConfirmResultsTable";
+import ToastComponent from "../components/toast/Toast.component";
 
 function confirmResults() {
 	const token = localStorage.getItem("token");
 	const [user, setUser] = useState<any>(null);
-	const [_, setToast] = useState<Toast | null>(null);
+	const [toast, setToast] = useState<Toast | null>(null);
 	const [___, setPoints] = useState<number>(0);
 	const [__, setLoading] = useState(false);
 	const { username } = useAuth();
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 	const [____, setPredictions] = useState<any[]>([]);
+	const clearToast = () => setToast(null);
 
 	const fetchUserByUsername = async (username: string) => {
 		const u = await userController.getUserByUsername(username, token, setToast);
@@ -68,6 +70,14 @@ function confirmResults() {
                     <ConfirmResultsTable usersMap={usersMap} />
                 </div>
             </main>
+
+			{toast && (
+				<ToastComponent
+					message={toast.message!}
+					type={toast.type!}
+					onClose={clearToast}
+				/>
+			)}
 		</>
 	);
 }

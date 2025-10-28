@@ -24,6 +24,10 @@ const ConfirmResultsTable: React.FC<Props> = ({ usersMap, pageSize = 10, setToas
 		async (predictionId: string) => {
 			const winningOption = selectedOptions[predictionId] ?? "";
 			await PredictionController.validateAPrediction(predictionId, token, winningOption, setToast);
+			setExpiredPredictions((prev) => prev.filter((p) => p._id !== predictionId));
+			setToast?.({ message: "Résultat confirmé avec succès", type: "success" });
+			setTotalCount((prev) => (prev !== null ? prev - 1 : null));
+
 		},
 		[selectedOptions, token],
 	);

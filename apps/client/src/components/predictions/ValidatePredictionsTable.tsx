@@ -6,26 +6,52 @@ import Pagination from "../pagination/Pagination";
 import ValidateRefuseButtons from "./button-table/ValidateRefuseButtons";
 import type { ValidatedPrediction } from "../../modules/prediction/prediction.interface";
 import PredictionController from "../../modules/prediction/prediction.controller";
+import type { Toast } from "../toast/Toast.interface";
 
 interface Props {
-	data: ValidatedPrediction[];
 	usersMap?: Record<string, string>;
-	pageSize?: number;
-	onValidate: (id: string) => Promise<void> | void;
-	onRefuse: (id: string) => Promise<void> | void;
+	setToast?: React.Dispatch<React.SetStateAction<Toast | null>>;
 }
 
-export const ValidatePredictionsTable: React.FC<Props> = ({
-	data,
-	usersMap = {},
-	pageSize = 10,
-	onValidate,
-	onRefuse,
-}) => {
+export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = {}, setToast }) => {
 	const navigate = useNavigate();
+	const pageSize = 10;
 	const token = localStorage.getItem("token");
-	const [waitingPredictions, setWaitingPredictions] = React.useState<ValidatedPrediction[]>(data || []);
+	const [waitingPredictions, setWaitingPredictions] = React.useState<ValidatedPrediction[]>([]);
 	const [totalCount, setTotalCount] = React.useState<number | null>(null);
+
+	const handleValidate = async (id: string) => {
+		if (!token) {
+			setToast?.({ message: "Utilisateur non authentifié", type: "error" });
+			return;
+		}
+		try {
+			await PredictionController.updatePredictionStatus(id, "validate", token!, setToast);
+			setWaitingPredictions((prev) => prev.filter((p) => p._id !== id));
+			setTotalCount((prev) => (prev !== null ? prev - 1 : null));
+			setToast?.({ message: "Prédiction validée", type: "success" });
+		} catch (err: any) {
+			console.error(err);
+			setToast?.({ message: err?.message || "Erreur lors de la validation", type: "error" });
+		}
+	};
+
+	const handleRefuse = async (id: string) => {
+		if (!token) {
+			setToast?.({ message: "Utilisateur non authentifié", type: "error" });
+			return;
+		}
+		try {
+			await PredictionController.updatePredictionStatus(id, "refuse", token!, setToast);
+			setWaitingPredictions((prev) => prev.filter((p) => p._id !== id));
+			setToast?.({ message: "Prédiction refusée", type: "success" });
+			setTotalCount((prev) => (prev !== null ? prev - 1 : null));
+
+		} catch (err: any) {
+			console.error(err);
+			setToast?.({ message: err?.message || "Erreur lors du refus", type: "error" });
+		}
+	};
 
 	const columns = React.useMemo<ColumnDef<ValidatedPrediction>[]>(
 		() => [
@@ -70,8 +96,8 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 						</button>
 						<ValidateRefuseButtons
 							id={row.original._id}
-							validateOnOk={onValidate}
-							refuseOnOk={onRefuse}
+							validateOnOk={handleValidate}
+							refuseOnOk={handleRefuse}
 							validateTitle="Valider la prédiction"
 							validateContent="Êtes-vous sûr de vouloir valider cette prédiction ?"
 							refuseTitle="Refuser la prédiction"
@@ -81,7 +107,7 @@ export const ValidatePredictionsTable: React.FC<Props> = ({
 				),
 			},
 		],
-		[navigate, usersMap, onValidate, onRefuse],
+		[navigate, usersMap, handleValidate, handleRefuse],
 	);
 
 	const [currentPage, setCurrentPage] = React.useState(0);

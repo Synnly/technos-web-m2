@@ -4,17 +4,18 @@ import { ValidatePredictionsTable } from "../components/predictions/ValidatePred
 import type { Toast } from "../components/toast/Toast.interface";
 import PredictionController from "../modules/prediction/prediction.controller";
 import { userController } from "../modules/user/user.controller";
+import ToastComponent from "../components/toast/Toast.component";
 
 function ValidatePrediction() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [user, setUser] = useState<any>(null);
-	const [_toast, setToast] = useState<Toast | null>(null);
+	const [toast, setToast] = useState<Toast | null>(null);
 	const [_points, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
-	const [predictions, setPredictions] = useState<any[]>([]);
+	const [_, setPredictions] = useState<any[]>([]);
 	const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+	const clearToast = () => setToast(null);
 
-	const waitingPredictions = (predictions || []).filter((p) => p.status === "waiting");
 
 	const fetchAllPredictions = async () => {
 		const data = await PredictionController.getAllPredictions(token, setToast);
@@ -29,34 +30,6 @@ function ValidatePrediction() {
 		fetchAllUsers();
 		fetchAllPredictions();
 	}, [token]);
-
-	const handleValidate = async (id: string) => {
-		if (!token) {
-			setToast?.({ message: "Utilisateur non authentifié", type: "error" });
-			return;
-		}
-		try {
-			await PredictionController.updatePredictionStatus(id, "validate", token!, setToast);
-			await fetchAllPredictions();
-		} catch (err: any) {
-			console.error(err);
-			setToast?.({ message: err?.message || "Erreur lors de la validation", type: "error" });
-		}
-	};
-
-	const handleRefuse = async (id: string) => {
-		if (!token) {
-			setToast?.({ message: "Utilisateur non authentifié", type: "error" });
-			return;
-		}
-		try {
-			await PredictionController.updatePredictionStatus(id, "refuse", token!, setToast);
-			await fetchAllPredictions();
-		} catch (err: any) {
-			console.error(err);
-			setToast?.({ message: err?.message || "Erreur lors du refus", type: "error" });
-		}
-	};
 
 	return (
 		<>
@@ -80,14 +53,19 @@ function ValidatePrediction() {
 
 				<div>
 					<ValidatePredictionsTable
-						data={waitingPredictions}
 						usersMap={usersMap}
-						pageSize={10}
-						onValidate={handleValidate}
-						onRefuse={handleRefuse}
+						setToast={setToast}
 					/>
 				</div>
+
 			</main>
+			{toast && (
+				<ToastComponent
+					message={toast.message!}
+					type={toast.type!}
+					onClose={clearToast}
+				/>
+			)}
 		</>
 	);
 }
