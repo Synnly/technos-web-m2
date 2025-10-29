@@ -48,12 +48,6 @@ export class Cosmetic {
 	 */
 	@Prop({ required: true })
 	value: string;
-
-    /**
-     * Si le cosmétique est possédé
-     */
-    @Prop({ default: false })
-    owned?: boolean;
 }
 
 export const CosmeticSchema = SchemaFactory.createForClass(Cosmetic);

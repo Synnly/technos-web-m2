@@ -6,7 +6,6 @@ export class CosmeticDto {
     cost: number;
     type: string;
     value: string;
-    owned?: boolean;
 
     constructor(c: Cosmetic) {
         this._id = c._id;
@@ -14,6 +13,5 @@ export class CosmeticDto {
         this.cost = c.cost;
         this.type = c.type;
         this.value = c.value;
-        this.owned = c.owned ?? false;
     }
 }

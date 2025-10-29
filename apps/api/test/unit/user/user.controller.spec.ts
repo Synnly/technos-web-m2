@@ -80,7 +80,6 @@ const mockCosmeticModel = jest.fn().mockImplementation((data) => ({
 	save: jest.fn().mockResolvedValue({
 		_id: "3",
 		...data,
-		owned: false,
 	}),
 })) as unknown as MockCosmeticModel;
 

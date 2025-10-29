@@ -15,7 +15,6 @@ const expectedCosmetic1: Cosmetic = {
 	name: "Golden Badge",
 	cost: 100,
 	type: CosmeticType.BADGE,
-	owned: false,
 	value: ":beginner:",
 };
 
@@ -25,7 +24,6 @@ const expectedCosmetic2: Cosmetic = {
 	cost: 200,
 	type: CosmeticType.COLOR,
 	value: "#FF0000",
-	owned: false,
 };
 
 const expectedCosmetics = [expectedCosmetic1, expectedCosmetic2];
