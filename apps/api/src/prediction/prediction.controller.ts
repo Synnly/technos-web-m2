@@ -109,7 +109,7 @@ export class PredictionController {
 		pred: CreatePredictionDto,
 	) {
 		try {
-			await this.predictionService.createPrediction(pred);
+			await this.predictionService.createPrediction(pred, req.user.username);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}

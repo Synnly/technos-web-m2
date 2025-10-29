@@ -84,6 +84,7 @@ function createQueryMock(result: any) {
 
 const mockUserModel = {
 	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
+	findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) }),
 } as any;
 
 const mockVoteModel = {
@@ -195,7 +196,7 @@ describe("PredictionService", () => {
 				options: { a: 0, b: 0 },
 			} as unknown as Prediction;
 
-			await predictionService.createPrediction(newPred);
+			await predictionService.createPrediction(newPred, expectedUser1.username);
 
 			expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ title: newPred.title }));
 
@@ -214,7 +215,7 @@ describe("PredictionService", () => {
 				_id: "pnew",
 			} as unknown as Prediction;
 
-			await predictionService.createPrediction(newPredWithUser);
+			await predictionService.createPrediction(newPredWithUser, expectedUser1.username);
 
 			// newPredWithUser._id is passed through by our mock save, so ensure userModel updated with that id
 			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, {

@@ -79,7 +79,7 @@ describe("Vote integration tests", () => {
 			dateFin: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
 			user_id: (testUser as any)._id || (testUser as any).id,
 		};
-		await predictionService.createPrediction(predPayload as any);
+	await predictionService.createPrediction(predPayload as any, (testUser as any).username || (testUser as any).id);
 		testPrediction = (await predictionService.getAll())[0];
 	});
 

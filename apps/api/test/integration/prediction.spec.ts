@@ -59,7 +59,7 @@ describe("Prediction Integration Tests", () => {
 	let userToken: string;
 	let adminToken: string;
 	let createdPrediction: any;
-	let createdUserId: string;
+	let createdUsername: string;
 
 	beforeEach(async () => {
 		await userService.createUser(testUserData);
@@ -78,7 +78,7 @@ describe("Prediction Integration Tests", () => {
 			role: (createdUser as any).role,
 			_id: (createdUser as any)._id,
 		});
-		createdUserId = (createdUser as any)._id;
+		createdUsername = (createdUser as any).username;
 
 		const createdAdmin = await userService.getByUsername(testAdminData.username);
 		if (!createdAdmin) throw new Error("Test setup: created admin not found");
@@ -134,7 +134,7 @@ describe("Prediction Integration Tests", () => {
 			};
 
 			// create directly via service (controller behaviour changed) - include user id required by schema
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+				await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			expect(all.length).toBeGreaterThanOrEqual(1);
 			createdPrediction = all[0];
@@ -149,7 +149,7 @@ describe("Prediction Integration Tests", () => {
 			};
 
 			// create directly via service (controller behaviour changed) - include user id required by schema
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			expect(all.length).toBeGreaterThanOrEqual(1);
 		});
@@ -241,7 +241,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -258,7 +258,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -275,7 +275,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -294,7 +294,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -313,7 +313,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -331,7 +331,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -349,7 +349,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -368,7 +368,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 0, B: 0 },
 				status: "waiting",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -392,7 +392,7 @@ describe("Prediction Integration Tests", () => {
 				status: "waiting",
 			};
 			// create directly via service (controller behavior changed)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			predId = all[0]._id as any;
 		});
@@ -466,7 +466,7 @@ describe("Prediction Integration Tests", () => {
 				status: "waiting",
 			};
 			// create via service (controller no longer injects user_id)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const newId = all[0]._id as any;
 			await request(app.getHttpServer())
@@ -537,7 +537,7 @@ describe("Prediction Integration Tests", () => {
 				status: "Valid",
 			};
 			// create directly via service (controller behavior changed)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -560,7 +560,7 @@ describe("Prediction Integration Tests", () => {
 				status: "Valid",
 			};
 			// create directly via service (controller behaviour changed)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -579,7 +579,7 @@ describe("Prediction Integration Tests", () => {
 				status: "Valid",
 			};
 			// create directly via service (controller behaviour changed)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -598,7 +598,7 @@ describe("Prediction Integration Tests", () => {
 				status: "Valid",
 			};
 			// create directly via service (controller behaviour changed)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 
@@ -617,7 +617,7 @@ describe("Prediction Integration Tests", () => {
 				status: "Valid",
 			};
 			// create via service (controller no longer injects user_id)
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 			const validateRes = await request(app.getHttpServer())
@@ -634,7 +634,7 @@ describe("Prediction Integration Tests", () => {
 				options: { A: 10, B: 5 },
 				status: "Valid",
 			};
-			await predictionService.createPrediction({ ...payload, user_id: createdUserId } as any);
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
 			const all = await predictionService.getAll();
 			const id = all[0]._id as any;
 

@@ -111,19 +111,27 @@ export class PredictionService {
 	 * @param pred Objet prédiction à créer.
 	 * @returns La promesse qui résout la prédiction créée.
 	 */
-	async createPrediction(pred: CreatePredictionDto){
-		const newPred = new this.predictionModel(pred as any);
+
+	async createPrediction(pred: CreatePredictionDto, username: string) {
+		const toCreate: any = { ...pred };
+
+		const user = await this.userModel.findOne({ username }).exec();
+		if (!user) throw new Error("Utilisateur non trouvé");
+		toCreate.user_id = (user as any)._id;
+		
+		const newPred = new this.predictionModel(toCreate as any);
 		const created = await newPred.save();
 
-		// Si la prédiction a une référence user_id, ajouter cet identifiant de prédiction dans le tableau des
-		// prédictions de l'utilisateur
 		if (created && (created as any).user_id) {
-			await this.userModel
-				.findByIdAndUpdate((created as any).user_id, {
-					$push: { predictions: created._id },
-				})
-				.exec();
+			try {
+				await this.userModel
+					.findByIdAndUpdate((created as any).user_id, {
+						$push: { predictions: created._id },
+					})
+					.exec();
+			} catch (e) {}
 		}
+		return this.normalizePred(created) as Prediction;
 	}
 
 	/**

@@ -28,7 +28,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 	const navigate = useNavigate();
 	const { logout } = useAuth();
 	const [modalOpen, setModalOpen] = React.useState(false);
-	const Actions = getActions(() => {setModalOpen(true); setCollapsed(true)});
+	const Actions = getActions(() => {
+		setModalOpen(true);
+		setCollapsed(true);
+	});
 	const [collapsed, setCollapsed] = React.useState(() => {
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
@@ -150,15 +153,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 									},
 								]}
 								onFinish={async (values: any) => {
-									const rawDate = values["date de fin"] ?? values.dateFin;
-									const dateFin =
-										rawDate && typeof rawDate.toISOString === "function"
-											? rawDate.toISOString()
-											: rawDate;
+									const dateFin = new Date(values.dateFin);
+									const dateFinStr = new Date(dateFin.getTime() + 24 * 10 * 60000)
+										.toISOString();
+
 									const payload = {
 										title: values.title,
 										description: values.description,
-										dateFin,
+										dateFin : dateFinStr,
 										options: values.options,
 									};
 									const result = await PredictionController.createPrediction(

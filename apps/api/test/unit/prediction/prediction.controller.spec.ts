@@ -139,7 +139,8 @@ describe("PredictionController", () => {
 		it("should forward creation to the service and return undefined", async () => {
 			mockPredictionService.createPrediction.mockResolvedValue(undefined);
 
-			const mockReq = { user: { _id: (expectedUser1 as any)._id } } as any;
+			// controller expects req.user.username (not _id)
+			const mockReq = { user: { username: (expectedUser1 as any).username } } as any;
 			const createDto = { ...expectedPred1, dateFin: (expectedPred1.dateFin as Date).toISOString() } as any;
 
 			const result = await predictionController.createPrediction(mockReq, createDto);
@@ -150,6 +151,7 @@ describe("PredictionController", () => {
 					dateFin: (expectedPred1.dateFin as Date).toISOString(),
 					options: expectedPred1.options,
 				}),
+				(expectedUser1 as any).username,
 			);
 			expect(result).toBeUndefined();
 		});

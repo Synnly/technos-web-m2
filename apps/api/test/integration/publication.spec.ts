@@ -69,10 +69,9 @@ describe("Publication integration tests", () => {
 			dateFin: new Date(Date.now() + 1000 * 60 * 60),
 			options: { A: 0, B: 0 },
 			status: "waiting",
-			user_id: user._id,
 		};
 		// create prediction directly via service for setup (controller behaviour changed)
-		await predictionService.createPrediction(predPayload as any);
+			await predictionService.createPrediction(predPayload as any, user.username);
 		testPrediction = (await predictionService.getAll())[0];
 	});
 
@@ -264,11 +263,12 @@ describe("Publication integration tests", () => {
 			prediction_id: (testPrediction as any)._id,
 			user_id: user._id,
 		};
+		// controller/service now allow creating publications even when datePublication is in the past
 		await request(app.getHttpServer())
-			.post("/api/publication")
-			.set("Authorization", `Bearer ${userToken}`)
-			.send(payload)
-			.expect(HttpStatus.BAD_REQUEST);
+		    .post("/api/publication")
+		    .set("Authorization", `Bearer ${userToken}`)
+		    .send(payload)
+		    .expect(HttpStatus.CREATED);
 	});
 
 	it("should return 404 when getting non-existent publication by id", async () => {
