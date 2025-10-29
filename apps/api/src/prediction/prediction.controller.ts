@@ -90,8 +90,6 @@ export class PredictionController {
 	 */
 	@Get("/:id")
 	async getPredictionById(@Param("id", ParseObjectIdPipe) id: string): Promise<PredictionDto> {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
-
 		const pred = await this.predictionService.getById(id);
 		if (!pred) throw new NotFoundException("Prédiction non trouvée");
 		return new PredictionDto(pred);
@@ -111,35 +109,8 @@ export class PredictionController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
 		pred: CreatePredictionDto,
 	) {
-		// Validation simple
-		const rawPred: any = pred;
-		const missing = [
-			!pred && "La prédiction est requise",
-			!rawPred?.title && "Le titre est requis",
-			!rawPred?.dateFin && "La date de fin est requise",
-			rawPred?.dateFin &&
-				new Date(rawPred.dateFin) < new Date() &&
-				"La date de fin doit être supérieure ou égale à aujourd'hui",
-			!rawPred?.options || (Object.keys(rawPred.options).length < 2 && "Au moins deux options sont requises"),
-			rawPred?.status === undefined || rawPred?.status.toString() === ""
-				? "Le statut est requis"
-				: !Object.values(PredictionStatus).includes(rawPred.status) && "Le statut est invalide",
-			!req.user?._id && "L'utilisateur authentifié est requis",
-			rawPred?.result !== undefined &&
-				rawPred?.result !== "" &&
-				"On ne peut voter pour une prédiction déjà validée",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-
-		// Préparer payload
-		const { _id, ...payload } = pred as any;
-		payload.options = payload.options ?? {};
-		if (req.user?._id) payload.user_id = req.user._id;
-
 		try {
-			const created = await this.predictionService.createPrediction(payload as Prediction);
-			return new PredictionDto(created);
+			await this.predictionService.createPrediction(pred);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
@@ -151,36 +122,9 @@ export class PredictionController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
 		pred: UpdatePredictionDto,
 	) {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
-
-		// Validation simple (identique à create)
-		const rawPred2: any = pred;
-		const missing = [
-			!pred && "La prédiction est requise",
-			!rawPred2?.title && "Le titre est requis",
-			!rawPred2?.dateFin && "La date de fin est requise",
-			rawPred2?.dateFin &&
-				new Date(rawPred2.dateFin) < new Date() &&
-				"La date de fin doit être supérieure ou égale à aujourd'hui",
-			(!rawPred2?.options || Object.keys(rawPred2.options).length < 2) && "Au moins deux options sont requises",
-			rawPred2?.status === undefined || rawPred2?.status.toString() === ""
-				? "Le statut est requis"
-				: !Object.values(PredictionStatus).includes(rawPred2.status) && "Le statut est invalide",
-			!req.user?._id && !rawPred2?.user_id && "L'utilisateur authentifié est requis",
-			rawPred2?.result !== undefined &&
-				rawPred2?.result !== "" &&
-				"On ne peut voter pour une prédiction déjà validée",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-
 		try {
-			// Préparer payload
-			const { _id, ...payload } = pred as any;
-			if (req.user?._id) payload.user_id = req.user._id;
-
 			// Creer ou mettre à jour
-			await this.predictionService.createOrUpdateById(id, payload as Prediction);
+			await this.predictionService.createOrUpdateById(id, pred);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
@@ -193,8 +137,6 @@ export class PredictionController {
 	 */
 	@Delete("/:id")
 	async deletePrediction(@Param("id", ParseObjectIdPipe) id: string) {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
-
 		try {
 			await this.predictionService.deleteById(id);
 		} catch (error) {
@@ -240,7 +182,6 @@ export class PredictionController {
 		@Query("votesAsPercentage") votesAsPercentage?: any,
 		@Query("fromStart") fromStart?: any,
 	): Promise<any> {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
 		if (!intervalMinutes || intervalMinutes <= 0) {
 			throw new BadRequestException("L'intervalle en minutes doit être un nombre positif");
 		}

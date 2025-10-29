@@ -16,7 +16,7 @@ const expectedCosmetic1: Cosmetic = {
 	cost: 100,
 	type: CosmeticType.BADGE,
 	owned: false,
-	value: ":beginner:"
+	value: ":beginner:",
 };
 
 const expectedCosmetic2: Cosmetic = {
@@ -96,10 +96,6 @@ describe("CosmeticController", () => {
 			expect(cosmeticService.findById).toHaveBeenCalledWith("c1");
 		});
 
-		it("should throw 400 if id is missing", async () => {
-			await expect(cosmeticController.getCosmeticById("")).rejects.toThrow(BadRequestException);
-		});
-
 		it("should throw 404 if cosmetic not found", async () => {
 			mockCosmeticService.findById.mockResolvedValue(null);
 
@@ -124,42 +120,6 @@ describe("CosmeticController", () => {
 				BadRequestException,
 			);
 		});
-
-		it("should throw 400 if body missing", async () => {
-			await expect(cosmeticController.createCosmetic(undefined as any, adminUser, "admin")).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should throw 400 if name missing", async () => {
-			const badCosmetic = {
-				...expectedCosmetic1,
-				name: undefined,
-			} as any;
-			await expect(cosmeticController.createCosmetic(badCosmetic, adminUser, "admin")).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should throw 400 if cost missing", async () => {
-			const badCosmetic = {
-				...expectedCosmetic1,
-				cost: undefined,
-			} as any;
-			await expect(cosmeticController.createCosmetic(badCosmetic, adminUser, "admin")).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should throw 400 if type missing", async () => {
-			const badCosmetic = {
-				...expectedCosmetic1,
-				type: undefined,
-			} as any;
-			await expect(cosmeticController.createCosmetic(badCosmetic, adminUser, "admin")).rejects.toThrow(
-				BadRequestException,
-			);
-		});
 	});
 
 	describe("updateCosmetic", () => {
@@ -179,12 +139,6 @@ describe("CosmeticController", () => {
 			await expect(
 				cosmeticController.updateCosmetic("c1", expectedCosmetic1, normalUser, "user"),
 			).rejects.toThrow(BadRequestException);
-		});
-
-		it("should throw 400 if body missing", async () => {
-			await expect(cosmeticController.updateCosmetic("c1", undefined as any, adminUser, "admin")).rejects.toThrow(
-				BadRequestException,
-			);
 		});
 
 		it("should throw 404 if cosmetic not found", async () => {

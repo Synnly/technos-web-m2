@@ -48,7 +48,6 @@ export class CosmeticController {
 	 */
 	@Get("/:id")
 	async getCosmeticById(@Param("id", ParseObjectIdPipe) id: string): Promise<CosmeticDto> {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
 		const cosmetic = await this.cosmeticService.findById(id);
 		if (!cosmetic) throw new NotFoundException("Cosmétique non trouvable");
 
@@ -69,23 +68,14 @@ export class CosmeticController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
 		cosmetic: CreateCosmeticDto,
 		@Req() req,
-		@Param("username") username,
+		@Param("username") username: string,
 	) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
 			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
-		const missing = [
-			!cosmetic && "Le cosmétique est requis",
-			!cosmetic?.name && "Le nom du cosmétique est requis",
-			!cosmetic?.cost && "Le coût du cosmétique est requis",
-			!cosmetic?.type && "Le type du cosmétique est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-
-		await this.cosmeticService.create(cosmetic as any);
+		await this.cosmeticService.create(cosmetic);
 	}
 
 	/**
@@ -112,20 +102,9 @@ export class CosmeticController {
 			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
-		const missing = [
-			!cosmetic && "Le cosmétique est requis",
-			!cosmetic?.name && "Le nom du cosmétique est requis",
-			!cosmetic?.cost && "Le coût du cosmétique est requis",
-			!cosmetic?.type && "Le type du cosmétique est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-
-		if (id !== undefined) {
-			const existing = await this.cosmeticService.findById(id);
-			if (!existing) {
-				throw new NotFoundException("Cosmétique non trouvé");
-			}
+		const existing = await this.cosmeticService.findById(id);
+		if (!existing) {
+			throw new NotFoundException("Cosmétique non trouvé");
 		}
 
 		await this.cosmeticService.updateById(id, cosmetic);

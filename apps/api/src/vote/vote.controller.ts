@@ -50,7 +50,6 @@ export class VoteController {
 	 */
 	@Get("/:id")
 	async getVoteById(@Param("id", ParseObjectIdPipe) id: string): Promise<VoteDto> {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
 		const vote = await this.voteService.getById(id);
 		if (!vote) throw new NotFoundException("Vote introuvable");
 		return new VoteDto(vote as any);
@@ -66,14 +65,11 @@ export class VoteController {
 	async createVote(
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) vote: CreateVoteDto,
 	) {
-		if (!vote) throw new BadRequestException("Les données du vote sont requises");
 		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
 		try {
-			// On ignore le champ _id, le service/mongoose le gère
-			const { _id, ...payload } = vote as any;
-			await this.voteService.createVote(payload);
+			await this.voteService.createVote(vote);
 		} catch (error) {
-			throw new BadRequestException(error.message || "Erreur lors de la création du vote");
+			throw new BadRequestException(error.message);
 		}
 	}
 
@@ -89,13 +85,10 @@ export class VoteController {
 		@Param("id", ParseObjectIdPipe) id: string,
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) vote: UpdateVoteDto,
 	) {
-		if (!vote) throw new BadRequestException("Les données du vote sont requises");
 		if (vote.amount !== undefined && vote.amount < 1)
 			throw new BadRequestException("Le montant doit être au moins de 1 point");
 		try {
-			// On ignore le champ _id, le service/mongoose le gère
-			const { _id, ...payload } = vote as any;
-			await this.voteService.createOrUpdateVote(id, payload);
+			await this.voteService.createOrUpdateVote(id, vote);
 		} catch (error) {
 			throw new BadRequestException(error.message || "Erreur lors de la mise à jour du vote");
 		}
@@ -108,7 +101,6 @@ export class VoteController {
 	 */
 	@Delete("/:id")
 	async deleteVote(@Param("id", ParseObjectIdPipe) id: string) {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
 		const deleted = await this.voteService.deleteVote(id);
 		if (!deleted) throw new NotFoundException("Vote introuvable");
 	}

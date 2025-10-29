@@ -1,10 +1,7 @@
 import { Test } from "@nestjs/testing";
 import { getModelToken } from "@nestjs/mongoose";
 import { PredictionService } from "../../../src/prediction/prediction.service";
-import {
-	Prediction,
-	PredictionStatus,
-} from "../../../src/prediction/prediction.schema";
+import { Prediction, PredictionStatus } from "../../../src/prediction/prediction.schema";
 import { User, Role } from "../../../src/user/user.schema";
 import { Vote } from "../../../src/vote/vote.schema";
 import { ConfigService } from "@nestjs/config";
@@ -86,9 +83,7 @@ function createQueryMock(result: any) {
 }
 
 const mockUserModel = {
-	findByIdAndUpdate: jest
-		.fn()
-		.mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
+	findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) }),
 } as any;
 
 const mockVoteModel = {
@@ -192,7 +187,7 @@ describe("PredictionService", () => {
 	});
 
 	describe("createPrediction", () => {
-		it("should create and return prediction", async () => {
+		it("should create a prediction (calls model.save)", async () => {
 			const newPred = {
 				title: "New pred",
 				status: PredictionStatus.Waiting,
@@ -200,17 +195,13 @@ describe("PredictionService", () => {
 				options: { a: 0, b: 0 },
 			} as unknown as Prediction;
 
-			const result = await predictionService.createPrediction(newPred);
+			await predictionService.createPrediction(newPred);
 
-			expect(mockPredModel).toHaveBeenCalledWith(
-				expect.objectContaining({ title: newPred.title }),
-			);
-			expect(result).toEqual(
-				expect.objectContaining({
-					title: newPred.title,
-					options: newPred.options,
-				}),
-			);
+			expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ title: newPred.title }));
+
+			// the constructor should have produced an instance whose save() was called
+			const createdInstance = (mockPredModel as unknown as jest.Mock).mock.results[0].value;
+			expect(createdInstance.save).toHaveBeenCalled();
 		});
 
 		it("should push prediction id to user when created with user_id", async () => {
@@ -223,13 +214,12 @@ describe("PredictionService", () => {
 				_id: "pnew",
 			} as unknown as Prediction;
 
-			const result =
-				await predictionService.createPrediction(newPredWithUser);
+			await predictionService.createPrediction(newPredWithUser);
 
-			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
-				(expectedUser1 as any)._id,
-				{ $push: { predictions: result._id } },
-			);
+			// newPredWithUser._id is passed through by our mock save, so ensure userModel updated with that id
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, {
+				$push: { predictions: newPredWithUser._id },
+			});
 		});
 	});
 
@@ -237,23 +227,19 @@ describe("PredictionService", () => {
 		it("should update existing prediction", async () => {
 			const existing = {
 				...expectedPred1,
-				save: jest
-					.fn()
-					.mockResolvedValue({ ...expectedPred1, title: "Updated" }),
+				save: jest.fn().mockResolvedValue({ ...expectedPred1, title: "Updated" }),
 			};
 			mockPredModel.findById.mockReturnValue({
 				exec: jest.fn().mockResolvedValue(existing),
 			});
 
-			const updated = await predictionService.createOrUpdateById("p1", {
+			await predictionService.createOrUpdateById("p1", {
 				title: "Updated",
 			} as Prediction);
 
 			expect(mockPredModel.findById).toHaveBeenCalledWith("p1");
 			expect(existing.save).toHaveBeenCalled();
-			expect(updated).toEqual(
-				expect.objectContaining({ title: "Updated" }),
-			);
+			// createOrUpdate no longer returns the updated doc - it persists side-effects
 		});
 
 		it("should create new prediction when not existing", async () => {
@@ -261,19 +247,15 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			const created = await predictionService.createOrUpdateById(
-				"newid",
-				{ title: "Created" } as Prediction,
-			);
+			await predictionService.createOrUpdateById("newid", { title: "Created" } as Prediction);
 
 			// Le constructeur du modèle doit être appelé avec les données fournies, y compris _id
-			expect(mockPredModel).toHaveBeenCalledWith(
-				expect.objectContaining({ _id: "newid", title: "Created" }),
-			);
-			// En sauvegardant un modèle construit avec un _id fourni, cet _id sera conservé
-			expect(created).toEqual(
-				expect.objectContaining({ _id: "newid", title: "Created" }),
-			);
+			expect(mockPredModel).toHaveBeenCalledWith(expect.objectContaining({ _id: "newid", title: "Created" }));
+			// the created instance's save() should have been called (see mock)
+			const createdInstance = (mockPredModel as unknown as jest.Mock).mock.results.find(
+				(r) => r.value && r.value.save,
+			)?.value;
+			expect(createdInstance.save).toHaveBeenCalled();
 		});
 
 		it("should push prediction id to user when creating new with user_id", async () => {
@@ -281,13 +263,10 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			const created = await predictionService.createOrUpdateById(
-				"newid",
-				{
-					title: "Created",
-					user_id: (expectedUser1 as any)._id,
-				} as Prediction,
-			);
+			await predictionService.createOrUpdateById("newid", {
+				title: "Created",
+				user_id: (expectedUser1 as any)._id,
+			} as Prediction);
 
 			expect(mockPredModel).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -296,10 +275,9 @@ describe("PredictionService", () => {
 					user_id: (expectedUser1 as any)._id,
 				}),
 			);
-			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
-				(expectedUser1 as any)._id,
-				{ $push: { predictions: "newid" } },
-			);
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, {
+				$push: { predictions: "newid" },
+			});
 		});
 	});
 
@@ -320,13 +298,9 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			await expect(
-				predictionService.deleteById("unknown"),
-			).rejects.toThrow("Prédiction introuvable");
+			await expect(predictionService.deleteById("unknown")).rejects.toThrow("Prédiction introuvable");
 
-			expect(mockPredModel.findByIdAndDelete).toHaveBeenCalledWith(
-				"unknown",
-			);
+			expect(mockPredModel.findByIdAndDelete).toHaveBeenCalledWith("unknown");
 		});
 
 		it("should remove prediction id from user when deleted and user_id present", async () => {
@@ -337,10 +311,9 @@ describe("PredictionService", () => {
 
 			const result = await predictionService.deleteById("p1");
 
-			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
-				(expectedUser1 as any)._id,
-				{ $pull: { predictions: deletedWithUser._id } },
-			);
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith((expectedUser1 as any)._id, {
+				$pull: { predictions: deletedWithUser._id },
+			});
 			expect(result).toEqual(expectedPred1);
 		});
 	});
@@ -351,9 +324,7 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			await expect(
-				predictionService.validatePrediction("p1", "yes"),
-			).rejects.toThrow("Prédiction introuvable");
+			await expect(predictionService.validatePrediction("p1", "yes")).rejects.toThrow("Prédiction introuvable");
 			expect(mockPredModel.findById).toHaveBeenCalledWith("p1");
 		});
 
@@ -362,9 +333,9 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(expectedPred1),
 			});
 
-			await expect(
-				predictionService.validatePrediction("p1", "invalid"),
-			).rejects.toThrow("Option gagnante invalide");
+			await expect(predictionService.validatePrediction("p1", "invalid")).rejects.toThrow(
+				"Option gagnante invalide",
+			);
 		});
 
 		it("should throw if no points on winning option", async () => {
@@ -382,9 +353,9 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([]),
 			});
 
-			await expect(
-				predictionService.validatePrediction("p1", "yes"),
-			).rejects.toThrow("Aucun point sur l’option gagnante");
+			await expect(predictionService.validatePrediction("p1", "yes")).rejects.toThrow(
+				"Aucun point sur l’option gagnante",
+			);
 		});
 
 		it("should distribute rewards correctly and update prediction", async () => {
@@ -403,10 +374,7 @@ describe("PredictionService", () => {
 			});
 			mockUserModel.findByIdAndUpdate = jest.fn().mockResolvedValue({});
 
-			const result = await predictionService.validatePrediction(
-				"p1",
-				"yes",
-			);
+			const result = await predictionService.validatePrediction("p1", "yes");
 
 			// totalPoints = 10 + 5 = 15, winningPoints = 10
 			expect(result.ratio).toBe(15 / 10);
@@ -430,7 +398,7 @@ describe("PredictionService", () => {
 			);
 
 			expect(pred.status).toBe(PredictionStatus.Valid);
-			expect(pred.result).toBe('yes');
+			expect(pred.result).toBe("yes");
 			expect(pred.save).toHaveBeenCalled();
 		});
 	});
@@ -447,28 +415,28 @@ describe("PredictionService", () => {
 
 			const result = await predictionService.getExpiredPredictions();
 
-  	    expect(mockPredModel.find).toHaveBeenCalledWith({
-  	      dateFin: { $lte: expect.any(Date) },
-  	      result: '',
-  	      status: PredictionStatus.Valid,
-  	    });
-  	    expect(result).toEqual([expired]);
-  	  });
-  	});
+			expect(mockPredModel.find).toHaveBeenCalledWith({
+				dateFin: { $lte: expect.any(Date) },
+				result: "",
+				status: PredictionStatus.Valid,
+			});
+			expect(result).toEqual([expired]);
+		});
+	});
 
-  	describe('getWaitingPredictions', () => {
-	it('should return waiting predictions with no result', async () => {
-	mockPredModel.find.mockReturnValue(createQueryMock([expectedPred1]));
+	describe("getWaitingPredictions", () => {
+		it("should return waiting predictions with no result", async () => {
+			mockPredModel.find.mockReturnValue(createQueryMock([expectedPred1]));
 
 			const result = await predictionService.getWaitingPredictions();
 
-  	    expect(mockPredModel.find).toHaveBeenCalledWith({
-  	      status: PredictionStatus.Waiting,
-  	      result: '',
-  	    });
-  	    expect(result).toEqual([expectedPred1]);
-  	  });
-  	});
+			expect(mockPredModel.find).toHaveBeenCalledWith({
+				status: PredictionStatus.Waiting,
+				result: "",
+			});
+			expect(result).toEqual([expectedPred1]);
+		});
+	});
 
 	describe("getValidPredictions", () => {
 		it("should return only predictions with status Valid and dateFin in the future", async () => {
@@ -511,8 +479,7 @@ describe("PredictionService", () => {
 					data: {
 						_type: "SearchResponse",
 						queryContext: {
-							originalQuery:
-								"tell me the highlights from Apple's 2024 ESG report",
+							originalQuery: "tell me the highlights from Apple's 2024 ESG report",
 						},
 						webPages: {
 							webSearchUrl:
@@ -523,8 +490,7 @@ describe("PredictionService", () => {
 									id: "https://api.langsearch.com/v1/web-search#1",
 									name: "ESG Report June 2024 - Apple Inc. (AAPL)",
 									url: "https://www.crispidea.com/report/esg-report-june-2024-apple/",
-									displayUrl:
-										"https://www.crispidea.com/report/esg-report-june-2024-apple/",
+									displayUrl: "https://www.crispidea.com/report/esg-report-june-2024-apple/",
 									snippet: "snippet1",
 									summary: "summary1",
 									datePublished: null,
@@ -534,8 +500,7 @@ describe("PredictionService", () => {
 									id: "https://api.langsearch.com/v1/web-search#2",
 									name: "Apple ESG rating 2023: Key takeaways from Apple's ESG Report - Permutable",
 									url: "https://permutable.ai/6-key-takeaways-from-the-apple-esg-report/",
-									displayUrl:
-										"https://permutable.ai/6-key-takeaways-from-the-apple-esg-report/",
+									displayUrl: "https://permutable.ai/6-key-takeaways-from-the-apple-esg-report/",
 									snippet: "snippet2",
 									summary: "summary2",
 									datePublished: null,
@@ -545,8 +510,7 @@ describe("PredictionService", () => {
 									id: "https://api.langsearch.com/v1/web-search#3",
 									name: "Apple (AAPL) ESG Score and Rating 2024",
 									url: "https://www.marketbeat.com/stocks/NASDAQ/aapl/sustainability/",
-									displayUrl:
-										"https://www.marketbeat.com/stocks/NASDAQ/aapl/sustainability/",
+									displayUrl: "https://www.marketbeat.com/stocks/NASDAQ/aapl/sustainability/",
 									snippet: "snippet3",
 									summary: "summary3",
 									datePublished: null,
@@ -556,8 +520,7 @@ describe("PredictionService", () => {
 									id: "https://api.langsearch.com/v1/web-search#4",
 									name: "Apple ESG 2023: A Deep Dive into Apple's ESG Efforts",
 									url: "https://permutable.ai/apple-esg/",
-									displayUrl:
-										"https://permutable.ai/apple-esg/",
+									displayUrl: "https://permutable.ai/apple-esg/",
 									snippet: "snippet4",
 									summary: "summary4",
 									datePublished: null,
@@ -600,8 +563,7 @@ describe("PredictionService", () => {
 									id: "https://api.langsearch.com/v1/web-search#8",
 									name: "Apple touts halving emissions and increased recycling rates in 2024 environmental progress report - 9to5Mac",
 									url: "https://9to5mac.com/2024/04/18/apple-2024-environmental-report/",
-									displayUrl:
-										"https://9to5mac.com/2024/04/18/apple-2024-environmental-report/",
+									displayUrl: "https://9to5mac.com/2024/04/18/apple-2024-environmental-report/",
 									snippet: "snippet8",
 									summary: "summary8",
 									datePublished: null,
@@ -611,8 +573,7 @@ describe("PredictionService", () => {
 									id: "https://api.langsearch.com/v1/web-search#9",
 									name: "Is Apple's Sustainability Report Alarming ? Must Read - 2024",
 									url: "https://coderesist.com/apples-sustainability-report/",
-									displayUrl:
-										"https://coderesist.com/apples-sustainability-report/",
+									displayUrl: "https://coderesist.com/apples-sustainability-report/",
 									snippet: "snippet9",
 									summary: "summary9",
 									datePublished: null,
@@ -636,8 +597,7 @@ describe("PredictionService", () => {
 				},
 			});
 
-			const response =
-				await predictionService.queryWebSearch("apple environment");
+			const response = await predictionService.queryWebSearch("apple environment");
 
 			expect(response).toEqual([
 				"summary1",
@@ -665,9 +625,9 @@ describe("PredictionService", () => {
 				},
 			});
 
-			await expect(
-				predictionService.queryWebSearch("apple environment"),
-			).rejects.toThrow("Aucune recherche ne correspond aux mots clés");
+			await expect(predictionService.queryWebSearch("apple environment")).rejects.toThrow(
+				"Aucune recherche ne correspond aux mots clés",
+			);
 		});
 	});
 
@@ -704,10 +664,7 @@ describe("PredictionService", () => {
 				},
 			});
 
-			const result = await predictionService.rerankDocuments(
-				"apple news",
-				documents,
-			);
+			const result = await predictionService.rerankDocuments("apple news", documents);
 
 			expect(result).toEqual([
 				"Apple is planning to open a new store in London",
@@ -722,8 +679,7 @@ describe("PredictionService", () => {
 				output_text: "apple buying uk startup 1 billion",
 			});
 
-			const result =
-				await predictionService.getQueryFromTitle("apple news");
+			const result = await predictionService.getQueryFromTitle("apple news");
 
 			expect(result).toEqual("apple buying uk startup 1 billion");
 		});
@@ -733,9 +689,7 @@ describe("PredictionService", () => {
 				output_text: "",
 			});
 
-			await expect(
-				predictionService.getQueryFromTitle("apple news"),
-			).rejects.toThrow(
+			await expect(predictionService.getQueryFromTitle("apple news")).rejects.toThrow(
 				"L'IA n'a pas pu identifier au moins 2 mots clés",
 			);
 		});
@@ -760,15 +714,9 @@ describe("PredictionService", () => {
 			});
 
 			// Mock des méthodes du service
-			predictionService.getQueryFromTitle = jest
-				.fn()
-				.mockResolvedValue("team A match outcome");
-			predictionService.queryWebSearch = jest
-				.fn()
-				.mockResolvedValue(["doc1", "doc2"]);
-			predictionService.rerankDocuments = jest
-				.fn()
-				.mockResolvedValue(["doc1", "doc2"]);
+			predictionService.getQueryFromTitle = jest.fn().mockResolvedValue("team A match outcome");
+			predictionService.queryWebSearch = jest.fn().mockResolvedValue(["doc1", "doc2"]);
+			predictionService.rerankDocuments = jest.fn().mockResolvedValue(["doc1", "doc2"]);
 
 			// Mock de la réponse OpenAI
 			mockOpenAIInstance.responses.create.mockResolvedValue({
@@ -783,16 +731,9 @@ describe("PredictionService", () => {
 
 			await predictionService.updatePronosticsByAI(expectedPred2._id);
 
-			expect(predictionService.getQueryFromTitle).toHaveBeenCalledWith(
-				expectedPred2.title,
-			);
-			expect(predictionService.queryWebSearch).toHaveBeenCalledWith(
-				"team A match outcome",
-			);
-			expect(predictionService.rerankDocuments).toHaveBeenCalledWith(
-				expectedPred2.title,
-				["doc1", "doc2"],
-			);
+			expect(predictionService.getQueryFromTitle).toHaveBeenCalledWith(expectedPred2.title);
+			expect(predictionService.queryWebSearch).toHaveBeenCalledWith("team A match outcome");
+			expect(predictionService.rerankDocuments).toHaveBeenCalledWith(expectedPred2.title, ["doc1", "doc2"]);
 			expect(mockOpenAIInstance.responses.create).toHaveBeenCalled();
 			expect(mockPredModel.findByIdAndUpdate).toHaveBeenCalledWith(
 				expectedPred2._id,
@@ -835,9 +776,9 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			await expect(
-				predictionService.updatePronosticsByAI(expectedPred2._id),
-			).rejects.toThrow("Prédiction non trouvée");
+			await expect(predictionService.updatePronosticsByAI(expectedPred2._id)).rejects.toThrow(
+				"Prédiction non trouvée",
+			);
 		});
 
 		it("should throw an error if the output cannot be parsed", async () => {
@@ -862,9 +803,7 @@ describe("PredictionService", () => {
 				output_text: "invalid json",
 			});
 
-			await expect(
-				predictionService.updatePronosticsByAI(expectedPred2._id),
-			).rejects.toThrow();
+			await expect(predictionService.updatePronosticsByAI(expectedPred2._id)).rejects.toThrow();
 		});
 	});
 
@@ -875,9 +814,9 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			await expect(
-				predictionService.getPredictionTimeline("p-missing", 5),
-			).rejects.toThrow("Prédiction introuvable");
+			await expect(predictionService.getPredictionTimeline("p-missing", 5)).rejects.toThrow(
+				"Prédiction introuvable",
+			);
 		});
 
 		it("should return single interval with empty options when there are no votes", async () => {
@@ -891,12 +830,7 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([]),
 			});
 
-			const timeline = await predictionService.getPredictionTimeline(
-				pred._id,
-				60,
-				false,
-				false,
-			);
+			const timeline = await predictionService.getPredictionTimeline(pred._id, 60, false, false);
 
 			expect(Array.isArray(timeline)).toBe(true);
 			expect(timeline.length).toBe(1);
@@ -929,12 +863,7 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([vote1, vote2]),
 			});
 
-			const timeline = await predictionService.getPredictionTimeline(
-				pred._id,
-				5,
-				false,
-				true,
-			);
+			const timeline = await predictionService.getPredictionTimeline(pred._id, 5, false, true);
 
 			expect(timeline.length).toBeGreaterThanOrEqual(2);
 			expect(timeline[0].options).toEqual({ no: 0, yes: 2 });
@@ -967,12 +896,7 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([vote1, vote2]),
 			});
 
-			const timeline = await predictionService.getPredictionTimeline(
-				pred._id,
-				5,
-				false,
-				false,
-			);
+			const timeline = await predictionService.getPredictionTimeline(pred._id, 5, false, false);
 			expect(timeline[0].options).toEqual({ yes: 2, no: 0 });
 			expect(timeline[1].options).toEqual({ yes: 0, no: 3 });
 		});
@@ -1045,12 +969,7 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([voteA, voteB]),
 			});
 
-			const timeline = await predictionService.getPredictionTimeline(
-				pred._id,
-				12,
-				true,
-				true,
-			);
+			const timeline = await predictionService.getPredictionTimeline(pred._id, 12, true, true);
 
 			// Single interval expected; total = 5 => A = 40%, B = 60%
 			expect(timeline.length).toBe(1);
@@ -1085,12 +1004,7 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([v1, v2]),
 			});
 
-			const timeline = await predictionService.getPredictionTimeline(
-				pred._id,
-				1000,
-				false,
-				true,
-			);
+			const timeline = await predictionService.getPredictionTimeline(pred._id, 1000, false, true);
 			// Only one interval should exist (since interval >> span)
 			expect(timeline.length).toBe(1);
 			expect(timeline[0].options).toEqual({ no: 1, yes: 2 });

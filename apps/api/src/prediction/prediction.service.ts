@@ -111,7 +111,7 @@ export class PredictionService {
 	 * @param pred Objet prédiction à créer.
 	 * @returns La promesse qui résout la prédiction créée.
 	 */
-	async createPrediction(pred: CreatePredictionDto | Prediction): Promise<Prediction> {
+	async createPrediction(pred: CreatePredictionDto){
 		const newPred = new this.predictionModel(pred as any);
 		const created = await newPred.save();
 
@@ -124,8 +124,6 @@ export class PredictionService {
 				})
 				.exec();
 		}
-
-		return this.normalizePred(created) as Prediction;
 	}
 
 	/**
@@ -138,7 +136,7 @@ export class PredictionService {
 	 * @param pred - Données à appliquer à la prédiction.
 	 * @returns La prédiction mise à jour ou nouvellement créée.
 	 */
-	async createOrUpdateById(id: string, pred: UpdatePredictionDto | Prediction): Promise<Prediction> {
+	async createOrUpdateById(id: string, pred: UpdatePredictionDto) {
 		const existing = await this.predictionModel.findById(id).exec();
 
 		if (existing) {
@@ -148,7 +146,7 @@ export class PredictionService {
 			existing.dateFin = pred.dateFin ?? existing.dateFin;
 			existing.options = pred.options ?? existing.options;
 
-			return await existing.save();
+			await existing.save();
 		} else {
 			// créer une nouvelle prédiction avec l'identifiant fourni si donné
 			const toCreate = {
@@ -168,8 +166,6 @@ export class PredictionService {
 						.exec();
 				} catch (e) {}
 			}
-
-			return this.normalizePred(created) as Prediction;
 		}
 	}
 

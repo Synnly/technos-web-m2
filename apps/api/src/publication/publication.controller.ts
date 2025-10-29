@@ -40,7 +40,7 @@ export class PublicationController {
 	@Get("")
 	async getPublications(): Promise<PublicationDto[]> {
 		const publications = await this.publicationService.getAll();
-		return publications.map((p) => new PublicationDto(p as any));
+		return publications.map((p) => new PublicationDto(p));
 	}
 
 	/**
@@ -52,10 +52,9 @@ export class PublicationController {
 	 */
 	@Get("/:id")
 	async getPublicationById(@Param("id", ParseObjectIdPipe) id: string): Promise<PublicationDto | undefined> {
-		if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
 		const pub = await this.publicationService.getById(id);
 		if (!pub) throw new NotFoundException({ message: "Publication non trouvée" });
-		return new PublicationDto(pub as any);
+		return new PublicationDto(pub);
 	}
 
 	/**
@@ -70,22 +69,8 @@ export class PublicationController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
 		pub: CreatePublicationDto,
 	) {
-		if (!pub) throw new BadRequestException({ message: "La publication est requise" });
-		// basic manual validation so direct controller calls (unit tests) and HTTP requests behave similarly
-		const toleranceMs = 10 * 1000;
-		const missing = [
-			!pub && "La publication est requise",
-			!pub?.message && "Le message est requis",
-			!pub?.datePublication && "La date est requise",
-			pub?.datePublication &&
-				new Date(pub.datePublication).getTime() + toleranceMs < new Date().getTime() &&
-				"La date de publication doit être supérieure ou égale à aujourd'hui",
-			!pub?.user_id && "L'utilisateur est requis",
-			!pub?.prediction_id && "La prédiction est requise",
-		].filter(Boolean)[0];
-		if (missing) throw new BadRequestException({ message: missing });
 		try {
-			await this.publicationService.createPublication(pub as any);
+			await this.publicationService.createPublication(pub);
 		} catch (error) {
 			throw new InternalServerErrorException({ message: error.message });
 		}
@@ -104,22 +89,8 @@ export class PublicationController {
 		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
 		pub: UpdatePublicationDto,
 	) {
-		if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
-		if (!pub) throw new BadRequestException({ message: "La publication est requise" });
-		const toleranceMs = 10 * 1000;
-		const missing = [
-			!pub && "La publication est requise",
-			!pub?.message && "Le message est requis",
-			!pub?.datePublication && "La date est requise",
-			pub?.datePublication &&
-				new Date(pub.datePublication).getTime() + toleranceMs < new Date().getTime() &&
-				"La date de publication doit être supérieure ou égale à aujourd'hui",
-			!pub?.user_id && "L'utilisateur est requis",
-			!pub?.prediction_id && "La prédiction est requise",
-		].filter(Boolean)[0];
-		if (missing) throw new BadRequestException({ message: missing });
 		try {
-			await this.publicationService.createOrUpdateById(id, pub as any);
+			await this.publicationService.createOrUpdateById(id, pub);
 		} catch (e) {
 			throw new InternalServerErrorException({ message: e.message });
 		}
@@ -133,7 +104,6 @@ export class PublicationController {
 	 */
 	@Delete("/:id")
 	async deletePublicationById(@Param("id", ParseObjectIdPipe) id: string) {
-		if (!id) throw new BadRequestException({ message: "L'identifiant est requis" });
 		try {
 			await this.publicationService.deleteById(id);
 		} catch (e) {
@@ -154,11 +124,9 @@ export class PublicationController {
 		@Param("id", ParseObjectIdPipe) id: string,
 		@Param("userId", ParseObjectIdPipe) userId: string,
 	): Promise<PublicationDto> {
-		if (!id) throw new BadRequestException({ message: "L'identifiant de la publication est requis" });
-		if (!userId) throw new BadRequestException({ message: "L'identifiant de l'utilisateur est requis" });
 		try {
 			const updated = await this.publicationService.toggleLikePublication(id, userId);
-			return new PublicationDto(updated as any);
+			return new PublicationDto(updated);
 		} catch (e) {
 			throw new InternalServerErrorException({ message: e.message });
 		}
