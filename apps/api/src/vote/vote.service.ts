@@ -34,7 +34,7 @@ export class VoteService {
 	 * @param vote L'objet vote à normaliser
 	 * @returns {Vote} L'objet vote normalisé
 	 */
-	private normalizeVote(vote: any) {
+	private normalizeVote(vote: any): Vote {
 		const obj =
 			typeof vote.toObject === "function" ? vote.toObject() : { ...vote };
 		if (obj.user_id && typeof obj.user_id === "object" && obj.user_id._id)

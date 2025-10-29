@@ -84,9 +84,8 @@ export class PublicationService {
 	 * @param pub publication à créer
 	 */
 	async createPublication(pub: CreatePublicationDto) {
-		const safePub = { ...pub } as any;
-		const newPub = new this.publicationModel(safePub);
-		const created = await newPub.save();
+		const newPub = new this.publicationModel(pub);
+		await newPub.save();
 	}
 
 	/**

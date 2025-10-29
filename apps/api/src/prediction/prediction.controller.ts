@@ -15,7 +15,6 @@ import {
 	ParseIntPipe,
 	ValidationPipe,
 } from "@nestjs/common";
-import { Prediction, PredictionStatus } from "./prediction.schema";
 import { PredictionService } from "./prediction.service";
 import { CreatePredictionDto } from "./dto/createprediction.dto";
 import { UpdatePredictionDto } from "./dto/updateprediction.dto";

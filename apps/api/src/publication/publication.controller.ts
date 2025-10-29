@@ -13,7 +13,6 @@ import {
 	UseGuards,
 	ValidationPipe,
 } from "@nestjs/common";
-import { Publication } from "./publication.schema";
 import { PublicationDto } from "./dto/publication.dto";
 import { PublicationService } from "../publication/publication.service";
 import { AuthGuard } from "../guards/auth.guard";

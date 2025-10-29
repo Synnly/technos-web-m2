@@ -16,7 +16,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
 import { CosmeticService } from "./cosmetic.service";
 import { CosmeticDto } from "./dto/cosmetic.dto";
-import { Role, User } from "../user/user.schema";
+import { Role } from "../user/user.schema";
 import { AuthGuard } from "../guards/auth.guard";
 import { AdminGuard } from "../guards/admin.guard";
 import { CreateCosmeticDto } from "./dto/create-cosmetic.dto";

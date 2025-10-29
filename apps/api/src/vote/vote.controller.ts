@@ -10,7 +10,6 @@ import {
 	Param,
 	Post,
 	Put,
-	Req,
 	UseGuards,
 } from "@nestjs/common";
 import { ValidationPipe } from "@nestjs/common";
