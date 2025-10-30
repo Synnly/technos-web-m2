@@ -52,6 +52,8 @@ function Login() {
 			values.password,
 			setError,
 		);
+		if(!response) return;
+		
 		localStorage.setItem("token", response);
 		navigate(from, { replace: true });
 	};
