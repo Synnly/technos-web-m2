@@ -76,7 +76,7 @@ function Index() {
 			setOpen={setOpen}
 			toast={toast}
 			setToast={setToast}
-			predictions={predictions}
+			predictions={predictions.slice(0, 3)}
 			users={users}
 			handlePredictionClick={handlePredictionClick}
 			fetchAllPredictions={fetchAllPredictions}
