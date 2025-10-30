@@ -113,7 +113,7 @@ const SettingsTab = () => {
 
 				<button
 					onClick={confirmAccountDeletionHandler}
-					className="w-fit text-red-400 font-medium border border-red-600 rounded-lg px-4 py-3 hover:bg-red-600/10 transition-colors"
+					className="w-fit text-red-400 font-medium border border-red-600 rounded-lg px-4 py-3 hover:bg-red-600/10 transition-colors cursor-pointer"
 				>
 					Supprimer le compte
 				</button>

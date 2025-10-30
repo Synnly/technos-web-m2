@@ -25,7 +25,7 @@ const OptionCard: React.FC<OptionCardProps> = ({ name, points, userBet, onClick,
 					<h1 className="font-semibold">{name}</h1>
 					<div className="text-sm flex flex-row items-center gap-2">
 						<Bot strokeWidth={1.5}/>
-						<div>Pronostic IA : {aiPronostic ?? "NA"} %</div>
+						<div>Pronostic IA : {aiPronostic ? `${aiPronostic} %` : "NA"}</div>
 					</div>
 				</div>
 				<div>
