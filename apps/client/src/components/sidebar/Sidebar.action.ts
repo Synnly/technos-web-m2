@@ -26,7 +26,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 				icon: React.createElement(Plus, { className: "w-5 h-5" }),
 				title: "Créer une prédiction",
 				description: "",
-				colorScheme: "yellow",
+				colorScheme: "blue",
 				path: "",
 				onClick: onCreatePrediction,
 			},

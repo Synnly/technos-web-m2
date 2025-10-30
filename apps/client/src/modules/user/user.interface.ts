@@ -15,4 +15,5 @@ export interface User {
 export interface PublicUser {
 	_id: string;
 	username: string;
+	currentCosmetic: string[];
 }

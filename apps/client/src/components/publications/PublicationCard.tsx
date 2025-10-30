@@ -3,6 +3,8 @@ import type { Publication } from "../../modules/publication/publication.interfac
 import { Heart, MessageSquare, MessageSquarePlus } from "lucide-react";
 import WritePublication from "./WritePublication";
 import type { PublicUser } from "../../modules/user/user.interface";
+import type { Cosmetic } from "../../modules/cosmetic/cosmetic.interface";
+import Username from "../cosmetics/Username";
 
 interface PublicationCardProps {
 	predictionId: string;
@@ -12,6 +14,7 @@ interface PublicationCardProps {
 	publications: Publication[];
 	addPublication: (message: Publication) => void;
 	toggleLike: (publicationId: string) => void;
+	cosmetics: Array<Cosmetic>;
 }
 
 const PublicationCard: React.FC<PublicationCardProps> = ({
@@ -22,6 +25,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 	publications,
 	addPublication,
 	toggleLike,
+	cosmetics,
 }) => {
 	const [showChildren, setShowChildren] = React.useState(false);
 	const [showPublicationBox, setShowPublicationBox] = React.useState(false);
@@ -37,11 +41,15 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 		setShowPublicationBox(false);
 		setShowChildren(true);
 	};
+
+	const author = users.find((user) => user._id === publication.user_id);
+	const colorCosmetic = cosmetics.find((cosmetic) => cosmetic?._id === author?.currentCosmetic?.[0]);
+	const badgeCosmetic = cosmetics.find((cosmetic) => cosmetic?._id === author?.currentCosmetic?.[1]);
 	
 	return (
 		<div>
 			<div className="text-sm md:text-base bg-gray-800/50 text-white border border-gray-700 rounded-lg p-4 shadow-md">
-				<p className="font-bold">{users.find((user) => user._id === publication.user_id)?.username}</p>
+				<p className="font-bold"><Username username={author?.username} color={colorCosmetic?.value} badge={badgeCosmetic?.value} /></p>
 				<h3>{publication.message}</h3>
 				<div className="flex gap-4 mt-1">
 					<p className="text-gray-400">{publication.datePublication.toLocaleDateString()}</p>
@@ -97,6 +105,7 @@ const PublicationCard: React.FC<PublicationCardProps> = ({
 							publications={publications}
 							addPublication={addPublicationAndShowChildren}
 							toggleLike={toggleLike}
+							cosmetics={cosmetics}
 						/>
 					))}
 				</div>

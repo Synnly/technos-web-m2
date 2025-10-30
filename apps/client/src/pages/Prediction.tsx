@@ -21,6 +21,9 @@ import type { Publication } from "../modules/publication/publication.interface";
 import { PublicationController } from "../modules/publication/publication.controller";
 import type { PublicUser } from "../modules/user/user.interface";
 import { VoteController } from "../modules/vote/vote.controller";
+import Username from "../components/cosmetics/Username";
+import type { Cosmetic } from "../modules/cosmetic/cosmetic.interface";
+import CosmeticController from "../modules/cosmetic/cosmetic.controller";
 
 function Prediction() {
 	const { username } = useAuth();
@@ -40,8 +43,10 @@ function Prediction() {
 	const [optionSelected, setOptionSelected] = useState<string | null>(null);
 	const [timelineData, setTimelineData] = useState<Array<TimelineDataPoint>>([]);
 	const [votesAsPercentage, setVotesAsPercentage] = useState(true);
-
 	const [toast, setToast] = useState<Toast | null>(null);
+	const [cosmetics, setCosmetics] = useState<Cosmetic[]>([]);
+	const [predictionAuthor, setPredictionAuthor] = useState<PublicUser | null>(null);
+	const [authorCosmetics, setAuthorCosmetics] = useState<(Cosmetic | null)[]>([null, null]);
 
 	const { id: predictionId = "" } = useParams<{ id: string }>();
 
@@ -86,6 +91,11 @@ function Prediction() {
 		);
 		setTimelineData(response);
 		setVotesAsPercentage(votesAsPercentage);
+	};
+
+	const fetchAllCosmetics = async () => {
+		const cosmeticsFetched = await CosmeticController.getAllCosmetics(token, setToast);
+		setCosmetics(cosmeticsFetched);
 	};
 
 	const clearToast = () => setToast(null);
@@ -195,6 +205,23 @@ function Prediction() {
 		fetchTimelineData(10, votesAsPercentage, true);
 	}, [votesAsPercentage]);
 
+	useEffect(() => {
+		setPredictionAuthor(users.find((u) => u._id === prediction?.user_id as any) || null);
+		
+	}, [users, prediction]);
+
+	useEffect(() => {
+		fetchAllCosmetics();
+	}, [cosmetics.length]);
+
+	useEffect(() => {
+		if (predictionAuthor?.currentCosmetic && cosmetics.length > 0) {
+			const color = cosmetics.find((c) => c._id === predictionAuthor.currentCosmetic[0]);
+			const badge = cosmetics.find((c) => c._id === predictionAuthor.currentCosmetic[1]);
+			setAuthorCosmetics([color || null, badge || null]);
+		}
+	}, [cosmetics.length, predictionAuthor]);
+
 	return (
 		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
 			<Sidebar
@@ -218,7 +245,16 @@ function Prediction() {
 				<p className="text-xl md:text-3xl font-bold mb-2 text-white">{prediction?.title}</p>
 				<div className="text-sm md:text-base text-gray-400 mb-2 flex gap-2">
 					<CalendarClock strokeWidth={1.5} className="w-5 h-5 md:w-6" />
-					{prediction?.dateFin?.toLocaleDateString()}
+					{prediction?.dateFin?.toLocaleDateString()} • 
+					{predictionAuthor ? (
+						<Username
+							username={predictionAuthor.username!}
+							color={authorCosmetics[0]?.value}
+							badge={authorCosmetics[1]?.value}
+						/>
+					) : (
+						""
+					)}
 				</div>
 				<div className={`text-sm md:text-base text-gray-400 mb-2 ${prediction?.description ? "" : "italic"}`}>
 					{prediction?.description ?? "Aucune description fournie"}
@@ -270,6 +306,7 @@ function Prediction() {
 						publications={publications}
 						addPublication={addPublication}
 						toggleLike={toggleLike}
+						cosmetics={cosmetics}
 					/>
 				</div>
 			</main>

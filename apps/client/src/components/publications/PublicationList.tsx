@@ -1,3 +1,4 @@
+import type { Cosmetic } from "../../modules/cosmetic/cosmetic.interface";
 import type { Publication } from "../../modules/publication/publication.interface";
 import type { PublicUser } from "../../modules/user/user.interface";
 import PublicationCard from "./PublicationCard";
@@ -9,6 +10,7 @@ interface PublicationListProps {
 	publications: Publication[];
 	addPublication: (message: Publication) => void;
 	toggleLike: (publicationId: string) => void;
+	cosmetics: Array<Cosmetic>;
 }
 
 const PublicationList: React.FC<PublicationListProps> = ({
@@ -18,6 +20,7 @@ const PublicationList: React.FC<PublicationListProps> = ({
 	publications,
 	addPublication,
 	toggleLike,
+	cosmetics,
 }) => {
 	const parentsPublications = publications
 		.filter((pub) => pub.parentPublication_id === undefined)
@@ -37,6 +40,7 @@ const PublicationList: React.FC<PublicationListProps> = ({
 					publications={publications}
 					addPublication={addPublication}
 					toggleLike={toggleLike}
+					cosmetics={cosmetics}
 				/>
 			))}
 		</div>

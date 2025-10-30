@@ -10,7 +10,7 @@ interface UsernameProps {
 const Username: React.FC<UsernameProps> = ({ username, color, badge }) => {
 	return (
 		<span style={{ color: color ?? "white" }} className="w-fit">
-			{badge && renderWithEmojis(badge)} {username}
+			{badge && renderWithEmojis(badge)} {username ?? ""}
 		</span>
 	);
 };
