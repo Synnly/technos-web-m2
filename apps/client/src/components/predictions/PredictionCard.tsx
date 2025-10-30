@@ -19,8 +19,8 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 	result,
 	cosmetics,
 }) => {
-	const colorCosmetic = cosmetics.find((cosmetic) => cosmetic.type === "color");
-	const badgeCosmetic = cosmetics.find((cosmetic) => cosmetic.type === "badge");
+	const colorCosmetic = cosmetics?.find((cosmetic) => cosmetic.type === "color");
+	const badgeCosmetic = cosmetics?.find((cosmetic) => cosmetic.type === "badge");
 	return (
 		<div
 			className={`group bg-gray-800 backdrop-blur-sm rounded-xl p-5 border border-gray-800 shadow-md
@@ -33,7 +33,7 @@ const PredictionCard: React.FC<PredictionCardProps> = ({
 			}}
 		>
 			<div className="flex flex-col gap-1 overflow-hidden text-center mb-2">
-				<p className="font-medium text-white text-base sm:text-lg truncate">{title}</p>
+				<p className="font-medium text-white text-base sm:text-lg">{title}</p>
 				<p className="text-xs sm:text-sm text-gray-400 truncate">
 					<Username username={author?.username} color={colorCosmetic?.value} badge={badgeCosmetic?.value} />
 				</p>

@@ -10,6 +10,8 @@ import { userController } from "../modules/user/user.controller";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { PublicUser } from "../modules/user/user.interface";
+import CosmeticController from "../modules/cosmetic/cosmetic.controller";
+import type { Cosmetic } from "../modules/cosmetic/cosmetic.interface";
 
 function AllPredictions() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -22,6 +24,7 @@ function AllPredictions() {
 	const [search, setSearch] = useState<string>("");
 	const [filters, setFilters] = useState<FiltersState>({ dateRange: null });
 	const [__, setLoading] = useState(false);
+	const [cosmetics, setCosmetics] = React.useState<Cosmetic[]>([]);
 	const navigate = useNavigate();
 	const { username } = useAuth();
 
@@ -46,6 +49,15 @@ function AllPredictions() {
 	const navToPrediction = (id: string) => {
 		navigate(`/prediction/${id}`);
 	};
+
+	const fetchAllCosmetics = async () => {
+		const cosmeticsFetched = await CosmeticController.getAllCosmetics(token, setToast);
+		setCosmetics(cosmeticsFetched);
+	};
+
+	useEffect(() => {
+		fetchAllCosmetics();
+	}, []);
 
 	useEffect(() => {
 		fetchAllUsers();
@@ -118,13 +130,20 @@ function AllPredictions() {
 							key={prediction._id}
 							id={prediction._id}
 							title={prediction.title}
-							author={users.find((u) => u._id === prediction.user_id)?.username}
+							author={users.find((user) => user._id === (prediction.user_id as any))}
 							votes={prediction.nbVotes}
 							comments={prediction.nbPublications}
 							percent={prediction.percent}
 							mostVotedOption={prediction.mostVotedOption}
 							endsIn={prediction.dateFin.toString()}
-							onClick={() => navToPrediction(prediction._id)}
+							onClick={navToPrediction}
+							status={prediction.status}
+							result={prediction.result}
+							cosmetics={cosmetics.filter((cosmetic) =>
+								users
+									.find((user) => user._id === (prediction.user_id as any))
+									?.currentCosmetic.includes(cosmetic._id),
+							)}
 						/>
 					))}
 				</div>

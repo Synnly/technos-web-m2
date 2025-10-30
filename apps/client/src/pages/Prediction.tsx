@@ -297,7 +297,7 @@ function Prediction() {
 						aiPronostics={aiPronostics}
 					/>
 				</div>
-				<div className={`${prediction?.result ? "hidden" : "mt-4"}`}>
+				<div className={`${prediction?.status !== "Valid" ? "hidden" : "mt-4"}`}>
 					<ConfirmVote onClick={onConfirmVoteClick} />
 				</div>
 				<div className="mt-5">
