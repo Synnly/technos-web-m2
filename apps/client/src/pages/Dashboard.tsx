@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import AccountTabs from "./components/account/AccountTabs";
-import Sidebar from "./components/sidebar/Sidebar.component";
-import type { Toast } from "./components/toast/Toast.interface";
-import PredictionController from "./modules/prediction/prediction.controller";
-import { useAuth } from "./hooks/useAuth";
-import { userController } from "./modules/user/user.controller";
+import AccountTabs from "../components/account/AccountTabs";
+import Sidebar from "../components/sidebar/Sidebar.component";
+import type { Toast } from "../components/toast/Toast.interface";
+import PredictionController from "../modules/prediction/prediction.controller";
+import { useAuth } from "../hooks/useAuth";
+import { userController } from "../modules/user/user.controller";
 
 function Dashboard() {
 	const { username } = useAuth();

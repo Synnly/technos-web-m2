@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Registration";
 import Index from "./pages/Index";
 import ProtectedRoute from "./ProtectedRoute";
-import Dashboard from "./Dashboard";
+import Dashboard from "./pages/Dashboard";
 import Prediction from "./pages/Prediction";
 import Shop from "./pages/Shop";
 import AllPredictions from "./pages/AllPredictions";
