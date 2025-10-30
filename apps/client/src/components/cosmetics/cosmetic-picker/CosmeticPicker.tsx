@@ -30,7 +30,7 @@ const CosmeticPicker = ({ user, setCurrentCosmetics }: CosmeticPickerProps) => {
 			user.username,
 			id,
 			token,
-			user.cosmeticsOwned || [],
+			cosmeticsOwned || [],
 			user.currentCosmetic || [],
 			(cosmetics: (string | null)[]) => setCurrentCosmetics(cosmetics),
 			(msg: string | null) => setError(msg),
@@ -41,7 +41,7 @@ const CosmeticPicker = ({ user, setCurrentCosmetics }: CosmeticPickerProps) => {
 	return (
 		<div className="my-6">
 			<h3 className="font-semibold text-lg text-white mb-3">Vos cosmétiques</h3>
-
+			
 			<CosmeticList owned={cosmeticsOwned} applied={user?.currentCosmetic || []} apply={handleApply} />
 
 			{toast && <ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} />}

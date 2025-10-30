@@ -166,7 +166,10 @@ export class UserController {
 		try {
 			let newUpdateUserDto: UpdateUserDto;
 			if (request.user.role !== Role.ADMIN) {
-				newUpdateUserDto = new UpdateUserDto({ motDePasse: updateUserDto.motDePasse });
+				newUpdateUserDto = new UpdateUserDto({
+					motDePasse: updateUserDto.motDePasse,
+					currentCosmetic: updateUserDto.currentCosmetic,
+				});
 			} else {
 				newUpdateUserDto = updateUserDto;
 			}
