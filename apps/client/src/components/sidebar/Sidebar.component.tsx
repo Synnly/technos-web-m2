@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 	const navigate = useNavigate();
 	const { logout } = useAuth();
 	const [modalOpen, setModalOpen] = React.useState(false);
-	const Actions = getActions(() => {setModalOpen(true); setCollapsed(true)});
+	const Actions = getActions(() => {setModalOpen(true)});
 	const [collapsed, setCollapsed] = React.useState(() => {
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
