@@ -5,7 +5,6 @@ import { Modal } from "antd";
 import { userController } from "../../modules/user/user.controller";
 import GenericForm from "../form/Form.component";
 import InputPassword from "../input/Password/InputPassword.component";
-import InputText from "../input/Text/InputText.component";
 import type { FormField } from "../modal/modal.interface";
 import { useState } from "react";
 import type { Toast } from "../toast/Toast.interface";
@@ -27,13 +26,6 @@ const SettingsTab = () => {
 	const clearToast = () => setToast(null);
 
 	const fields: FormField[] = [
-		{
-			name: "username",
-			label: "Nom d'utilisateur",
-			component: InputText,
-			componentProps: { placeholder: "Nom d'utilisateur" },
-			formItemProps: { rules: [{ required: true, min: 3 }] },
-		},
 		{
 			name: "password",
 			label: "Mot de passe",
@@ -59,10 +51,10 @@ const SettingsTab = () => {
 		try {
 			// backend expects the password under 'motDePasse' (or similar) but User interface doesn't include it.
 			// use a loose type here to avoid TS errors and pass the correct payload to the controller.
-			const partialUser: any = { username: values.username, motDePasse: values.password };
+			const partialUser: any = { username: username, motDePasse: values.password };
 			await userController.updateUser(username, partialUser, token);
 
-			const loginResponse = await userController.login(values.username, values.password);
+			const loginResponse = await userController.login(username, values.password);
 			localStorage.setItem("token", loginResponse);
 
 			setToast({ message: "Paramètres mis à jour", type: "success" });
