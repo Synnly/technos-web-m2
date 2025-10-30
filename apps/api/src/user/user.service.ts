@@ -134,8 +134,15 @@ export class UserService {
 			const votes: Vote[] = await this.voteService.getByIds(updateUserDto.votes ?? []);
 			existingUser.votes = votes.length > 0 ? votes : existingUser.votes;
 
+			// Vérification des cosmétiques possédés avant mise à jour
 			existingUser.cosmeticsOwned = updateUserDto.cosmeticsOwned ?? existingUser.cosmeticsOwned;
-
+			if( updateUserDto.currentCosmetic !== undefined ) {
+				for (const cosmeticId of updateUserDto.currentCosmetic) {
+					if (cosmeticId !== null && !existingUser.cosmeticsOwned.includes(cosmeticId)) {
+						throw new Error("Vous ne possédez pas la cosmétique " + cosmeticId);
+					}
+				}
+			}
 			existingUser.currentCosmetic = [
 				existingUser.currentCosmetic[0] ?? updateUserDto.currentCosmetic?.[0] ?? null,
 				existingUser.currentCosmetic[1] ?? updateUserDto.currentCosmetic?.[1] ?? null,
