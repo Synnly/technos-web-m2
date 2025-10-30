@@ -471,15 +471,20 @@ export class PredictionService {
 		// Préparation des documents pour la prédiction de l'IA
 		const prediction = await this.getById(id);
 		if (!prediction) throw new Error("Prédiction non trouvée");
+		console.log("Generating AI pronostics");
+		
 
 		const query = await this.getQueryFromTitle(prediction.title);
+		console.log("Generated query", query);
+		
 		const startTime = Date.now();
 		const documents = await this.queryWebSearch(query);
+		console.log("Retrieved documents", documents);
 
 		// S'assurer qu'au moins une seconde s'ecoule entre les appels à l'API LangSearch
 		await new Promise((resolve) => setTimeout(resolve, Math.max(3000 - (Date.now() - startTime), 0)));
 		const rankedDocuments = await this.rerankDocuments(prediction.title, documents);
-
+		console.log("Ranked documents", rankedDocuments);
 		const client = new OpenAI();
 		const response = await client.responses.create({
 			model: "gpt-5-nano",
@@ -513,15 +518,10 @@ export class PredictionService {
 					{
 					"error": "Aucune option fournie."
 					}
-					\`\`\`
-					- Si tu ne peux pas répondre à la question avec les documents fournis :
-					\`\`\`json
-					{
-					"error": "Impossible de répondre à la question avec les documents fournis."
-					}
 					TU NE DOIS RÉPONDRE QUE PAR L'OBJECT JSON, RIEN D'AUTRE, PAS MEME DE STYLAGE MARKDOWN. LA REPONSE 
 					DOIT POUVOIR ETRE PARSÉE DIRECTEMENT EN JSON. SI TU NE PEUX PAS RÉPONDRE, UTILISE LE FORMAT D'ERREUR
-					CI-DESSUS. REMPLACE LA CLEF "option1", "option2", ... PAR LES OPTIONS RÉELLES QUI TE SONT FOURNIES.
+					CI-DESSUS. REMPLACE LA CLEF "option1", "option2", ... PAR LES OPTIONS RÉELLES QUI TE SONT FOURNIES. 
+					TU **DOIS** FOURNIR UNE PROBABILITÉ POUR CHAQUE OPTION.
 					\`\`\``,
 				},
 				{
@@ -531,6 +531,8 @@ export class PredictionService {
 			],
 			text: { verbosity: "low" },
 		});
+		console.log("Ai response", response.output_text);
+		
 		const parsedResponse = JSON.parse(response.output_text) || {};
 		if (parsedResponse.error) throw new Error(parsedResponse.error);
 

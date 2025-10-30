@@ -93,7 +93,6 @@ export class PredictionController {
 		return preds.map((p) => new PredictionDto(p));
 	}
 
-
 	/**
 	 * Récupère une prédiction par son id.
 	 * @param id Identifiant de la prédiction.
@@ -212,6 +211,16 @@ export class PredictionController {
 				fromStartBool,
 			);
 			return timeline;
+		} catch (error) {
+			throw new BadRequestException(error.message);
+		}
+	}
+
+	@UseGuards(AdminGuard)
+	@Get("/:id/ai")
+	async triggerAIPronostic(@Param("id", ParseObjectIdPipe) id: string) {
+		try {
+			await this.predictionService.updatePronosticsByAI(id);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}
