@@ -46,7 +46,7 @@ const GenericForm: React.FC<GenericFormProps> = ({
 						text="Réinitialiser"
 						className={"text-white"}
 					/>
-					<InputSubmit text="Envoyer" className={"text-white"} />
+					<InputSubmit text="Envoyer" className={"text-white cursor-pointer"} />
 				</Space>
 			</Form.Item>
 		</Form>

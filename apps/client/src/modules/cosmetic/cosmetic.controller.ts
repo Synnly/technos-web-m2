@@ -76,7 +76,7 @@ export const CosmeticController = {
 		setError(null);
 		try {
 			const cos = allCosmetics.find((c) => String(c._id) === cosmeticId);
-			const slot = cos?.type?.toLowerCase().includes("color") ? 0 : 1;
+			const slot = cos?.type?.toLowerCase() === "color" ? 0 : 1;
 
 			const current = [...applied];
 			current[slot] = cosmeticId;

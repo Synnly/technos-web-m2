@@ -3,23 +3,11 @@ import { useEffect, useRef } from "react";
 import * as echarts from "echarts/core";
 import { type EChartsOption } from "echarts";
 import { LineChart } from "echarts/charts";
-import {
-	GridComponent,
-	TooltipComponent,
-	LegendComponent,
-	TitleComponent,
-} from "echarts/components";
+import { GridComponent, TooltipComponent, LegendComponent, TitleComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import type { TimelineDataPoint } from "../../modules/prediction/prediction.interface";
 
-echarts.use([
-	LineChart,
-	GridComponent,
-	TooltipComponent,
-	LegendComponent,
-	TitleComponent,
-	CanvasRenderer,
-]);
+echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent, CanvasRenderer]);
 
 interface Props {
 	votesAsPercentage: boolean;
@@ -36,8 +24,13 @@ export const PredictionTimeline: FC<Props> = ({ votesAsPercentage, timelineData 
 		chartRef.current = echarts.init(chartElementRef.current);
 		const onResize = () => chartRef.current?.resize();
 		window.addEventListener("resize", onResize);
+
+		const resizeObserver = new ResizeObserver(() => chartRef.current?.resize());
+		resizeObserver.observe(chartElementRef.current);
+
 		return () => {
 			window.removeEventListener("resize", onResize);
+			resizeObserver.disconnect();
 			chartRef.current?.dispose();
 			chartRef.current = null;
 		};
@@ -47,9 +40,7 @@ export const PredictionTimeline: FC<Props> = ({ votesAsPercentage, timelineData 
 	useEffect(() => {
 		if (!chartRef.current || !timelineData) return;
 
-		const optionKeys = Array.from(
-			new Set(timelineData.flatMap((item) => Object.keys(item.options))),
-		);
+		const optionKeys = Array.from(new Set(timelineData.flatMap((item) => Object.keys(item.options))));
 
 		const option: EChartsOption = {
 			grid: {
@@ -70,8 +61,7 @@ export const PredictionTimeline: FC<Props> = ({ votesAsPercentage, timelineData 
 				type: "value",
 				position: "right",
 				axisLabel: {
-					formatter: (value: number) =>
-						`${value} ${votesAsPercentage ? "%" : ""}`,
+					formatter: (value: number) => `${value} ${votesAsPercentage ? "%" : ""}`,
 				},
 				splitLine: {
 					show: true,
@@ -93,11 +83,7 @@ export const PredictionTimeline: FC<Props> = ({ votesAsPercentage, timelineData 
 
 	return (
 		<>
-			<div
-				ref={chartElementRef}
-				id="chart"
-				style={{ width: "100%", height: "100%" }}
-			/>
+			<div ref={chartElementRef} id="chart" style={{ width: "100%", height: "100%" }} />
 		</>
 	);
 };

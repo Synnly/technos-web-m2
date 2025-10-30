@@ -29,10 +29,7 @@ function Dashboard() {
 	};
 
 	const setCurrentCosmetics = (cosmetics: (string | null)[]) => {
-		setUser((prevUser: any) => ({
-			...prevUser,
-			currentCosmetic: cosmetics,
-		}));
+		setUser({...user, currentCosmetic: cosmetics});
 	};
 
 	useEffect(() => {
@@ -59,7 +56,7 @@ function Dashboard() {
 						: "flex-1 p-2 sm:p-4 md:p-6 lg:ml-100"
 				}`}
 			>
-				<AccountTabs setCurrentCosmetics={setCurrentCosmetics}/>
+				<AccountTabs setCurrentCosmetics={setCurrentCosmetics} user={user} token={token} />
 			</main>
 		</div>
 	);

@@ -11,6 +11,7 @@ import { Prediction } from "../prediction/prediction.schema";
 import { PredictionService } from "../prediction/prediction.service";
 import { Vote } from "../vote/vote.schema";
 import { VoteService } from "../vote/vote.service";
+import { log } from "console";
 
 @Injectable()
 /**
@@ -144,8 +145,8 @@ export class UserService {
 				}
 			}
 			existingUser.currentCosmetic = [
-				existingUser.currentCosmetic[0] ?? updateUserDto.currentCosmetic?.[0] ?? null,
-				existingUser.currentCosmetic[1] ?? updateUserDto.currentCosmetic?.[1] ?? null,
+				updateUserDto.currentCosmetic?.[0] ?? existingUser.currentCosmetic[0],
+				updateUserDto.currentCosmetic?.[1] ?? existingUser.currentCosmetic[1],
 			];
 
 			await existingUser.save();
