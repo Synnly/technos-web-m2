@@ -5,6 +5,7 @@ import type { CosmeticPickerProps } from "./cosmetic-picker.interface";
 import type { Toast } from "../../toast/Toast.interface";
 import ToastComponent from "../../toast/Toast.component";
 import type { Cosmetic } from "../../../modules/cosmetic/cosmetic.interface";
+import Username from "../Username";
 
 const CosmeticPicker = ({ user, setCurrentCosmetics }: CosmeticPickerProps) => {
 	const [toast, setToast] = useState<Toast | null>(null);
@@ -38,8 +39,14 @@ const CosmeticPicker = ({ user, setCurrentCosmetics }: CosmeticPickerProps) => {
 		);
 	};
 
+	const colorCosmetic = cosmeticsOwned.find((cosmetic) => cosmetic._id === user.currentCosmetic?.[0]);
+	const badgeCosmetic = cosmeticsOwned.find((cosmetic) => cosmetic._id === user.currentCosmetic?.[1]);
+
 	return (
 		<div className="my-6">
+			<div className="text-xl mb-4">
+				<Username username={user.username} color={colorCosmetic?.value} badge={badgeCosmetic?.value} />
+			</div>
 			<h3 className="font-semibold text-lg text-white mb-3">Vos cosmétiques</h3>
 			
 			<CosmeticList owned={cosmeticsOwned} applied={user?.currentCosmetic || []} apply={handleApply} />

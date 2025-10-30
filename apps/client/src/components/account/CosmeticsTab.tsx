@@ -9,7 +9,11 @@ export const CosmeticsLabel = (
 );
 
 const CosmeticsTab = ({ user, setCurrentCosmetics }: any) => {
-	return <div className="p-4 text-gray-200">{user && <CosmeticPicker user={user} setCurrentCosmetics={setCurrentCosmetics} />}</div>;
-}
+	return (
+		<div className="p-4 text-gray-200">
+			{user && <CosmeticPicker user={user} setCurrentCosmetics={setCurrentCosmetics} />}
+		</div>
+	);
+};
 
 export default CosmeticsTab;
