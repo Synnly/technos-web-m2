@@ -1,6 +1,6 @@
 import Sidebar from "../components/sidebar/Sidebar.component";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { userController } from "../modules/user/user.controller";
 import ToastComponent from "../components/toast/Toast.component";
@@ -10,6 +10,7 @@ import PredictionController from "../modules/prediction/prediction.controller";
 import OptionGrid from "../components/input/Prediction/options/OptionGrid";
 import ConfirmVote from "../components/predictions/ConfirmVote";
 import type {
+	PredictionStatus,
 	PredictionWithThisVotesAndPublications,
 	TimelineDataPoint,
 } from "../modules/prediction/prediction.interface";
@@ -50,6 +51,8 @@ function Prediction() {
 
 	const { id: predictionId = "" } = useParams<{ id: string }>();
 
+	const navigate = useNavigate();
+
 	const fetchUserByUsername = async (username: string) => {
 		const u = await userController.getUserByUsername(username, token, setToast);
 		setUser(u);
@@ -58,6 +61,13 @@ function Prediction() {
 
 	const fetchPredictionById = async (id: string) => {
 		const predictionFetched = await PredictionController.getPredictionById(id, token, setToast);
+		if (
+			predictionFetched?.status &&
+			predictionFetched.status !== ("Valid" as PredictionStatus) &&
+			predictionFetched.status !== ("Closed" as PredictionStatus)
+		) {
+			navigate("/", { replace: true });
+		}
 		setPrediction({ ...predictionFetched } as PredictionWithThisVotesAndPublications);
 		setOptions(predictionFetched?.options || {});
 
@@ -206,8 +216,7 @@ function Prediction() {
 	}, [votesAsPercentage]);
 
 	useEffect(() => {
-		setPredictionAuthor(users.find((u) => u._id === prediction?.user_id as any) || null);
-		
+		setPredictionAuthor(users.find((u) => u._id === (prediction?.user_id as any)) || null);
 	}, [users, prediction]);
 
 	useEffect(() => {
@@ -245,7 +254,7 @@ function Prediction() {
 				<p className="text-xl md:text-3xl font-bold mb-2 text-white">{prediction?.title}</p>
 				<div className="text-sm md:text-base text-gray-400 mb-2 flex gap-2">
 					<CalendarClock strokeWidth={1.5} className="w-5 h-5 md:w-6" />
-					{prediction?.dateFin?.toLocaleDateString()} • 
+					{prediction?.dateFin?.toLocaleDateString()} •
 					{predictionAuthor ? (
 						<Username
 							username={predictionAuthor.username!}

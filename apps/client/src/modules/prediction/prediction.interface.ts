@@ -30,7 +30,7 @@ export interface CreatePredictionDeps {
 	onClose?: () => void;
 	setLocalError?: (msg: string | null) => void;
 }
-export type PredictionStatus = "waiting" | "valid" | "invalid";
+export type PredictionStatus = "waiting" | "Valid" | "Invalid" | "Closed"	;
 
 export interface Prediction {
 	_id: string;

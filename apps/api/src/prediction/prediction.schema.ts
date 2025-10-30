@@ -10,6 +10,7 @@ export enum PredictionStatus {
     Valid = 'Valid',
     Invalid = 'Invalid',
     Waiting = 'waiting',
+    Closed = 'Closed'
 }
 
 /**
