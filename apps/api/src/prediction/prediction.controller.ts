@@ -81,6 +81,20 @@ export class PredictionController {
 	}
 
 	/**
+	 * Retourne la liste des prédictions validées (status "Closed")
+	 * @returns une réponse HTTP (OK) avec la liste des prédictions validées
+	 */
+	@Get("/closed")
+	async getClosedPredictions(
+		@Query("page", ParseIntPipe) page: number,
+		@Query("limit", ParseIntPipe) limit: number,
+	): Promise<PredictionDto[]> {
+		const preds = await this.predictionService.getClosedPredictions(page, limit);
+		return preds.map((p) => new PredictionDto(p));
+	}
+
+
+	/**
 	 * Récupère une prédiction par son id.
 	 * @param id Identifiant de la prédiction.
 	 * @returns La prédiction correspondante.

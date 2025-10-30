@@ -14,7 +14,7 @@ import type { PublicUser } from "../modules/user/user.interface";
 function AllPredictions() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [user, setUser] = useState<any>(null);
-	const [_, setToast] = useState<Toast | null>(null);	
+	const [_, setToast] = useState<Toast | null>(null);
 	const [___, setPoints] = useState<number>(0);
 	const token = localStorage.getItem("token");
 	const [predictions, setPredictions] = useState<any[]>([]);
@@ -26,23 +26,16 @@ function AllPredictions() {
 	const { username } = useAuth();
 
 	const fetchUserByUsername = async (username: string) => {
-		const u = await userController.getUserByUsername(
-			username,
-			token,
-			setToast,
-		);
+		const u = await userController.getUserByUsername(username, token, setToast);
 		setUser(u);
 	};
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllValidPredictions(
-			token,
-			"1",
-			"1000",
-			setToast,
-		);
-		setPredictions(data);
+		const validPredictions = await PredictionController.getAllValidPredictions(token, "1", "1000", setToast);
+		const closedPredictions = await PredictionController.getAllClosedPredictions(token, "1", "1000", setToast);
+
+		setPredictions([...validPredictions, ...closedPredictions]);
 		setLoading(false);
 	};
 	const fetchAllUsers = async () => {
@@ -71,17 +64,13 @@ function AllPredictions() {
 		return (predictions || []).filter((p: any) => {
 			if (q && !(p.title || "").toLowerCase().includes(q)) return false;
 
-			if (
-				filters?.dateRange &&
-				filters.dateRange[0] &&
-				filters.dateRange[1]
-			) {
+			if (filters?.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
 				const from = new Date(filters.dateRange[0]);
 				const to = new Date(filters.dateRange[1]);
 				const d = new Date(p.dateFin);
 				if (d < from || d > to) return false;
 			}
-			
+
 			return true;
 		});
 	}, [predictions.reverse(), search, filters]);
@@ -95,9 +84,7 @@ function AllPredictions() {
 				setPoints={setPoints}
 				setToast={setToast}
 				onPredictionCreated={fetchAllPredictions}
-				onCollapsedChange={(value: boolean) =>
-					setSidebarCollapsed(value)
-				}
+				onCollapsedChange={(value: boolean) => setSidebarCollapsed(value)}
 			/>
 			<main
 				className={`mx-5 lg:mx-20 py-8 pt-19 ${

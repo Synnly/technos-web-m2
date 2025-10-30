@@ -99,6 +99,33 @@ export const PredictionController = {
 		}
 	},
 
+	async getAllClosedPredictions(
+		token: string | null,
+		page: string = "1",
+		limit: string = "10",
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			if (setToast)
+				setToast({
+					message: "Utilisateur non authentifié",
+					type: "error",
+				});
+			return [];
+		}
+		try {
+			const data = await PredictionResolver.getAllClosedPredictions(token, page, limit);
+			return data;
+		} catch (err: any) {
+			if (setToast)
+				setToast({
+					message: "Erreur lors de la récupération des prédictions",
+					type: "error",
+				});
+			return [];
+		}
+	},
+
 	async getPredictionById(
 		id: string,
 		token: string | null,

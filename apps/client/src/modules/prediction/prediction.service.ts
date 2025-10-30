@@ -33,6 +33,14 @@ export const PredictionService = {
 		return resp.data || [];
 	},
 
+	async getAllClosedPredictions(token: string, page : string, limit : string): Promise<Prediction[]> {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/closed`, {
+			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit },
+		});
+		return resp.data || [];
+	},
+
 	async getPredictionById(id: string, token: string): Promise<Prediction | undefined> {
 		try {
 			const headers = { Authorization: `Bearer ${token}` };

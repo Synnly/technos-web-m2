@@ -31,13 +31,10 @@ function Index() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllValidPredictions(
-			token,
-			"1",
-			"3",
-			setToast,
-		);
-		setPredictions(data);
+		const validPredictions = await PredictionController.getAllValidPredictions(token, "1", "1000", setToast);
+		const closedPredictions = await PredictionController.getAllClosedPredictions(token, "1", "1000", setToast);
+
+		setPredictions([...validPredictions, ...closedPredictions]);
 		setLoading(false);
 	};
 
@@ -47,11 +44,7 @@ function Index() {
 	};
 
 	const fetchUserByUsername = async (username: string) => {
-		const u = await userController.getUserByUsername(
-			username,
-			token,
-			setToast,
-		);
+		const u = await userController.getUserByUsername(username, token, setToast);
 		setUser(u);
 	};
 
@@ -92,10 +85,7 @@ function Index() {
 			setUser={setUser}
 		/>
 	) : (
-		<IsNotAuthenticatedHome
-			onSignIn={() => navigate("/signin")}
-			onSignUp={() => navigate("/signup")}
-		/>
+		<IsNotAuthenticatedHome onSignIn={() => navigate("/signin")} onSignUp={() => navigate("/signup")} />
 	);
 }
 

@@ -330,6 +330,24 @@ export class PredictionService {
 	}
 
 	/**
+	 * Récupère les prédictions fermées (status "Closed") qui ne sont pas encore expirées.
+	 * @returns la liste des prédictions
+	 */
+	async getClosedPredictions(page?: number, limit?: number): Promise<Prediction[]> {
+		const now = new Date();
+		const filter = {
+			status: PredictionStatus.Closed,
+			dateFin: { $gt: now },
+		};
+
+		if (!page || !limit) {
+			return this.predictionModel.find(filter).populate("user_id", "username").lean().exec();
+		}
+
+		return this.paginatePredictions(filter, page, limit);
+	}
+
+	/**
 	 * Effectue une recherche web pour un titre donné en utilisant l'API LangSearch.
 	 * @param title Le titre à rechercher
 	 * @returns Une liste de 10 résumés de pages web correspondant à la recherche

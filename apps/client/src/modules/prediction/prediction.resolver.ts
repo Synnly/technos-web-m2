@@ -41,6 +41,26 @@ export const PredictionResolver = {
 		}));
 	},
 
+	async getAllClosedPredictions(token: string, page: string, limit: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
+		const predictions = await PredictionService.getAllClosedPredictions(token, page, limit);
+		const votes = await VoteService.getAllVotes(token);
+		const publications = await PublicationService.getAllPublications(token);
+
+		return predictions.map((prediction) => ({
+			...prediction,
+			percent: Math.round(
+				(Math.max(...Object.values(prediction.options)) /
+					Object.values(prediction.options).reduce((a, b) => a + b, 0)) *
+					100 || 0,
+			),
+			mostVotedOption: Object.keys(prediction.options).reduce((a, b) =>
+				prediction.options[a] > prediction.options[b] ? a : b,
+			),
+			nbVotes: votes.filter((vote) => vote.prediction_id === prediction._id).length,
+			nbPublications: publications.filter((pub) => pub.prediction_id === prediction._id).length,
+		}));
+	},
+
 	async getPredictionById(id: string, token: string): Promise<PredictionWithThisVotesAndPublications | undefined> {
 		const prediction = await PredictionService.getPredictionById(id, token);
 		if (!prediction) return undefined;

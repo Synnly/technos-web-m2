@@ -1,6 +1,6 @@
 import Sidebar from "../components/sidebar/Sidebar.component";
 import { useState, useEffect } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { userController } from "../modules/user/user.controller";
 import ToastComponent from "../components/toast/Toast.component";
@@ -273,10 +273,10 @@ function Prediction() {
 						<PredictionTimeline votesAsPercentage={votesAsPercentage} timelineData={timelineData} />
 					</div>
 				</div>
-				<div className={`${prediction?.result ? "hidden" : "text-white mt-5"}`}>
+				<div className={`${prediction?.status !== "Valid" ? "hidden" : "text-white mt-5"}`}>
 					Vous avez <b>{points}</b> points.
 				</div>
-				<div className={`${prediction?.result ? "hidden" : "mt-5"}`}>
+				<div className={`${prediction?.status !== "Valid" ? "hidden" : "mt-5"}`}>
 					<AmountButtonRow
 						currentAmount={currentAmount}
 						customAmount={customAmount}
@@ -293,6 +293,7 @@ function Prediction() {
 						onOptionSelect={onOptionSelect}
 						optionSelected={optionSelected}
 						result={prediction?.result}
+						status={prediction?.status}
 						aiPronostics={aiPronostics}
 					/>
 				</div>

@@ -5,6 +5,10 @@ import PredictionsSection from "../predictions/PredictionsSection.component";
 import Sidebar from "../../sidebar/Sidebar.component";
 import ToastComponent from "../../toast/Toast.component";
 import type { AuthenticatedHomeProps } from "../types/AuthenticatedHome.type";
+import type { Cosmetic } from "../../../modules/cosmetic/cosmetic.interface";
+import CosmeticController from "../../../modules/cosmetic/cosmetic.controller";
+import { useEffect } from "react";
+import React from "react";
 
 const IsAuthenticatedHome = ({
 	user,
@@ -21,7 +25,17 @@ const IsAuthenticatedHome = ({
 	setPoints,
 	setUser,
 }: AuthenticatedHomeProps) => {
+	const [cosmetics, setCosmetics] = React.useState<Cosmetic[]>([]);
 	const clearToast = () => setToast(null);
+
+	const fetchAllCosmetics = async () => {
+		const cosmeticsFetched = await CosmeticController.getAllCosmetics(token, setToast);
+		setCosmetics(cosmeticsFetched);
+	};
+
+	useEffect(() => {
+		fetchAllCosmetics();
+	}, []);
 
 	return (
 		<div className="bg-gray-900 w-screen min-h-screen flex flex-col select-none">
@@ -50,6 +64,7 @@ const IsAuthenticatedHome = ({
 					predictions={predictions}
 					users={users}
 					onPredictionClick={handlePredictionClick}
+					cosmetics={cosmetics}
 				/>
 			</main>
 		</div>
