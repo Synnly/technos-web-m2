@@ -47,7 +47,6 @@ export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = null, set
 			setWaitingPredictions((prev) => prev.filter((p) => p._id !== id));
 			setToast?.({ message: "Prédiction refusée", type: "success" });
 			setTotalCount((prev) => (prev !== null ? prev - 1 : null));
-
 		} catch (err: any) {
 			console.error(err);
 			setToast?.({ message: err?.message || "Erreur lors du refus", type: "error" });
@@ -72,7 +71,9 @@ export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = null, set
 				header: "Auteur",
 				accessorKey: "user_id",
 				cell: ({ getValue }: any) => (
-					<span className="text-sm text-gray-300">{usersMap?.find((u) => u._id === getValue())?.username || "–"}</span>
+					<span className="text-sm text-gray-300">
+						{usersMap?.find((u) => u._id === getValue())?.username || "–"}
+					</span>
 				),
 			},
 			{
@@ -85,16 +86,23 @@ export const ValidatePredictionsTable: React.FC<Props> = ({ usersMap = null, set
 				),
 			},
 			{
+				header: "Description",
+				accessorKey: "description",
+				cell: ({ getValue }: any) => (
+					<span className={`text-sm text-gray-300 ${getValue() !== undefined ? "" : "italic text-gray-500"}`}>
+						{getValue() !== undefined
+							? (getValue() as string)?.length > 50
+								? `${(getValue() as string).substring(0, 50)}...`
+								: getValue()
+							: "Pas de description fournie"}
+					</span>
+				),
+			},
+			{
 				id: "actions",
 				header: "Actions",
 				cell: ({ row }: any) => (
-					<div className="flex items-center justify-between">
-						<button
-							onClick={() => navigate(`/prediction/${row.original._id}`)}
-							className="px-3 py-1 rounded bg-gray-700 text-white text-sm hover:bg-gray-600 cursor-pointer"
-						>
-							Voir
-						</button>
+					<div className="flex items-center justify-between w-fit">
 						<ValidateRefuseButtons
 							id={row.original._id}
 							validateOnOk={handleValidate}

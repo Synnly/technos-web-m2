@@ -86,7 +86,8 @@ export const PredictionController = {
 				title: prediction.title,
 				user_id: prediction.user_id,
 				dateFin: prediction.dateFin,
-			})) as unknown as ValidatedPrediction[];
+				description: prediction.description,
+			})) as unknown as ValidatedPrediction[];			
 			return validatedData;
 		} catch (err: any) {
 			if (setToast)

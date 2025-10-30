@@ -12,6 +12,7 @@ export type ValidatedPrediction = {
 	title: string;
 	user_id: string;
 	dateFin: string | Date;
+	description?: string;
 };
 
 export interface PredictionPayload {
