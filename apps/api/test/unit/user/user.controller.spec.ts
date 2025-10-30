@@ -241,7 +241,7 @@ describe("UserController", () => {
 			await userController.updateUserByUsername(mockRequest, "testuser1", new UpdateUserDto(updateData));
 			expect(mockUserService.createOrUpdateByUsername).toHaveBeenCalledWith(
 				"testuser1",
-				new UpdateUserDto({ motDePasse: "N3wP@ssw0rd!" }),
+				new UpdateUserDto({ motDePasse: "N3wP@ssw0rd!", currentCosmetic: [] }),
 			);
 		});
 
@@ -272,7 +272,7 @@ describe("UserController", () => {
 
 			mockUserService.createOrUpdateByUsername.mockResolvedValue(null);
 			await userController.updateUserByUsername(mockRequest, "testuser1", new UpdateUserDto(updateData));
-			expect(mockUserService.createOrUpdateByUsername).toHaveBeenCalledWith("testuser1", new UpdateUserDto({}));
+			expect(mockUserService.createOrUpdateByUsername).toHaveBeenCalledWith("testuser1", new UpdateUserDto({currentCosmetic: []}));
 		});
 
 		it("should update all fields if the user has role Role.ADMIN, user exists and updated user exists", async () => {

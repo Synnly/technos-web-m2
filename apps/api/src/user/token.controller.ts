@@ -27,7 +27,7 @@ export class TokenController {
 			const decoded = this.jwtService.verify(token);
 			return response.status(HttpStatus.OK).json(decoded);
 		} catch (_) {
-			throw new UnauthorizedException("Invalid token");
+			throw new UnauthorizedException("Token invalide");
 		}
 	}
 }

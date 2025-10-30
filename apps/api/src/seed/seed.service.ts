@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Cosmetic, CosmeticDocument, CosmeticType } from "../cosmetic/cosmetic.schema";
-import { Role, User, UserDocument } from "src/user/user.schema";
-import { CreateCosmeticDto } from "src/cosmetic/dto/create-cosmetic.dto";
+import { Role, User, UserDocument } from "../user/user.schema";
+import { CreateCosmeticDto } from "../cosmetic/dto/create-cosmetic.dto";
 import * as bcrypt from "bcrypt";
 
 @Injectable()

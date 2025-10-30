@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { SeedService } from "./seed.service";
-import { CosmeticModule } from "src/cosmetic/cosmetic.module";
-import { UserModule } from "src/user/user.module";
+import { CosmeticModule } from "../cosmetic/cosmetic.module";
+import { UserModule } from "../user/user.module";
 import { MongooseModule } from "@nestjs/mongoose";
-import { Cosmetic, CosmeticSchema } from "src/cosmetic/cosmetic.schema";
-import { User, UserSchema } from "src/user/user.schema";
+import { Cosmetic, CosmeticSchema } from "../cosmetic/cosmetic.schema";
+import { User, UserSchema } from "../user/user.schema";
 
 @Module({
 	imports: [
