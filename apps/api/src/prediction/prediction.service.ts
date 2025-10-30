@@ -317,11 +317,12 @@ export class PredictionService {
 	 */
 	async getValidPredictions(page?: number, limit?: number): Promise<Prediction[]> {
 		const now = new Date();
+		now.setHours(0, 0, 0, 0);
 		const filter = {
 			status: PredictionStatus.Valid,
 			dateFin: { $gt: now },
 		};
-
+	
 		if (!page || !limit) {
 			return this.predictionModel.find(filter).populate("user_id", "username").lean().exec();
 		}
@@ -335,6 +336,7 @@ export class PredictionService {
 	 */
 	async getClosedPredictions(page?: number, limit?: number): Promise<Prediction[]> {
 		const now = new Date();
+		now.setHours(0, 0, 0, 0);
 		const filter = {
 			status: PredictionStatus.Closed,
 			dateFin: { $gt: now },
@@ -345,6 +347,18 @@ export class PredictionService {
 		}
 
 		return this.paginatePredictions(filter, page, limit);
+	}
+
+	/**
+	 * Retourne le nombre total de prédictions combinées pour les statuts valid et closed.
+	 * Utilisé par la route `/prediction/count` pour fournir un compte stable côté client.
+	 */
+	async getPredictionsCount(): Promise<{ totalCount: number }> {
+		const now = new Date();
+		now.setHours(0, 0, 0, 0);
+		const validCount = await this.predictionModel.countDocuments({ status: PredictionStatus.Valid, dateFin: { $gt: now } }).exec();
+		const closedCount = await this.predictionModel.countDocuments({ status: PredictionStatus.Closed, dateFin: { $gt: now } }).exec();
+		return { totalCount: validCount + closedCount };
 	}
 
 	/**

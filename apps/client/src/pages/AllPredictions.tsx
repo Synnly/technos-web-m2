@@ -24,6 +24,7 @@ function AllPredictions() {
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [pageSize, setPageSize] = useState<number>(10);
 	const [totalItemsEstimated, setTotalItemsEstimated] = useState<number>(0);
+	const [totalCount, setTotalCount] = useState<number | null>(null);
 	const [users, setUsers] = useState<Array<PublicUser>>([]);
 	const [search, setSearch] = useState<string>("");
 	const [filters, setFilters] = useState<FiltersState>({ dateRange: null });
@@ -84,9 +85,28 @@ function AllPredictions() {
 		setCosmetics(cosmeticsFetched);
 	};
 
+	const getPredictionsCount = async () => {
+		if (!token) {
+			setTotalCount(null);
+			return;
+		}
+		try {
+			const data = await PredictionController.getPredictionsCount(token, setToast);
+			if (data && typeof data.totalCount === "number") {
+				setTotalCount(data.totalCount);
+			} else {
+				setTotalCount(0);
+			}
+		} catch (e) {
+			setTotalCount(null);
+		}
+	};
+
 	useEffect(() => {
 		fetchAllCosmetics();
 	}, []);
+
+	// compute a stable total count from server when token changes
 
 	useEffect(() => {
 		fetchAllUsers();
@@ -99,6 +119,11 @@ function AllPredictions() {
 			setPoints(user?.points || 0);
 		}
 	}, [username]);
+
+	useEffect(() => {
+		getPredictionsCount();
+	}, [token]);
+
 
 	const filtered = React.useMemo(() => {
 		const q = (search || "").trim().toLowerCase();
@@ -117,7 +142,7 @@ function AllPredictions() {
 		});
 	}, [predictions, search, filters]);
 
-	const totalItems = totalItemsEstimated;
+	const totalItems = totalCount ?? totalItemsEstimated;
 	const currentPageClamped = Math.max(1, Math.min(currentPage, Math.max(1, Math.ceil(totalItems / pageSize))));
 	const paginated = React.useMemo(() => {
 		const start = (currentPageClamped - 1) * pageSize;

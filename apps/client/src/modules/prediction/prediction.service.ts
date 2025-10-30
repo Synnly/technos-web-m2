@@ -100,6 +100,13 @@ export const PredictionService = {
 		});
 		return resp.data;
 	},
+
+		async getPredictionsCount(token: string) {
+			console.log("Fetching predictions count with token:", token);
+			const headers = { Authorization: `Bearer ${token}` };
+			const resp = await axios.get<{ totalCount: number }>(`${API_URL}/prediction/count`, { headers });
+			return resp.data || { totalCount: 0 };
+		},
 };
 
 export default PredictionService;

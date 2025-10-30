@@ -296,6 +296,22 @@ export const PredictionController = {
 				});
 		}
 	},
+
+	async getPredictionsCount(token: string | null, setToast?: React.Dispatch<React.SetStateAction<Toast | null>>) {
+		if (!token) {
+			if (setToast)
+				setToast({ message: "Utilisateur non authentifié", type: "error" });
+			return { totalCount: 0 };
+		}
+		try {
+			const data = await PredictionResolver.getPredictionsCount(token);
+			return data;
+		} catch (err: any) {
+			if (setToast)
+				setToast({ message: "Erreur lors de la récupération du nombre de prédictions", type: "error" });
+			return { totalCount: 0 };
+		}
+	},
 };
 
 export default PredictionController;

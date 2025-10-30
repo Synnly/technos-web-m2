@@ -109,6 +109,12 @@ export const PredictionResolver = {
 	) {
 		return PredictionService.getTimelineData(predictionId, intervalMinutes, votesAsPercentage, fromStart, token);
 	},
+
+		async getPredictionsCount(token: string) {
+			// returns { totalCount }
+			const data = await PredictionService.getPredictionsCount(token);
+			return data;
+		},
 };
 
 export default PredictionResolver;

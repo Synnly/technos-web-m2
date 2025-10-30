@@ -94,6 +94,18 @@ export class PredictionController {
 	}
 
 	/**
+	 * Retourne le nombre total de prédictions (valid + closed) pour l'UI.
+	 */
+	@Get("/count")
+	async getPredictionsCount(): Promise<{ totalCount: number }> {
+		try {
+			return await this.predictionService.getPredictionsCount();
+		} catch (error) {
+			throw new BadRequestException(error.message);
+		}
+	}
+
+	/**
 	 * Récupère une prédiction par son id.
 	 * @param id Identifiant de la prédiction.
 	 * @returns La prédiction correspondante.
@@ -215,6 +227,7 @@ export class PredictionController {
 			throw new BadRequestException(error.message);
 		}
 	}
+
 
 	@UseGuards(AdminGuard)
 	@Get("/:id/ai")
