@@ -136,10 +136,10 @@ describe("CosmeticService", () => {
 				exec: jest.fn().mockResolvedValue(expectedCosmetic1),
 			});
 
-			const result = await cosmeticService.deleteById("507f1f77bcf86cd799439011");
-
+			await cosmeticService.deleteById("507f1f77bcf86cd799439011");
+			const result = await cosmeticService.findById("507f1f77bcf86cd799439011");
 			expect(mockCosmeticModel.findByIdAndDelete).toHaveBeenCalledWith("507f1f77bcf86cd799439011");
-			expect(result).toEqual(expectedCosmetic1);
+			expect(result).toBeNull();
 		});
 
 		it("should return null when cosmetic not found", async () => {
@@ -147,8 +147,8 @@ describe("CosmeticService", () => {
 				exec: jest.fn().mockResolvedValue(null),
 			});
 
-			const result = await cosmeticService.deleteById("unknown");
-
+			await cosmeticService.deleteById("unknown");
+			const result = await cosmeticService.findById("unknown");
 			expect(mockCosmeticModel.findByIdAndDelete).toHaveBeenCalledWith("unknown");
 			expect(result).toBeNull();
 		});

@@ -14,11 +14,7 @@ const PredictionsSection: React.FC<PredictionSectionProps> = ({
 	onPredictionClick,
 }: PredictionSectionProps) => {
 	const navigate = useNavigate();
-	const firstThree = (predictions || [])
-		.reverse()
-		.slice(predictions.length - 3, predictions.length)
-		.reverse();
-
+	
 	const navigateAllPredictions = () => {
 		navigate("/predictions");
 	};
@@ -37,7 +33,7 @@ const PredictionsSection: React.FC<PredictionSectionProps> = ({
 			</div>
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-white cursor-pointer">
-				{firstThree.map((prediction) => (
+				{predictions.map((prediction) => (
 					<PredictionCard
 						key={prediction._id}
 						id={prediction._id}

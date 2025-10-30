@@ -7,6 +7,13 @@ export interface PredictionFormValues {
 	dateFin: string;
 }
 
+export type ValidatedPrediction = {
+	_id: string;
+	title: string;
+	user_id: string;
+	dateFin: string | Date;
+};
+
 export interface PredictionPayload {
 	title: string;
 	description?: string;
@@ -31,7 +38,10 @@ export interface Prediction {
 	status: PredictionStatus;
 	dateFin: Date;
 	options: Record<string, number>;
-	user_id: string;
+	user_id: {
+		_id: string;
+		username: string;
+	},
 	result: string;
 	pronostics_ia?: Record<string, number>;
 }

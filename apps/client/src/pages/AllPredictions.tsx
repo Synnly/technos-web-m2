@@ -38,6 +38,8 @@ function AllPredictions() {
 		setLoading(true);
 		const data = await PredictionController.getAllValidPredictions(
 			token,
+			"1",
+			"1000",
 			setToast,
 		);
 		setPredictions(data);

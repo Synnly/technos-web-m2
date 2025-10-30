@@ -52,7 +52,7 @@ export class UserController {
 	 * @returns La liste des DTOs de tous les utilisateur.
 	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission d'accéder à cette ressource.
 	 */
-	@UseGuards(AuthGuard, AdminGuard)
+	@UseGuards(AuthGuard)
 	@Get("")
 	async getUsers(): Promise<UserDto[]> {
 		const users = await this.userService.getAll();
@@ -141,6 +141,8 @@ export class UserController {
 	 * @param updateUserDto Les données mises à jour de l'utilisateur.
 	 * @throws {BadRequestException} si le nom d'utilisateur ou les données mises à jour sont invalides.
 	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de modifier cet utilisateur.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de modifier les cosmétiques possédés.
+	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de modifier le rôle de l'utilisateur.
 	 */
 	@UseGuards(AuthGuard)
 	@Put("/{:username}")
@@ -160,6 +162,16 @@ export class UserController {
 		if (request.user.role !== Role.ADMIN && request.user.username !== username) {
 			throw new ForbiddenException({
 				message: "Vous n'avez pas la permission de modifier cet utilisateur.",
+			});
+		}
+		if (request.user.role !== Role.ADMIN && updateUserDto.cosmeticsOwned) {
+			throw new ForbiddenException({
+				message: "Vous n'avez pas la permission de modifier les cosmétiques possédés.",
+			});
+		}
+		if (request.user.role !== Role.ADMIN && updateUserDto.role) {
+			throw new ForbiddenException({
+				message: "Vous n'avez pas la permission de modifier le rôle de l'utilisateur.",
 			});
 		}
 

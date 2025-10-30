@@ -80,7 +80,6 @@ const mockCosmeticModel = jest.fn().mockImplementation((data) => ({
 	save: jest.fn().mockResolvedValue({
 		_id: "3",
 		...data,
-		owned: false,
 	}),
 })) as unknown as MockCosmeticModel;
 
@@ -236,6 +235,8 @@ describe("UserController", () => {
 				votes: expectedUser1.votes.map((vote) => vote._id),
 				points: 200,
 			};
+			updateData.role = undefined as any;
+			updateData.cosmeticsOwned = undefined as any;
 			mockUserService.createOrUpdateByUsername.mockResolvedValue(null);
 			await userController.updateUserByUsername(mockRequest, "testuser1", new UpdateUserDto(updateData));
 			expect(mockUserService.createOrUpdateByUsername).toHaveBeenCalledWith(
@@ -266,6 +267,8 @@ describe("UserController", () => {
 				predictions: expectedUser1.predictions.map((prediction) => prediction._id),
 				votes: expectedUser1.votes.map((vote) => vote._id),
 			};
+			updateData.role = undefined as any;
+			updateData.cosmeticsOwned = undefined as any;
 
 			mockUserService.createOrUpdateByUsername.mockResolvedValue(null);
 			await userController.updateUserByUsername(mockRequest, "testuser1", new UpdateUserDto(updateData));
@@ -304,6 +307,32 @@ describe("UserController", () => {
 				"nonexistentuser",
 				new UpdateUserDto(updateData),
 			);
+		});
+
+		it("should throw ForbiddenException when a non-admin user tries to update the cosmeticsOwned field", async () => {
+			const updateData = {
+				...expectedUser1,
+				cosmeticsOwned: ["cosmetic1", "cosmetic2"],
+				predictions: expectedUser1.predictions.map((prediction) => prediction._id),
+				votes: expectedUser1.votes.map((vote) => vote._id),
+			};
+			await expect(
+				userController.updateUserByUsername(mockRequest, "testuser1", new UpdateUserDto(updateData)),
+			).rejects.toThrow(ForbiddenException);
+			expect(mockUserService.createOrUpdateByUsername).not.toHaveBeenCalled();
+		});
+
+		it("should throw ForbiddenException when a non-admin user tries to update the role field", async () => {
+			const updateData = {
+				...expectedUser1,
+				role: Role.ADMIN,
+				predictions: expectedUser1.predictions.map((prediction) => prediction._id),
+				votes: expectedUser1.votes.map((vote) => vote._id),
+			};
+			await expect(
+				userController.updateUserByUsername(mockRequest, "testuser1", new UpdateUserDto(updateData)),
+			).rejects.toThrow(ForbiddenException);
+			expect(mockUserService.createOrUpdateByUsername).not.toHaveBeenCalled();
 		});
 	});
 

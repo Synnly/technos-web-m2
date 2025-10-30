@@ -4,6 +4,24 @@
 <div align="center">
   <h1 align="center">Loozamax</h1>
   <h4 align="center">Groupe 7</h4>
+
+  <h3><u>Description :</u></h3>
+  <p>
+    Loozamax est une plateforme de paris en ligne centrée sur les prédictions : les utilisateurs
+    formulent des pronostics sur des événements (sportifs, culturels ou personnalisés), misent des
+    points virtuels et suivent l'évolution des probabilités. 
+  </p>
+  <p>
+    Fonctionnalités principales : création et gestion des prédictions, système de mises (votes),
+    publications et discussions attachées à une prédiction, chronologie et historique des paris,
+    système de points et boutique de cosmétiques pour personnaliser le profil, ainsi que des
+    rôles utilisateurs (admin / user) pour la modération et la validation des résultats.
+  </p>
+  <p>
+    Construit pour l'apprentissage et l'expérimentation, Loozamax est développé avec une
+    architecture full‑stack moderne (React + Vite côté client, NestJS côté API, MongoDB pour la
+    persistance) et les tests automatisés (Jest).
+  </p>
 </div>
 
 

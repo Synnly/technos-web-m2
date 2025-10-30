@@ -18,7 +18,7 @@ function Dashboard() {
 
 	const fetchAllPredictions = async () => {
 		setLoading(true);
-		const data = await PredictionController.getAllValidPredictions(token, setToast);
+		const data = await PredictionController.getAllValidPredictions(token, "1", "10", setToast);
 		setPredictions(data);
 		setLoading(false);
 	};

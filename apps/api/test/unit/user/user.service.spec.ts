@@ -327,6 +327,28 @@ describe("UserService", () => {
 				}),
 			);
 		});
+
+		it("should throw an error when applying a cosmetic that the user does not own", async () => {
+			const username = expectedUser1.username;
+			const updatedData = new UpdateUserDto({
+				currentCosmetic: ["cosmetic1"],
+			});
+
+			// Simuler la présence d'un utilisateur existant avec le même username
+			const existingUser = {
+				...expectedUser1,
+				cosmeticsOwned: [], // L'utilisateur ne possède aucun cosmétique
+				save: jest.fn(),
+			};
+			mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(existingUser) });
+
+			await expect(userService.createOrUpdateByUsername(username, updatedData)).rejects.toEqual(
+				new Error("Vous ne possédez pas la cosmétique cosmetic1"),
+			);
+
+			expect(mockUserModel.findOne).toHaveBeenCalledWith({ username });
+			expect(existingUser.save).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("deleteByUsername", () => {

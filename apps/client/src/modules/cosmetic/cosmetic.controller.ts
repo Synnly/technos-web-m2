@@ -1,5 +1,5 @@
 import type { Toast } from "../../components/toast/Toast.interface";
-import type { Cosmetic } from "./cosmetic.interface";
+import type { CreateCosmetic, Cosmetic } from "./cosmetic.interface";
 import { CosmeticResolver } from "./cosmetic.resolver";
 
 export const CosmeticController = {
@@ -96,6 +96,43 @@ export const CosmeticController = {
 			setError(msg);
 			setToast?.({ type: "error", message: msg });
 			return { success: false, error: msg };
+		}
+	},
+
+	async createCosmetic(
+		cosmetic: CreateCosmetic,
+		token: string | null,
+		username: string | null,
+		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
+	) {
+		if (!token) {
+			setToast?.({
+				type: "error",
+				message: "Utilisateur non authentifié",
+			});
+			return;
+		}
+
+		if (!username) {
+			setToast?.({
+				type: "error",
+				message: "Nom d'utilisateur introuvable",
+			});
+			return;
+		}
+
+		try {
+			await CosmeticResolver.create(cosmetic, token, username);
+			setToast?.({
+				type: "success",
+				message: "Cosmétique créé avec succès",
+			});
+			return;
+		} catch (err: any) {
+			console.error(err);
+			const msg = err?.response?.data?.message || "Erreur lors de la création du cosmétique";
+			setToast?.({ type: "error", message: msg });
+			return;
 		}
 	},
 };

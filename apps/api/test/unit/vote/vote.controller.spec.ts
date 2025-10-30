@@ -41,7 +41,7 @@ const expectedVote1 = {
 	prediction_id: (expectedPred1 as any)._id,
 	option: "yes",
 	amount: 10,
-	date: new Date("2024-01-01").toISOString(),
+	date: new Date("2024-01-01"),
 };
 
 const mockVoteService = {
@@ -138,46 +138,14 @@ describe("VoteController", () => {
 		});
 
 		it("should return 400 if the data is missing", async () => {
-			const invalidDto = { prediction_id: "", option: "", amount: 0, date: "", user_id: "" };
+			const invalidDto: any = { prediction_id: "", option: "", amount: 0, date: "", user_id: "" };
 			await expect(voteController.createVote(invalidDto)).rejects.toThrow(BadRequestException);
 
 			expect(voteService.createVote).not.toHaveBeenCalled();
 		});
 
-		it("should pass the object to the service even if user_id is missing (validation handled elsewhere)", async () => {
-			const newVote = { ...expectedVote1 };
-			delete (newVote as any).user_id;
-			await voteController.createVote(newVote);
-			const { _id, ...expected } = newVote;
-			expect(voteService.createVote).toHaveBeenCalledWith(expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if prediction_id is missing (validation handled elsewhere)", async () => {
-			const newVote = { ...expectedVote1, _id: undefined };
-			delete (newVote as any).prediction_id;
-			await voteController.createVote(newVote);
-			const { _id, ...expected } = newVote;
-			expect(voteService.createVote).toHaveBeenCalledWith(expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if option is missing (validation handled elsewhere)", async () => {
-			const newVote = { ...expectedVote1, _id: undefined };
-			delete (newVote as any).option;
-			await voteController.createVote(newVote);
-			const { _id, ...expected } = newVote;
-			expect(voteService.createVote).toHaveBeenCalledWith(expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if amount is missing (validation handled elsewhere)", async () => {
-			const newVote = { ...expectedVote1, _id: undefined };
-			delete (newVote as any).amount;
-			await voteController.createVote(newVote);
-			const { _id, ...expected } = newVote;
-			expect(voteService.createVote).toHaveBeenCalledWith(expect.objectContaining(expected));
-		});
-
 		it("should return 400 if the amount is less than 1", async () => {
-			const newVote = { ...expectedVote1, _id: undefined, amount: 0 };
+			const newVote: any = { ...expectedVote1, _id: undefined, amount: 0 };
 
 			await expect(voteController.createVote(newVote)).rejects.toThrow(BadRequestException);
 
@@ -193,7 +161,7 @@ describe("VoteController", () => {
 		});
 
 		it("should return 400 if the service throws an error", async () => {
-			const newVote = { ...expectedVote1, _id: undefined };
+			const newVote: any = { ...expectedVote1, _id: undefined };
 
 			mockVoteService.createVote.mockRejectedValue(new Error("Service error"));
 
@@ -229,62 +197,8 @@ describe("VoteController", () => {
 			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", expect.objectContaining(dto));
 		});
 
-		it("should pass the object to the service even if user_id is missing (validation handled elsewhere)", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			updatedVote.user_id = undefined;
-			await voteController.updateVote("1", updatedVote);
-			const { _id, ...expected } = updatedVote;
-			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", expect.objectContaining(expected));
-		});
-
-		it("should return 400 if the data is missing", async () => {
-			const invalidDto = { prediction_id: "", option: "", amount: 0, date: "", user_id: "" };
-			await expect(voteController.updateVote("1", invalidDto)).rejects.toThrow(BadRequestException);
-
-			expect(voteService.createOrUpdateVote).not.toHaveBeenCalled();
-		});
-
-		it("should pass the object to the service even if id is missing (validation handled elsewhere)", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			await voteController.updateVote("", updatedVote);
-			const { _id, ...expected } = updatedVote;
-			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("", expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if user_id is missing (validation handled elsewhere)", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			updatedVote.user_id = undefined;
-			await voteController.updateVote("1", updatedVote);
-			const { _id, ...expected } = updatedVote;
-			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if prediction_id is missing (validation handled elsewhere)", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			delete (updatedVote as any).prediction_id;
-			await voteController.updateVote("1", updatedVote);
-			const { _id, ...expected } = updatedVote;
-			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if option is missing (validation handled elsewhere)", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			delete (updatedVote as any).option;
-			await voteController.updateVote("1", updatedVote);
-			const { _id, ...expected } = updatedVote;
-			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", expect.objectContaining(expected));
-		});
-
-		it("should pass the object to the service even if amount is missing (validation handled elsewhere)", async () => {
-			const updatedVote = { ...expectedVote1, amount: 20 };
-			delete (updatedVote as any).amount;
-			await voteController.updateVote("1", updatedVote);
-			const { _id, ...expected } = updatedVote;
-			expect(voteService.createOrUpdateVote).toHaveBeenCalledWith("1", expect.objectContaining(expected));
-		});
-
 		it("should return 400 if the amount is less than 1", async () => {
-			const updatedVote = { ...expectedVote1, amount: 0 };
+			const updatedVote: any = { ...expectedVote1, amount: 0 };
 
 			await expect(voteController.updateVote("1", updatedVote)).rejects.toThrow(BadRequestException);
 

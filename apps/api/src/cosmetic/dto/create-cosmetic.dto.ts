@@ -15,9 +15,6 @@ export class CreateCosmeticDto {
     @IsString()
     value: string;
 
-    @IsOptional()
-    @IsBoolean()
-    owned?: boolean;
 
     constructor(partial: Partial<CreateCosmeticDto>) {
         Object.assign(this, partial);

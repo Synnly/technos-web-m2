@@ -6,6 +6,7 @@ import { PredictionModule } from "./prediction/prediction.module";
 import { VoteModule } from "./vote/vote.module";
 import { PublicationModule } from "./publication/publication.module";
 import { CosmeticModule } from "./cosmetic/cosmetic.module";
+import { SeedModule } from "./seed/seed.module";
 import { JwtModule } from "@nestjs/jwt";
 import { UserMiddleware } from "./middleware/user.middleware";
 
@@ -30,6 +31,7 @@ import { UserMiddleware } from "./middleware/user.middleware";
 		VoteModule,
 		PublicationModule,
 		CosmeticModule,
+		SeedModule,
 		JwtModule.registerAsync({
             global: true,
             imports: [ConfigModule],

@@ -21,8 +21,8 @@ export const PredictionResolver = {
 		const res = await PredictionService.createPrediction(payload, token);
 		return res.data;
 	},
-	async getAllValidPredictions(token: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
-		const predictions = await PredictionService.getAllValidPredictions(token);
+	async getAllValidPredictions(token: string, page: string, limit: string): Promise<PredictionWithThisNbOfVotesAndNbOfPublications[]> {
+		const predictions = await PredictionService.getAllValidPredictions(token, page, limit);
 		const votes = await VoteService.getAllVotes(token);
 		const publications = await PublicationService.getAllPublications(token);
 
@@ -53,6 +53,31 @@ export const PredictionResolver = {
 			votes: votes.filter((vote) => vote.prediction_id === prediction._id),
 			publications: publications.filter((pub) => pub.prediction_id === prediction._id),
 		};
+	},
+
+	async getWaitingPredictions(token: string, page: string, limit: string) {
+		const allPredictions = await PredictionService.getWaitingPredictions(token, page, limit);
+		return allPredictions;
+	},
+
+	async validatePrediction(id: string, token: string) {
+		const res = await PredictionService.updatePredictionStatus(id, token, "Valid");
+		return res;
+	},
+
+	async refusePrediction(id: string, token: string) {
+		const res = await PredictionService.updatePredictionStatus(id, token, "Invalid");
+		return res;
+	},
+
+	async getExpiredPredictions(token: string, page: string, limit: string) {
+		const allPredictions = await PredictionService.getExpiredPredictions(token, page, limit);
+		return allPredictions;
+	},
+
+	async validateAPrediction(id: string, token: string, winningOption: string) {
+		const res = await PredictionService.confirmPredictionResult(id, token, winningOption);
+		return res;
 	},
 
 	async getTimelineData(

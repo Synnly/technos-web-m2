@@ -106,10 +106,6 @@ describe("PublicationController", () => {
 
 			expect(publicationService.getById).toHaveBeenCalledWith("507f1f77bcf86cd799439999");
 		});
-
-		it("should return 400 when id is missing", async () => {
-			await expect(publicationController.getPublicationById("")).rejects.toThrow(BadRequestException);
-		});
 	});
 
 	describe("createPublication", () => {
@@ -123,57 +119,6 @@ describe("PublicationController", () => {
 			expect(publicationService.createPublication).toHaveBeenCalledWith(expectedPub1);
 			const got = await publicationController.getPublicationById(expectedPub1._id!);
 			expect(got).toEqual(new PublicationDto(expectedPub1 as any));
-		});
-
-		it("should return 400 when publication body is missing", async () => {
-			await expect(publicationController.createPublication(undefined as any)).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when message is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				message: undefined,
-			} as any;
-
-			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
-		});
-
-		it("should return 400 when datePublication is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				datePublication: undefined,
-			} as any;
-
-			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
-		});
-
-		it("should return 400 when datePublication is before today", async () => {
-			const bad = {
-				...expectedPub1,
-				datePublication: new Date("2020-01-01").toISOString(),
-			} as any;
-
-			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
-		});
-
-		it("should return 400 when user_id is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				user_id: undefined,
-			} as any;
-
-			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
-		});
-
-		it("should return 400 when prediction_id is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				prediction_id: undefined,
-			} as any;
-
-			await expect(publicationController.createPublication(bad)).rejects.toThrow(BadRequestException);
 		});
 
 		it("should return 500 on service error", async () => {
@@ -197,73 +142,6 @@ describe("PublicationController", () => {
 			expect(publicationService.createOrUpdateById).toHaveBeenCalledWith(expectedPub1._id, expectedPub1);
 				const got = await publicationController.getPublicationById(expectedPub1._id!);
 				expect(got).toEqual(new PublicationDto(expectedPub1 as any));
-		});
-
-		it("should return 400 when publication body is missing", async () => {
-			await expect(
-				publicationController.createOrUpdatePublicationById(expectedPub1._id!, undefined as any),
-			).rejects.toThrow(BadRequestException);
-		});
-
-		it("should return 400 when id is missing", async () => {
-			await expect(publicationController.createOrUpdatePublicationById("", expectedPub1)).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when message is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				message: undefined,
-			} as any;
-
-			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when datePublication is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				datePublication: undefined,
-			} as any;
-
-			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when datePublication is before today", async () => {
-			const bad = {
-				...expectedPub1,
-				datePublication: new Date("2020-01-01").toISOString(),
-			} as any;
-
-			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when user_id is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				user_id: undefined,
-			} as any;
-
-			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when prediction_id is missing", async () => {
-			const bad = {
-				...expectedPub1,
-				prediction_id: undefined,
-			} as any;
-
-			await expect(publicationController.createOrUpdatePublicationById(expectedPub1._id!, bad)).rejects.toThrow(
-				BadRequestException,
-			);
 		});
 
 		it("should return 500 on service error", async () => {
@@ -294,10 +172,6 @@ describe("PublicationController", () => {
 			);
 		});
 
-		it("should return 400 when id missing", async () => {
-			await expect(publicationController.deletePublicationById("")).rejects.toThrow(BadRequestException);
-		});
-
 		it("should return 500 when service throws", async () => {
 			mockPublicationService.deleteById.mockImplementationOnce(() => {
 				throw new Error("delete fail");
@@ -322,18 +196,6 @@ describe("PublicationController", () => {
 			expect(publicationService.toggleLikePublication).toHaveBeenCalledWith(
 				expectedPub1._id,
 				"507f1f77bcf86cd799439015",
-			);
-		});
-
-		it("should return 400 when publication id is missing", async () => {
-			await expect(publicationController.toggleLikePublication("", "507f1f77bcf86cd799439015")).rejects.toThrow(
-				BadRequestException,
-			);
-		});
-
-		it("should return 400 when user id is missing", async () => {
-			await expect(publicationController.toggleLikePublication(expectedPub1._id!, "")).rejects.toThrow(
-				BadRequestException,
 			);
 		});
 

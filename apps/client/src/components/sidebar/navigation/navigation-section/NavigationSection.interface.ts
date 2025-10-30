@@ -2,6 +2,7 @@ import type { NavigationItemProps } from "../navigation-item/NavigationItem.inte
 
 export interface NavigationSectionProps {
 	title: string;
+	roles: string[];
 	collapsed?: boolean;
 	items: NavigationItemProps[];
 }

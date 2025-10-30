@@ -13,7 +13,10 @@ export function IsFutureDate(validationOptions?: ValidationOptions) {
 					const date = value instanceof Date ? value : new Date(value);
 					if (isNaN(date.getTime())) return false;
 					const toleranceMs = 10 * 1000;
-					return date.getTime() + toleranceMs >= new Date().getTime();
+					const now = new Date();
+					const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+					return date.getTime() + toleranceMs >= todayMidnight;
 				},
 				defaultMessage() {
 					return "date must be a valid Date not earlier than now";

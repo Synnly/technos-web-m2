@@ -58,8 +58,7 @@ export class CosmeticService {
 	 * @param id l'identifiant du cosmétique à supprimer
 	 * @returns le cosmétique supprimé
 	 */
-	async deleteById(id: string): Promise<Cosmetic | null> {
-		const result = await this.cosmeticModel.findByIdAndDelete(id).exec();
-		return result;
+	async deleteById(id: string) {
+		await this.cosmeticModel.findByIdAndDelete(id).exec();
 	}
 }

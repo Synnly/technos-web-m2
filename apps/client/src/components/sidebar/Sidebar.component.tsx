@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 	return (
 		<div
 			className={`fixed lg:block left-0 top-0 w-full lg:h-full transition-all duration-150 ease-out overflow-hidden 
-			lg:overflow-visible bg-gray-800 border-r border-gray-700 overflow-visible lg:block z-99
+			lg:overflow-visible bg-gray-800 border-r border-gray-700 z-99
         	${collapsed ? "max-h-11 lg:max-h-full lg:w-20" : "max-h-screen lg:max-h-full lg:w-80 shadow-xl lg:shadow-none"}`}
 		>
 			<nav className={`flex flex-col h-full justify-between ${collapsed ? "p-2 md:p-2 lg:pt-8" : "p-6 md:p-8"}`}>
@@ -107,6 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 						{Actions.map((section) => (
 							<NavigationSectionComponent
 								key={section.title}
+								roles={section.roles}
 								title={collapsed ? "" : section.title}
 								items={section.items}
 								collapsed={collapsed}
@@ -149,15 +150,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 									},
 								]}
 								onFinish={async (values: any) => {
-									const rawDate = values["date de fin"] ?? values.dateFin;
-									const dateFin =
-										rawDate && typeof rawDate.toISOString === "function"
-											? rawDate.toISOString()
-											: rawDate;
+									const dateFin = new Date(values.dateFin);
+									const dateFinStr = new Date(dateFin.getTime() + 24 * 10 * 60000)
+										.toISOString();
+
 									const payload = {
 										title: values.title,
 										description: values.description,
-										dateFin,
+										dateFin : dateFinStr,
 										options: values.options,
 									};
 									const result = await PredictionController.createPrediction(

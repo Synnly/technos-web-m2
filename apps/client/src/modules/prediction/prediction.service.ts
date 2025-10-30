@@ -25,9 +25,10 @@ export const PredictionService = {
 		}
 	},
 
-	async getAllValidPredictions(token: string): Promise<Prediction[]> {
+	async getAllValidPredictions(token: string, page : string, limit : string): Promise<Prediction[]> {
 		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/valid`, {
 			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit },
 		});
 		return resp.data || [];
 	},
@@ -41,6 +42,35 @@ export const PredictionService = {
 		} catch (error) {
 			return undefined;
 		}
+	},
+
+	async getWaitingPredictions(token: string, page: string, limit: string) {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/waiting`, {
+			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit },
+		});
+		return resp.data || [];
+	},
+
+	async updatePredictionStatus(id: string, token: string, status: "Valid" | "Invalid") {
+		const headers = { Authorization: `Bearer ${token}` };
+		const resp = await axios.put<Prediction>(`${API_URL}/prediction/${id}/`, { status }, { headers });
+		return resp.data;
+	},
+
+	async getExpiredPredictions(token: string, page: string, limit: string) {
+		const resp = await axios.get<Prediction[]>(`${API_URL}/prediction/expired`, {
+			headers: { Authorization: `Bearer ${token}` },
+			params: { page, limit },
+		});
+
+		return resp.data || [];
+	},
+
+	async confirmPredictionResult(id: string, token: string, winningOption: string) {
+		const headers = { Authorization: `Bearer ${token}` };
+		const resp = await axios.put(`${API_URL}/prediction/${id}/validate`, { winningOption }, { headers });
+		return resp.data;
 	},
 
 	async getTimelineData(

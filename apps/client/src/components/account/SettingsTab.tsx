@@ -7,7 +7,6 @@ import GenericForm from "../form/Form.component";
 import InputPassword from "../input/Password/InputPassword.component";
 import InputText from "../input/Text/InputText.component";
 import type { FormField } from "../modal/modal.interface";
-import type { User } from "../../modules/user/user.interface";
 
 export const SettingsLabel = (
 	<span className="flex items-center gap-2 text-gray-300">
@@ -54,7 +53,9 @@ const SettingsTab = () => {
 		if (!username) return;
 
 		try {
-			const partialUser: Partial<User> = { username: values.username, motDePasse: values.password };
+			// backend expects the password under 'motDePasse' (or similar) but User interface doesn't include it.
+			// use a loose type here to avoid TS errors and pass the correct payload to the controller.
+			const partialUser: any = { username: values.username, motDePasse: values.password };
 			await userController.updateUser(username, partialUser, token);
 			const response = await userController.login(values.username, values.password);
 			localStorage.setItem("token", response.data.token.token);

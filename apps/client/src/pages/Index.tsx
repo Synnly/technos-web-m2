@@ -33,6 +33,8 @@ function Index() {
 		setLoading(true);
 		const data = await PredictionController.getAllValidPredictions(
 			token,
+			"1",
+			"3",
 			setToast,
 		);
 		setPredictions(data);

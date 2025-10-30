@@ -83,10 +83,9 @@ export class PublicationService {
 	 * Crée une nouvelle publication.
 	 * @param pub publication à créer
 	 */
-	async createPublication(pub: CreatePublicationDto | Publication) {
-		const safePub = { ...pub } as any;
-		const newPub = new this.publicationModel(safePub);
-		const created = await newPub.save();
+	async createPublication(pub: CreatePublicationDto) {
+		const newPub = new this.publicationModel(pub);
+		await newPub.save();
 	}
 
 	/**
@@ -100,7 +99,8 @@ export class PublicationService {
 			existing.message = pub.message ?? existing.message;
 			existing.datePublication = pub.datePublication ?? existing.datePublication;
 			existing.prediction_id = new Types.ObjectId(pub.prediction_id) ?? existing.prediction_id;
-			existing.parentPublication_id = new Types.ObjectId(pub.parentPublication_id) ?? existing.parentPublication_id;
+			existing.parentPublication_id =
+				new Types.ObjectId(pub.parentPublication_id) ?? existing.parentPublication_id;
 			existing.user_id = new Types.ObjectId(pub.user_id ?? existing.user_id);
 			existing.likes = pub.likes?.map((id) => new Types.ObjectId(id)) ?? existing.likes;
 			await existing.save();
