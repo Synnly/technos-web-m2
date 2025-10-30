@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Cosmetic, CosmeticDocument, CosmeticType } from "../cosmetic/cosmetic.schema";
 import { Role, User, UserDocument } from "src/user/user.schema";
 import { CreateCosmeticDto } from "src/cosmetic/dto/create-cosmetic.dto";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class SeedService {
@@ -45,7 +46,7 @@ export class SeedService {
 			{ name: "Baguette", cost: 150, type: CosmeticType.BADGE, value: ":flag-fr:" },
 			{ name: "Pizza", cost: 150, type: CosmeticType.BADGE, value: ":flag-it:" },
 			{ name: "Chorrizo", cost: 150, type: CosmeticType.BADGE, value: ":flag-es:" },
-            { name: "Pastel de Nata", cost: 150, type: CosmeticType.BADGE, value: ":flag-pt:" },
+			{ name: "Pastel de Nata", cost: 150, type: CosmeticType.BADGE, value: ":flag-pt:" },
 			{ name: "Bierre", cost: 150, type: CosmeticType.BADGE, value: ":flag-de:" },
 			{ name: "Thé", cost: 150, type: CosmeticType.BADGE, value: ":flag-gb:" },
 			{ name: "Frites", cost: 150, type: CosmeticType.BADGE, value: ":flag-be:" },
@@ -69,14 +70,25 @@ export class SeedService {
 	 * LE MOT DE PASSE DOIT ÊTRE CHANGÉ AVANT LA MISE EN PRODUCTION.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le processus de seed est terminé.
 	 */
-	async seedAdmins(){
+	async seedAdmins() {
 		const admins: Partial<User>[] = [
-			{ username: "admin", motDePasse: "THISISAREALLYLONGPASSWORDBUTYOUSTILLSHOULDCHANGEITBEFORELAUNCHINGTOPRODPLEASEFORTHELOVEOFGODTHISPASSWORDWILLNOTCHANGEOTHERWISE", role: Role.ADMIN },
+			{
+				username: "admin",
+				motDePasse:
+					"THISISAREALLYLONGPASSWORDBUTYOUSTILLSHOULDCHANGEITBEFORELAUNCHINGTOPRODPLEASEFORTHELOVEOFGODTHISPASSWORDWILLNOTCHANGEOTHERWISE",
+				role: Role.ADMIN,
+			},
 		];
 		for (const adminData of admins) {
 			const existingAdmin = await this.userModel.findOne({ username: adminData.username }).exec();
 			if (!existingAdmin) {
-				const newAdmin = new this.userModel(adminData);
+				const hash = await bcrypt.hash(adminData.motDePasse, 10);
+				const reqBody = {
+					username: adminData.username,
+					role: Role.ADMIN,
+					motDePasse: hash,
+				};
+				const newAdmin = new this.userModel(reqBody);
 				await newAdmin.save();
 			}
 		}
