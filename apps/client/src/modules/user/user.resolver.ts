@@ -53,7 +53,7 @@ export const userResolver = {
 	},
 
 	async updateUser(username: string, data: Partial<User>, token: string) {
-		userService.updateUser(username, data, token);
+		return userService.updateUser(username, data, token);
 	},
 
 	async buyCosmetic(username: string, cosmeticId: string, token: string) {

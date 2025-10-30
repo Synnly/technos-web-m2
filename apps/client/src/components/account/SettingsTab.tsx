@@ -7,6 +7,9 @@ import GenericForm from "../form/Form.component";
 import InputPassword from "../input/Password/InputPassword.component";
 import InputText from "../input/Text/InputText.component";
 import type { FormField } from "../modal/modal.interface";
+import { useState } from "react";
+import type { Toast } from "../toast/Toast.interface";
+import ToastComponent from "../toast/Toast.component";
 
 export const SettingsLabel = (
 	<span className="flex items-center gap-2 text-gray-300">
@@ -18,9 +21,10 @@ export const SettingsLabel = (
 const SettingsTab = () => {
 	const { username, logout } = useAuth();
 	const navigate = useNavigate();
-
+	const [toast, setToast] = useState<Toast | null>(null);
 	const [modal, contextHolder] = Modal.useModal();
 	const token = localStorage.getItem("token");
+	const clearToast = () => setToast(null);
 
 	const fields: FormField[] = [
 		{
@@ -57,10 +61,15 @@ const SettingsTab = () => {
 			// use a loose type here to avoid TS errors and pass the correct payload to the controller.
 			const partialUser: any = { username: values.username, motDePasse: values.password };
 			await userController.updateUser(username, partialUser, token);
-			const response = await userController.login(values.username, values.password);
-			localStorage.setItem("token", response.data.token.token);
+
+			const loginResponse = await userController.login(values.username, values.password);
+			localStorage.setItem("token", loginResponse);
+
+			setToast({ message: "Paramètres mis à jour", type: "success" });
 			navigate("/dashboard", { replace: true });
-		} catch (err) {}
+		} catch (err) {
+			setToast({ message: "Erreur lors de la mise à jour des paramètres", type: "error" });
+		}
 	};
 
 	const confirmAccountDeletionHandler = () => {
@@ -82,44 +91,49 @@ const SettingsTab = () => {
 	};
 
 	return (
-		<div className="px-6 bg-gray-900 text-gray-200">
+		<>
 			{contextHolder}
 
-			<div className="max-w-3xl mx-auto space-y-8">
-				<div className="space-y-2">
-					<h2 className="text-2xl mt-6 font-medium text-white">Sécurité du compte</h2>
-					<p className="text-gray-400 text-sm">
-						Gérez les actions sensibles liées à votre compte de manière sécurisée.
-					</p>
-				</div>
-
-				<div className="bg-gray-800 rounded-xl shadow-md p-6 space-y-6 border border-gray-700">
-					<div className="w-fit mx-auto">
-						<GenericForm
-							title="Changer le mot de passe"
-							initialValues={{ username }}
-							fields={fields}
-							onFinish={onFinish}
-						/>
+			{toast && (
+				<ToastComponent message={toast.message!} type={toast.type!} onClose={clearToast} duration={5000} />
+			)}
+			<div className="px-6 bg-gray-900 text-gray-200">
+				<div className="max-w-3xl mx-auto space-y-8">
+					<div className="space-y-2">
+						<h2 className="text-2xl mt-6 font-medium text-white">Sécurité du compte</h2>
+						<p className="text-gray-400 text-sm">
+							Gérez les actions sensibles liées à votre compte de manière sécurisée.
+						</p>
 					</div>
-				</div>
-				<div className="border-t border-gray-700 my-6" />
 
-				<div className="space-y-2 mt-12">
-					<h2 className="text-2xl font-medium text-red-400">Suppression du compte</h2>
-					<p className="text-gray-400 text-sm">
-						La suppression de votre compte est irréversible. Toutes vos données seront perdues.
-					</p>
-				</div>
+					<div className="bg-gray-800 rounded-xl shadow-md p-6 space-y-6 border border-gray-700">
+						<div className="w-fit mx-auto">
+							<GenericForm
+								title="Changer le mot de passe"
+								initialValues={{ username }}
+								fields={fields}
+								onFinish={onFinish}
+							/>
+						</div>
+					</div>
+					<div className="border-t border-gray-700 my-6" />
 
-				<button
-					onClick={confirmAccountDeletionHandler}
-					className="w-fit text-red-400 font-medium border border-red-600 rounded-lg px-4 py-3 hover:bg-red-600/10 transition-colors cursor-pointer"
-				>
-					Supprimer le compte
-				</button>
+					<div className="space-y-2 mt-12">
+						<h2 className="text-2xl font-medium text-red-400">Suppression du compte</h2>
+						<p className="text-gray-400 text-sm">
+							La suppression de votre compte est irréversible. Toutes vos données seront perdues.
+						</p>
+					</div>
+
+					<button
+						onClick={confirmAccountDeletionHandler}
+						className="w-fit text-red-400 font-medium border border-red-600 rounded-lg px-4 py-3 hover:bg-red-600/10 transition-colors cursor-pointer"
+					>
+						Supprimer le compte
+					</button>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

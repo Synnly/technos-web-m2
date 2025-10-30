@@ -127,7 +127,7 @@ export const userController = {
 			return;
 		}
 		try {
-			await userResolver.updateUser(username, data, token);
+			return await userResolver.updateUser(username, data, token);
 		} catch (err: any) {
 			const msg = "Erreur lors de la mise à jour de l'utilisateur";
 			if (setToast) setToast({ message: msg, type: "error" });

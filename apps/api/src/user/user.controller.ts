@@ -185,7 +185,6 @@ export class UserController {
 			} else {
 				newUpdateUserDto = updateUserDto;
 			}
-			await this.userService.createOrUpdateByUsername(username, newUpdateUserDto);
 
 			if (await this.userService.createOrUpdateByUsername(username, newUpdateUserDto)) {
 				return { statusCode: 201 };

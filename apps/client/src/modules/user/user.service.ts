@@ -47,9 +47,10 @@ export const userService = {
 	},
 
 	async updateUser(username: string, data: Partial<any>, token: string) {
-		await axios.put(`${API_URL}/user/${username}`, data, {
+		const response = await axios.put(`${API_URL}/user/${username}`, data, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
+		return response.data;
 	},
 
 	async buyCosmetic(username: string, cosmeticId: string, token: string) {
