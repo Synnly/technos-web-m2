@@ -85,7 +85,7 @@ export class PublicationService {
 	 */
 	async createPublication(pub: CreatePublicationDto) {
 		const newPub = new this.publicationModel(pub);
-		await newPub.save();
+		return await newPub.save();
 	}
 
 	/**

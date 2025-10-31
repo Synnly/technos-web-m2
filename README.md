@@ -73,6 +73,13 @@
 [![Jest][Jest]][Jest-url]
 [![Tailwind][Tailwind]][Tailwind-url]
 
+<img src="./screenshots/Landing.png" alt="Page de visite" />
+<img src="./screenshots/Home.png" alt="Page d'accueil" />
+<img src="./screenshots/Prediction.png" alt="Page de prédiciton" />
+<img src="./screenshots/Publications.png" alt="Publications dans page de prédiciton" />
+<img src="./screenshots/Shop.png" alt="Page de la boutique" />
+<img src="./screenshots/Account.png" alt="Page du compte" />
+
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
 ### Documentation

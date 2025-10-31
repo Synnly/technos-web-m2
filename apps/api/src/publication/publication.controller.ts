@@ -59,6 +59,7 @@ export class PublicationController {
 	/**
 	 * Crée une nouvelle publication.
 	 * @param pub Données de la publication à créer.
+	 * @return L'identifiant de la publication créée.
 	 * @throws {BadRequestException} si les données de la publication sont invalides ou manquantes.
 	 * @throws {InternalServerErrorException} si la création de la publication échoue.
 	 */
@@ -69,7 +70,8 @@ export class PublicationController {
 		pub: CreatePublicationDto,
 	) {
 		try {
-			await this.publicationService.createPublication(pub);
+			const publication = await this.publicationService.createPublication(pub);
+			return publication._id;
 		} catch (error) {
 			throw new InternalServerErrorException({ message: error.message });
 		}

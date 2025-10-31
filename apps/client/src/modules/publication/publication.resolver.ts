@@ -28,7 +28,7 @@ export const PublicationResolver = {
 		parentPublication_id: string | undefined,
 		user_id: string,
 		token: string,
-	) {
+	) : Promise<string | undefined> {
 		return PublicationService.createPublication(message, prediction_id, parentPublication_id, user_id, token);
 	},
 
