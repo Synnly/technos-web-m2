@@ -354,9 +354,8 @@ describe("PredictionService", () => {
 				exec: jest.fn().mockResolvedValue([]),
 			});
 
-			await expect(predictionService.validatePrediction("p1", "yes")).rejects.toThrow(
-				"Aucun point sur l’option gagnante",
-			);
+			const res = await predictionService.validatePrediction("p1", "yes");
+			expect(res).toEqual({ predictionId: "p1", ratio: 0, rewards: [], winningOption: "yes" });
 		});
 
 		it("should distribute rewards correctly and update prediction", async () => {

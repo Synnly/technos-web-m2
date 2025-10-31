@@ -238,8 +238,8 @@ export class PredictionService {
 		const totalPoints = Object.values(prediction.options).reduce((a, b) => a + b, 0);
 		const winningPoints = prediction.options[winningOption];
 
-		// Si pas de points sur l’option gagnante, on ne peut pas récompenser
-		if (winningPoints === 0) throw new Error("Aucun point sur l’option gagnante");
+		// Si pas de points sur l’option gagnante, alors personne n'a gagné
+		if (winningPoints === 0) return { predictionId, winningOption, ratio: 0, rewards: [] };
 
 		// Calcul du ratio
 		const ratio = totalPoints / winningPoints;
