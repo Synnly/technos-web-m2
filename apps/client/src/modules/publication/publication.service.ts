@@ -17,8 +17,8 @@ export const PublicationService = {
 		parentPublication_id: string | undefined,
 		user_id: string,
 		token: string,
-	) {
-		const resp = await axios.post<Publication>(
+	) : Promise<string | undefined> {
+		const resp = await axios.post<string | undefined>(
 			`${API_URL}/publication`,
 			{
 				message: message,

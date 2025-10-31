@@ -156,7 +156,7 @@ function Prediction() {
 	};
 
 	const addPublication = async (newPublication: Publication) => {
-		await PublicationController.createPublication(
+		const id = await PublicationController.createPublication(
 			newPublication.message,
 			predictionId,
 			newPublication.parentPublication_id,
@@ -164,7 +164,7 @@ function Prediction() {
 			token,
 			setToast,
 		);
-		setPublications([...publications, newPublication]);
+		setPublications([...publications, {...newPublication, _id: id} as Publication]);
 	};
 
 	const toggleLike = async (publicationId: string) => {

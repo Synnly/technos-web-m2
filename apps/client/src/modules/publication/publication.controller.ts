@@ -29,7 +29,7 @@ export const PublicationController = {
 		user_id: string,
 		token: string | null,
 		setToast?: React.Dispatch<React.SetStateAction<Toast | null>>,
-	) {
+	) : Promise<string | undefined> {
 		if (!token) {
 			setToast?.({ type: "error", message: "Unauthorized" });
 			return;
