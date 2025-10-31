@@ -19,6 +19,11 @@ import { log } from "console";
  * en utilisant le modèle Mongoose injecté.
  */
 export class PredictionService {
+
+	// Special refund code (12 chars). If the validate endpoint receives this exact
+	// value as winningOption, the service will refund all bets by re-crediting
+	// each user's points with the amount they wagered.
+	private static readonly REFUND_CODE = "k9X2b7QpL4rZ";
 	/**
 	 * Crée une instance de PredictionService.
 	 * @param predictionModel Modèle Mongoose injecté pour interagir avec la collection des prédictions.
@@ -227,6 +232,21 @@ export class PredictionService {
 		// Récupérer la prédiction
 		const prediction = await this.predictionModel.findById(predictionId).exec();
 		if (!prediction) throw new Error("Prédiction introuvable");
+
+		// Si le code de remboursement spécial est reçu, remboursez tous les paris (re-créditez les utilisateurs)
+		if (winningOption === PredictionService.REFUND_CODE) {
+			const votes = await this.voteModel.find({ prediction_id: predictionId }).exec();
+			for (const vote of votes) {
+				try {
+					await this.userModel.findByIdAndUpdate(vote.user_id, { $inc: { points: vote.amount } });
+				} catch (e) {
+				}
+			}
+			prediction.status = PredictionStatus.Closed;
+			prediction.result = "aucun";
+			await prediction.save();
+			return { predictionId, winningOption, ratio: 0, rewards: [] };
+		}
 
 		// Vérifier que l'option gagnante est valide
 		if (!(winningOption in prediction.options)) throw new Error("Option gagnante invalide");

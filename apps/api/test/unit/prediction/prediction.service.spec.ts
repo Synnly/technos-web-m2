@@ -7,7 +7,6 @@ import { Vote } from "../../../src/vote/vote.schema";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import OpenAI from "openai";
-import { log } from "console";
 
 const expectedUser1 = {
 	_id: "1",
@@ -400,6 +399,30 @@ describe("PredictionService", () => {
 			expect(pred.status).toBe(PredictionStatus.Valid);
 			expect(pred.result).toBe("yes");
 			expect(pred.save).toHaveBeenCalled();
+		});
+
+		it("should refund all bets when winningOption is the refund code", async () => {
+			const pred = { ...expectedPred1, save: jest.fn() } as any;
+			const fakeVotes = [
+				{ user_id: "u1", option: "A", amount: 7 },
+				{ user_id: "u2", option: "B", amount: 3 },
+			];
+
+			mockPredModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(pred) });
+			mockVoteModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue(fakeVotes) });
+			// ensure userModel.findByIdAndUpdate resolves
+			mockUserModel.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+
+			const refundCode = (predictionService as any).constructor.REFUND_CODE;
+
+			const res = await predictionService.validatePrediction((pred as any)._id, refundCode);
+
+			expect(mockVoteModel.find).toHaveBeenCalledWith({ prediction_id: (pred as any)._id });
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith("u1", { $inc: { points: 7 } });
+			expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith("u2", { $inc: { points: 3 } });
+			expect(pred.status).toBe(PredictionStatus.Closed);
+			expect(pred.result).toBe("aucun");
+			expect(res).toEqual({ predictionId: (pred as any)._id, winningOption: refundCode, ratio: 0, rewards: [] });
 		});
 	});
 

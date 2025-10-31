@@ -18,6 +18,9 @@ interface Props {
 const ConfirmResultsTable: React.FC<Props> = ({ usersMap, pageSize = 10, setToast }) => {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
+
+	// Special refund code (12 chars) — must match the API hardcoded value.
+	const REFUND_CODE = "k9X2b7QpL4rZ";
 	const [expiredPredictions, setExpiredPredictions] = React.useState<Prediction[]>([]);
 	const [totalCount, setTotalCount] = React.useState<number | null>(null);
 	const [selectedOptions, setSelectedOptions] = React.useState<Record<string, string>>({});
@@ -81,6 +84,7 @@ const ConfirmResultsTable: React.FC<Props> = ({ usersMap, pageSize = 10, setToas
 								className="bg-gray-700 text-white text-sm px-2 py-1 rounded"
 							>
 								<option value="">Sélectionner</option>
+								<option value={REFUND_CODE}>aucun ......</option>
 								{optionKeys.map((k) => (
 									<option key={k} value={k}>
 										{k} {typeof opts[k] === "number" ? `(${opts[k]})` : ""}

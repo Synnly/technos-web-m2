@@ -9,6 +9,7 @@ import { UserService } from "../../src/user/user.service";
 import { JwtService } from "@nestjs/jwt";
 import { PredictionService } from "../../src/prediction/prediction.service";
 import { CosmeticService } from "../../src/cosmetic/cosmetic.service";
+import { VoteService } from "../../src/vote/vote.service";
 import { CosmeticType } from "../../src/cosmetic/cosmetic.schema";
 import { Role } from "../../src/user/user.schema";
 
@@ -20,6 +21,8 @@ describe("Prediction Integration Tests", () => {
 	let predictionService: PredictionService;
 	let cosmeticService: CosmeticService;
 	let jwtService: JwtService;
+
+	let voteService: VoteService;
 
 	const testUserData = {
 		username: "ptestuser",
@@ -54,6 +57,7 @@ describe("Prediction Integration Tests", () => {
 		predictionService = moduleRef.get<PredictionService>(PredictionService);
 		cosmeticService = moduleRef.get<CosmeticService>(CosmeticService);
 		jwtService = moduleRef.get<JwtService>(JwtService);
+		voteService = moduleRef.get<VoteService>(VoteService);
 	});
 
 	let userToken: string;
@@ -529,6 +533,62 @@ describe("Prediction Integration Tests", () => {
 	});
 
 	describe("PUT /api/prediction/:id/validate", () => {
+		it("should refund all bets when receiving the special refund code (admin)", async () => {
+			// create two voter users
+			const voter1 = { username: "voter1", motDePasse: "Pass1!", points: 50 } as any;
+			const voter2 = { username: "voter2", motDePasse: "Pass2!", points: 60 } as any;
+			await userService.createUser(voter1);
+			await userService.createOrUpdateByUsername(voter1.username, voter1 as any);
+			await userService.createUser(voter2);
+			await userService.createOrUpdateByUsername(voter2.username, voter2 as any);
+
+			const v1 = await userService.getByUsername(voter1.username);
+			const v2 = await userService.getByUsername(voter2.username);
+			if (!v1 || !v2) throw new Error('setup failed: voters not created');
+
+			// create a prediction
+			const payload = {
+				title: "To Refund",
+				dateFin: new Date(Date.now() + 1000 * 60 * 60),
+				options: { A: 0, B: 0 },
+				status: "Valid",
+			};
+			await predictionService.createPrediction({ ...payload } as any, createdUsername);
+			const all = await predictionService.getAll();
+			const id = all[0]._id as any;
+
+			// create votes via VoteService (will debit users)
+			await voteService.createVote({ prediction_id: id, user_id: (v1 as any)._id, option: 'A', amount: 10 } as any);
+			await voteService.createVote({ prediction_id: id, user_id: (v2 as any)._id, option: 'B', amount: 20 } as any);
+
+			const afterVoteV1 = await userService.getByUsername(voter1.username);
+			const afterVoteV2 = await userService.getByUsername(voter2.username);
+			expect((afterVoteV1 as any).points).toBe((voter1.points as number) - 10);
+			expect((afterVoteV2 as any).points).toBe((voter2.points as number) - 20);
+
+			// access refund code from the service runtime (private static in TS)
+			const refundCode = (predictionService as any).constructor.REFUND_CODE;
+
+			// call the service directly to avoid potential controller-layer inconsistencies
+			const validateRes = await predictionService.validatePrediction(id, refundCode);
+
+			expect(validateRes.ratio).toBe(0);
+			expect(Array.isArray(validateRes.rewards)).toBe(true);
+
+			const finalV1 = await userService.getByUsername(voter1.username);
+			const finalV2 = await userService.getByUsername(voter2.username);
+			expect((finalV1 as any).points).toBe(voter1.points);
+			expect((finalV2 as any).points).toBe(voter2.points);
+
+			const pred = await predictionService.getById(id);
+			expect(pred!.status).toBe("Closed");
+			expect(pred!.result).toBe("aucun");
+
+			// cleanup voters
+			await userService.deleteByUsername(voter1.username);
+			await userService.deleteByUsername(voter2.username);
+		});
+
 		it("should validate a prediction (admin) and return structure", async () => {
 			const payload = {
 				title: "To Validate",
