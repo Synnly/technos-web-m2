@@ -8,6 +8,8 @@ import type { SidebarProps } from "./Sidebar.interface";
 import { useAuth } from "../../hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import React from "react";
+import { Form } from "antd";
+import dayjs from "dayjs";
 
 import Modal from "../modal/modal.component";
 import GenericForm from "../form/Form.component";
@@ -28,7 +30,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 	const navigate = useNavigate();
 	const { logout } = useAuth();
 	const [modalOpen, setModalOpen] = React.useState(false);
-	const Actions = getActions(() => {setModalOpen(true)});
+	const Actions = getActions(() => {
+		setModalOpen(true);
+	});
+	const [form] = Form.useForm();
+	const [localError, setLocalError] = React.useState<string | null>(null);
 	const [collapsed, setCollapsed] = React.useState(() => {
 		const saved = localStorage.getItem("sidebar-collapsed");
 		return saved ? JSON.parse(saved) : false;
@@ -116,9 +122,16 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 						{!collapsed && <DailyRewards onClick={handleClick} pointdejaRecup={pointdejaRecup} />}
 
-						<Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+						<Modal
+							isOpen={modalOpen}
+							onClose={() => {
+								setModalOpen(false);
+								form.resetFields();
+								setLocalError(null);
+							}}
+						>
 							<GenericForm
-								form={undefined}
+								form={form}
 								title="Création d'une prédiction"
 								fields={[
 									{
@@ -127,7 +140,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 										component: InputText,
 										componentProps: { placeholder: "Titre" },
 										formItemProps: {
-											rules: [{ required: true }],
+											rules: [
+												{ required: true, message: "Le titre est requis" },
+												{ min: 3, message: "Le titre doit contenir au moins 3 caractères" },
+											],
 										},
 									},
 									{
@@ -142,6 +158,25 @@ const Sidebar: React.FC<SidebarProps> = ({
 										name: "dateFin",
 										label: "Date de fin",
 										component: InputDatePicker,
+										formItemProps: {
+											rules: [
+												{ required: true, message: "La date de fin est requise" },
+												{
+													validator: (_: any, value: any) => {
+														const selected = dayjs(value);
+														const today = dayjs().startOf("day");
+														if (selected.isBefore(today, "day")) {
+															return Promise.reject(
+																new Error(
+																	"La date de fin ne peut pas être antérieure à aujourd'hui",
+																),
+															);
+														}
+														return Promise.resolve();
+													},
+												},
+											],
+										},
 									},
 									{
 										name: "options",
@@ -150,31 +185,46 @@ const Sidebar: React.FC<SidebarProps> = ({
 									},
 								]}
 								onFinish={async (values: any) => {
+									setLocalError(null);
 									const dateFin = new Date(values.dateFin);
-									const dateFinStr = new Date(dateFin.getTime() + 24 * 10 * 60000)
-										.toISOString();
+									const dateFinStr = new Date(dateFin.getTime() + 24 * 10 * 60000).toISOString();
 
 									const payload = {
 										title: values.title,
 										description: values.description,
-										dateFin : dateFinStr,
+										dateFin: dateFinStr,
 										options: values.options,
 									};
+
 									const result = await PredictionController.createPrediction(
 										token,
 										payload,
 										{
 											username: user?.username,
-											onClose: () => setModalOpen(false),
+											onClose: () => {
+												setModalOpen(false);
+												form.resetFields();
+											},
 											fetchPredictions: onPredictionCreated
 												? async () => onPredictionCreated()
 												: undefined,
+											setLocalError: (msg: string | null) => {
+												setLocalError(msg);
+												if (msg && msg.toLowerCase().includes("titre")) {
+													form.setFields([{ name: "title", errors: [msg] }]);
+												}
+											},
 										},
 										setToast,
 									);
+
 									if (result.success && onPredictionCreated) onPredictionCreated();
 								}}
 							/>
+
+							{localError && (
+								<div className="mt-4 text-center text-red-400 font-semibold">{localError}</div>
+							)}
 						</Modal>
 					</div>
 				</div>
