@@ -13,9 +13,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Display current folder
-        run: pwd
         
       - name: Fetch latest changes
         run: git fetch
@@ -35,7 +32,7 @@ jobs:
         run: npm run build
 
       - name: Deploy frontend
-        run: cp -r /home/deploy/technos-web-m2/apps/client/dist/* /var/www/html/
+        run: cp -r /root/actions-runner/_work/technos-web-m2/technos-web-m2/apps/client/dist/* /var/www/html/
 
       - name: Install PM2
         run: |
@@ -46,4 +43,4 @@ jobs:
         run: pm2 delete all || true
       
       - name: Restart API
-        run: cd /home/deploy/technos-web-m2/apps/api && pm2 start "node --env-file=.env dist/main.js"
+        run: cd /root/actions-runner/_work/technos-web-m2/technos-web-m2/apps/api && pm2 start "node --env-file=.env dist/main.js"
