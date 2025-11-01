@@ -64,7 +64,7 @@ export class UserController {
 	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission d'accéder à cette ressource.
 	 */
 	@UseGuards(AuthGuard)
-	@Get("/public")
+	@Get("public")
 	async getUsersPublic(): Promise<PublicUserDto[]> {
 		const users = await this.userService.getAll();
 		return users.map((user) => new PublicUserDto(user));
@@ -77,7 +77,7 @@ export class UserController {
 	 * @throws {BadRequestException} si le nom d'utilisateur est invalide ou si la récupération de la récompense échoue.
 	 */
 	@UseGuards(AuthGuard)
-	@Get("/daily-reward")
+	@Get("daily-reward")
 	async getDailyReward(@Req() request) {
 		try {
 			const reward = await this.userService.claimDailyReward(request.user.username);
@@ -100,7 +100,7 @@ export class UserController {
 	 * permission d'accéder aux données de l'utilisateur demandé.
 	 */
 	@UseGuards(AuthGuard)
-	@Get("/{:username}")
+	@Get(":username")
 	async getUserByUsername(@Req() request, @Param("username") username: string): Promise<UserDto> {
 		if (username === undefined || username === null) {
 			throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
@@ -145,7 +145,7 @@ export class UserController {
 	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de modifier le rôle de l'utilisateur.
 	 */
 	@UseGuards(AuthGuard)
-	@Put("/{:username}")
+	@Put(":username")
 	async updateUserByUsername(
 		@Req() request,
 		@Param("username") username: string,
@@ -205,7 +205,7 @@ export class UserController {
 	 * @throws {ForbiddenException} si l'utilisateur authentifié n'a pas la permission de supprimer cet utilisateur.
 	 */
 	@UseGuards(AuthGuard)
-	@Delete("/{:username}")
+	@Delete(":username")
 	async deleteUser(@Req() request, @Param("username") username: string) {
 		if (!username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
 		if (request.user.role !== Role.ADMIN && request.user.username !== username) {
@@ -226,7 +226,7 @@ export class UserController {
 	 * @throws {BadRequestException} si les informations d'identification sont invalides.
 	 * @throws {UnauthorizedException} si l'authentification échoue.
 	 */
-	@Post("/login")
+	@Post("login")
 	async login(@Body() credentials: { username: string; password: string }) {
 		if (!credentials.username) throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });
 		if (!credentials.password) throw new BadRequestException({ message: "Le mot de passe est requis" });
@@ -257,7 +257,7 @@ export class UserController {
 	 * @throws {ForbiddenException} si l'utilisateur authentifié ne correspond pas à l'acheteur.
 	 */
 	@UseGuards(AuthGuard)
-	@Post("/:username/buy/cosmetic/:cosmeticId")
+	@Post(":username/buy/cosmetic/:cosmeticId")
 	async buyCosmetic(@Req() request, @Param("cosmeticId") cosmeticId: string, @Param("username") username) {
 		if (request.user.username !== username)
 			throw new ForbiddenException({ message: "Vous n'avez pas la permission" });
