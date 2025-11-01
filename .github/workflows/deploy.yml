@@ -14,7 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      -name: Display current folder
+      - name: Display current folder
         run: pwd
         
       - name: Fetch latest changes
