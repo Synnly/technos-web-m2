@@ -18,7 +18,7 @@ export const userService = {
 	},
 
 	async getUserByUsername(username: string, token: string) {
-		const res = await axios.get(`${API_URL}/user/${username}`, {
+		const res = await axios.get(`${API_URL}/user/by-username/${username}`, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 		return res.data;

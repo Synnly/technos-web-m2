@@ -100,7 +100,7 @@ export class UserController {
 	 * permission d'accéder aux données de l'utilisateur demandé.
 	 */
 	@UseGuards(AuthGuard)
-	@Get(":username")
+	@Get("by-username/:username")
 	async getUserByUsername(@Req() request, @Param("username") username: string): Promise<UserDto> {
 		if (username === undefined || username === null) {
 			throw new BadRequestException({ message: "Le nom d'utilisateur est requis" });

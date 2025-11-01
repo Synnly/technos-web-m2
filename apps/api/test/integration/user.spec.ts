@@ -193,10 +193,10 @@ describe("User Integration Tests", () => {
 		});
 	});
 
-	describe("GET /api/user/:username", () => {
+	describe("GET /api/user/by-username/:username", () => {
 		it("should return user data for own profile", async () => {
 			const response = await request(app.getHttpServer())
-				.get(`/api/user/${testUserData.username}`)
+				.get(`/api/user/by-username/${testUserData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.OK);
 
@@ -206,14 +206,14 @@ describe("User Integration Tests", () => {
 
 		it("should return 403 when accessing other user profile as regular user", async () => {
 			await request(app.getHttpServer())
-				.get(`/api/user/${testAdminData.username}`)
+				.get(`/api/user/by-username/${testAdminData.username}`)
 				.set("Authorization", `Bearer ${userToken}`)
 				.expect(HttpStatus.FORBIDDEN);
 		});
 
 		it("should allow admin to access any user profile", async () => {
 			const response = await request(app.getHttpServer())
-				.get(`/api/user/${testUserData.username}`)
+				.get(`/api/user/by-username/${testUserData.username}`)
 				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.OK);
 
@@ -222,7 +222,7 @@ describe("User Integration Tests", () => {
 
 		it("should return 404 for non-existent user", async () => {
 			await request(app.getHttpServer())
-				.get("/api/user/nonexistent")
+				.get("/api/user/by-username/nonexistent")
 				.set("Authorization", `Bearer ${adminToken}`)
 				.expect(HttpStatus.NOT_FOUND);
 		});
