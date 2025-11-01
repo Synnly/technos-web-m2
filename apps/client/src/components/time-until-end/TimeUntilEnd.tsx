@@ -1,85 +1,65 @@
 import React, { useEffect, useState } from "react";
-import {
-	formatDuration,
-	intervalToDuration,
-	isBefore,
-	differenceInHours,
-	differenceInDays,
-	differenceInWeeks,
-} from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface TimeUntilProps {
 	endDate: string;
 }
 
+const plural = (n: number, singular: string, pluralForm?: string) =>
+	`${n} ${n > 1 ? (pluralForm ?? singular + "s") : singular}`;
+
 const TimeUntilEnd: React.FC<TimeUntilProps> = ({ endDate }) => {
 	const [text, setText] = useState("");
-	const [intervalDelay, setIntervalDelay] = useState(60000);
+	const [intervalDelay, setIntervalDelay] = useState<number>(60000);
 
 	const updateTime = () => {
 		const now = new Date();
 		const end = new Date(endDate);
 
-		if (isBefore(end, now)) {
+		if (isNaN(end.getTime())) {
+			setText("Date invalide");
+			return;
+		}
+
+		const diffMs = end.getTime() - now.getTime();
+		if (diffMs <= 0) {
 			setText("Terminé !");
 			return;
 		}
 
-		const hoursLeft = differenceInHours(end, now);
-		const daysLeft = differenceInDays(end, now);
-		const weeksLeft = differenceInWeeks(end, now);
+		let totalSeconds = Math.floor(diffMs / 1000);
 
-		let duration;
-		if (weeksLeft >= 1) {
-			duration = intervalToDuration({ start: now, end });
+		const weeks = Math.floor(totalSeconds / (7 * 24 * 3600));
+		totalSeconds -= weeks * 7 * 24 * 3600;
+
+		const days = Math.floor(totalSeconds / (24 * 3600));
+		totalSeconds -= days * 24 * 3600;
+
+		const hours = Math.floor(totalSeconds / 3600);
+		totalSeconds -= hours * 3600;
+
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds - minutes * 60;
+
+		// règle d'affichage / granularité comme dans ton code d'origine
+		if (weeks >= 1) {
+			setText(`Fini dans ${plural(weeks, "semaine")}${days ? " " + plural(days, "jour") : ""}`);
+			setIntervalDelay(3600000); // mise à jour toutes les heures
+		} else if (days >= 3) {
+			setText(`Fini dans ${plural(days, "jour")}${hours ? " " + plural(hours, "heure") : ""}`);
+			setIntervalDelay(300000); // 5 min
+		} else if (days >= 1) {
 			setText(
-				`Fini dans ${formatDuration(
-					{ weeks: duration.weeks, days: duration.days },
-					{ locale: fr },
-				)}`,
+				`Fini dans ${plural(days, "jour")}${hours ? " " + plural(hours, "heure") : ""}${
+					minutes ? " " + plural(minutes, "minute") : ""
+				}`,
 			);
-			setIntervalDelay(3600000);
-		} else if (daysLeft >= 3) {
-			duration = intervalToDuration({ start: now, end });
-			setText(
-				`Fini dans ${formatDuration(
-					{ days: duration.days, hours: duration.hours },
-					{ locale: fr },
-				)}`,
-			);
-			setIntervalDelay(300000);
-		} else if (daysLeft >= 1) {
-			duration = intervalToDuration({ start: now, end });
-			setText(
-				`Fini dans ${formatDuration(
-					{
-						days: duration.days,
-						hours: duration.hours,
-						minutes: duration.minutes,
-					},
-					{ locale: fr },
-				)}`,
-			);
-			setIntervalDelay(60000);
-		} else if (hoursLeft >= 1) {
-			duration = intervalToDuration({ start: now, end });
-			setText(
-				`Fini dans ${formatDuration(
-					{ hours: duration.hours, minutes: duration.minutes },
-					{ locale: fr },
-				)}`,
-			);
-			setIntervalDelay(30000);
+			setIntervalDelay(60000); // 1 min
+		} else if (hours >= 1) {
+			setText(`Fini dans ${plural(hours, "heure")}${minutes ? " " + plural(minutes, "minute") : ""}`);
+			setIntervalDelay(30000); // 30s
 		} else {
-			duration = intervalToDuration({ start: now, end });
-			setText(
-				`Fini dans ${formatDuration(
-					{ minutes: duration.minutes, seconds: duration.seconds },
-					{ locale: fr },
-				)}`,
-			);
-			setIntervalDelay(1000);
+			setText(`Fini dans ${plural(minutes, "minute")}${seconds ? " " + plural(seconds, "seconde") : ""}`);
+			setIntervalDelay(1000); // 1s
 		}
 	};
 
@@ -90,9 +70,7 @@ const TimeUntilEnd: React.FC<TimeUntilProps> = ({ endDate }) => {
 	}, [endDate, intervalDelay]);
 
 	return (
-		<div
-			className={`w-fit relative px-4 py-2 text-sm font-semibold uppercase rounded-full`}
-		>
+		<div className={`w-fit relative px-4 py-2 text-sm font-semibold uppercase rounded-full`}>
 			<span>{text}</span>
 		</div>
 	);
