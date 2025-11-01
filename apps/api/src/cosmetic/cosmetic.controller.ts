@@ -12,10 +12,15 @@ import {
 	HttpCode,
 	UseGuards,
 } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
+import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
 import { CosmeticService } from "./cosmetic.service";
-import { Cosmetic } from "./cosmetic.schema";
-import { Role, User } from "../user/user.schema";
+import { CosmeticDto } from "./dto/cosmetic.dto";
+import { Role } from "../user/user.schema";
 import { AuthGuard } from "../guards/auth.guard";
+import { AdminGuard } from "../guards/admin.guard";
+import { CreateCosmeticDto } from "./dto/create-cosmetic.dto";
+import { UpdateCosmeticDto } from "./dto/update-cosmetic.dto";
 
 /**
  * Contrôleur pour gérer les cosmétiques.
@@ -29,8 +34,9 @@ export class CosmeticController {
 	 * Récupère tous les cosmétiques.
 	 */
 	@Get("")
-	async getCosmetics(): Promise<Cosmetic[]> {
-		return await this.cosmeticService.findAll();
+	async getCosmetics(): Promise<CosmeticDto[]> {
+		const list = await this.cosmeticService.findAll();
+		return list.map((c) => new CosmeticDto(c));
 	}
 
 	/**
@@ -41,12 +47,11 @@ export class CosmeticController {
 	 * @returns le cosmétique
 	 */
 	@Get("/:id")
-	async getCosmeticById(@Param("id") id: string): Promise<Cosmetic> {
-		if (!id) throw new BadRequestException("L'identifiant est requis");
+	async getCosmeticById(@Param("id", ParseObjectIdPipe) id: string): Promise<CosmeticDto> {
 		const cosmetic = await this.cosmeticService.findById(id);
-		if (!cosmetic) throw new NotFoundException("Prédiction non trouvée");
+		if (!cosmetic) throw new NotFoundException("Cosmétique non trouvable");
 
-		return cosmetic;
+		return new CosmeticDto(cosmetic);
 	}
 
 	/**
@@ -55,33 +60,22 @@ export class CosmeticController {
 	 * @param req la requête HTTP contenant l'utilisateur authentifié
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
-	 * @returns le cosmétique créé
 	 */
 	@Post("/:username")
+	@UseGuards(AdminGuard)
 	@HttpCode(201)
 	async createCosmetic(
-		@Body() cosmetic,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		cosmetic: CreateCosmeticDto,
 		@Req() req,
-		@Param("username") username,
-	): Promise<Cosmetic> {
-
+		@Param("username") username: string,
+	) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
-			throw new BadRequestException(
-				"Seul l'administrateur peut créer un cosmétique",
-			);
+			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
-		const missing = [
-			!cosmetic && "Le cosmétique est requis",
-			!cosmetic?.name && "Le nom du cosmétique est requis",
-			!cosmetic?.cost && "Le coût du cosmétique est requis",
-			!cosmetic?.type && "Le type du cosmétique est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-
-		return await this.cosmeticService.create(cosmetic);
+		await this.cosmeticService.create(cosmetic);
 	}
 
 	/**
@@ -92,40 +86,28 @@ export class CosmeticController {
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si des champs requis sont manquants
 	 * @throws NotFoundException si le cosmétique à mettre à jour n'existe pas
-	 * @returns le cosmétique mis à jour
 	 */
 	@Put("/:id")
+	@UseGuards(AdminGuard)
 	@HttpCode(200)
 	async updateCosmetic(
-		@Param("id") id: string,
-		@Body() cosmetic,
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+		cosmetic: UpdateCosmeticDto,
 		@Req() req,
 		@Param("username") username: string,
-	): Promise<Cosmetic> {
+	) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
-			throw new BadRequestException(
-				"Seul l'administrateur peut créer un cosmétique",
-			);
+			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
-		const missing = [
-			!cosmetic && "Le cosmétique est requis",
-			!cosmetic?.name && "Le nom du cosmétique est requis",
-			!cosmetic?.cost && "Le coût du cosmétique est requis",
-			!cosmetic?.type && "Le type du cosmétique est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-
-		if (id !== undefined) {
-			const existing = await this.cosmeticService.findById(id);
-			if (!existing) {
-				throw new NotFoundException("Cosmétique non trouvé");
-			}
+		const existing = await this.cosmeticService.findById(id);
+		if (!existing) {
+			throw new NotFoundException("Cosmétique non trouvé");
 		}
 
-		return await this.cosmeticService.updateById(id, cosmetic);
+		await this.cosmeticService.updateById(id, cosmetic);
 	}
 
 	/**
@@ -135,19 +117,13 @@ export class CosmeticController {
 	 * @param username le nom d'utilisateur de la personne effectuant la requête venant du token
 	 * @throws BadRequestException si l'utilisateur n'est pas admin ou si une erreur survient lors de la suppression
 	 * @throws NotFoundException si le cosmétique n'est pas trouvé
-	 * @returns le cosmétique supprimé
 	 */
-	@Delete("/:id")
-	async deleteCosmetic(
-		@Param("id") id: string,
-		@Req() req,
-		@Param("username") username: string,
-	): Promise<Cosmetic> {
+	@Delete("/:id/:username")
+	@UseGuards(AdminGuard)
+	async deleteCosmetic(@Param("id", ParseObjectIdPipe) id: string, @Req() req, @Param("username") username: string) {
 		const user = req && (req as any).user ? (req as any).user : req;
 		if (!user || user.role !== Role.ADMIN || user.username !== username) {
-			throw new BadRequestException(
-				"Seul l'administrateur peut créer un cosmétique",
-			);
+			throw new BadRequestException("Seul l'administrateur peut créer un cosmétique");
 		}
 
 		const cosmetic = await this.cosmeticService.findById(id);
@@ -156,8 +132,7 @@ export class CosmeticController {
 		}
 
 		try {
-			const deleted = await this.cosmeticService.deleteById(id);
-			return deleted;
+			await this.cosmeticService.deleteById(id);
 		} catch (error) {
 			throw new BadRequestException(error.message);
 		}

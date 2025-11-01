@@ -42,16 +42,12 @@ export class Cosmetic {
 	type: CosmeticType;
 
 	/**
-	 * Code hexadécimal de la couleur pour les cosmétiques de type "color"
+	 * Valeur du cosmétique
+	 * - Pour un badge, pour l'icône (ex: "🔰") on met :beginner:
+	 * - Pour une couleur c'est le code hexadécimal (ex: "#ff0000")
 	 */
-	@Prop()
-	hexColor?: string;
-
-    /**
-     * Si le cosmétique est possédé
-     */
-    @Prop({ default: false })
-    owned?: boolean;
+	@Prop({ required: true })
+	value: string;
 }
 
 export const CosmeticSchema = SchemaFactory.createForClass(Cosmetic);

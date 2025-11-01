@@ -1,5 +1,5 @@
 import {
-    BadRequestException,
+	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -10,9 +10,13 @@ import {
 	Param,
 	Post,
 	Put,
-	Req,
 	UseGuards,
 } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
+import { ParseObjectIdPipe } from "../validators/parse-objectid.pipe";
+import { CreateVoteDto } from "./dto/createvote.dto";
+import { UpdateVoteDto } from "./dto/updatevote.dto";
+import { VoteDto } from "./dto/vote.dto";
 import { VoteService } from "../vote/vote.service";
 import { AuthGuard } from "../guards/auth.guard";
 
@@ -31,9 +35,9 @@ export class VoteController {
 	 * @returns La liste complète des votes
 	 */
 	@Get("")
-	async getVotes() {
+	async getVotes(): Promise<VoteDto[]> {
 		const votes = await this.voteService.getAll();
-		return votes;
+		return votes.map((v) => new VoteDto(v as any));
 	}
 
 	/**
@@ -44,106 +48,59 @@ export class VoteController {
 	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Get("/:id")
-	async getVoteById(@Param("id") id: string) {
+	async getVoteById(@Param("id", ParseObjectIdPipe) id: string): Promise<VoteDto> {
 		const vote = await this.voteService.getById(id);
 		if (!vote) throw new NotFoundException("Vote introuvable");
-		return vote;
+		return new VoteDto(vote as any);
 	}
 
 	/**
 	 * Crée un nouveau vote pour une prédiction.
-	 * @param req Objet de requête HTTP contenant les informations d'authentification
 	 * @param vote Données du vote à créer (user_id, prediction_id, option, amount, date)
-	 * @returns Le vote créé avec statut
 	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
 	 */
 	@Post("")
-    @HttpCode(201)
-	async createVote(@Req() req: any, @Body() vote) {
-		if (!vote) throw new BadRequestException("Les données du vote sont requises");
-
-		const missing = [
-			!vote.prediction_id && "L'identifiant de la prédiction est requis",
-			!vote.option && "Le choix est requis",
-			vote.amount === undefined && "Le montant est requis",
-			!vote.date && "La date est requise",
-			!req.user?._id && "L'utilisateur authentifié est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
+	@HttpCode(201)
+	async createVote(
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) vote: CreateVoteDto,
+	) {
 		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
-
-		const { _id, ...payload } = vote as any;
-		if (req.user?._id) payload.user_id = req.user._id;
-
 		try {
-			const created = await this.voteService.createVote(payload);
-			return created;
+			await this.voteService.createVote(vote);
 		} catch (error) {
-			throw new BadRequestException(
-                error.message || "Erreur lors de la création du vote",
-            );
+			throw new BadRequestException(error.message);
 		}
 	}
 
 	/**
 	 * Met à jour un vote existant.
-	 * @param req Objet de requête HTTP contenant les informations d'authentification
 	 * @param id Identifiant unique du vote à mettre à jour
 	 * @param vote Données du vote à mettre à jour (user_id, prediction_id, option, amount, date)
-	 * @returns Le vote mis à jour
 	 * @throws {BadRequestException} si les données du vote sont invalides ou manquantes
 	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Put("/:id")
 	async updateVote(
-		@Req() req: any,
-		@Param("id") id: string,
-		@Body() vote,
+		@Param("id", ParseObjectIdPipe) id: string,
+		@Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })) vote: UpdateVoteDto,
 	) {
-		if (!vote) throw new BadRequestException("Les données du vote sont requises");
-
-		const missing = [
-			!id && "L'identifiant du vote est requis",
-			!vote && "Les données du vote sont requises",
-			!vote.user_id && "L'identifiant de l'utilisateur est requis",
-			!vote.prediction_id && "L'identifiant de la prédiction est requis",
-			!vote.option && "Le choix est requis",
-			vote.amount === undefined && "Le montant est requis",
-			!req.user?._id && "L'utilisateur authentifié est requis",
-		].filter(Boolean)[0];
-
-		if (missing) throw new BadRequestException(missing);
-		if (vote.amount < 1) throw new BadRequestException("Le montant doit être au moins de 1 point");
-
+		if (vote.amount !== undefined && vote.amount < 1)
+			throw new BadRequestException("Le montant doit être au moins de 1 point");
 		try {
-			// Préparer payload
-			const { _id, ...payload } = vote as any;
-			if (req.user?._id) payload.user_id = req.user._id;
-
-			// Créer ou mettre à jour le vote
-			const updated = await this.voteService.createOrUpdateVote(
-				id,
-				payload,
-			);
-			return updated;
+			await this.voteService.createOrUpdateVote(id, vote);
 		} catch (error) {
-			throw new BadRequestException(
-                error.message || "Erreur lors de la mise à jour du vote",
-            );
+			throw new BadRequestException(error.message || "Erreur lors de la mise à jour du vote");
 		}
 	}
 
 	/**
 	 * Supprime un vote existant.
 	 * @param id Identifiant unique du vote à supprimer
-	 * @returns Le vote supprimé
 	 * @throws {NotFoundException} si le vote n'existe pas
 	 */
 	@Delete("/:id")
-	async deleteVote(@Param("id") id: string) {
+	async deleteVote(@Param("id", ParseObjectIdPipe) id: string) {
 		const deleted = await this.voteService.deleteVote(id);
 		if (!deleted) throw new NotFoundException("Vote introuvable");
-		return deleted;
 	}
 }

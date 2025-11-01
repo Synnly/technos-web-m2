@@ -4,6 +4,24 @@
 <div align="center">
   <h1 align="center">Loozamax</h1>
   <h4 align="center">Groupe 7</h4>
+
+  <h3><u>Description :</u></h3>
+  <p>
+    Loozamax est une plateforme de paris en ligne centrée sur les prédictions : les utilisateurs
+    formulent des pronostics sur des événements (sportifs, culturels ou personnalisés), misent des
+    points virtuels et suivent l'évolution des probabilités. 
+  </p>
+  <p>
+    Fonctionnalités principales : création et gestion des prédictions, système de mises (votes),
+    publications et discussions attachées à une prédiction, chronologie et historique des paris,
+    système de points et boutique de cosmétiques pour personnaliser le profil, ainsi que des
+    rôles utilisateurs (admin / user) pour la modération et la validation des résultats.
+  </p>
+  <p>
+    Construit pour l'apprentissage et l'expérimentation, Loozamax est développé avec une
+    architecture full‑stack moderne (React + Vite côté client, NestJS côté API, MongoDB pour la
+    persistance) et les tests automatisés (Jest).
+  </p>
 </div>
 
 
@@ -54,6 +72,13 @@
 [![MongoDB][MongoDB]][MongoDB-url]
 [![Jest][Jest]][Jest-url]
 [![Tailwind][Tailwind]][Tailwind-url]
+
+<img src="./screenshots/Landing.png" alt="Page de visite" />
+<img src="./screenshots/Home.png" alt="Page d'accueil" />
+<img src="./screenshots/Prediction.png" alt="Page de prédiciton" />
+<img src="./screenshots/Publications.png" alt="Publications dans page de prédiciton" />
+<img src="./screenshots/Shop.png" alt="Page de la boutique" />
+<img src="./screenshots/Account.png" alt="Page du compte" />
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
