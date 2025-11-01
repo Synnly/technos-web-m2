@@ -18,7 +18,23 @@ jobs:
         run: git fetch
         
       - name: Pull latest changes
-        run: git pull --force origin main
+        run: git pull origin main
+
+      - name: Copy API .env from persistent location
+        run: |
+          if [ -f /root/.env.api.prod ]; then
+            cp /root/.env.api.prod apps/api/.env
+          else
+            exit 1
+          fi
+
+      - name: Copy Client .env from persistent location
+        run: |
+          if [ -f /root/.env.client.prod ]; then
+            cp /root/.env.client.prod apps/client/.env
+          else
+            exit 1
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
