@@ -23,7 +23,7 @@ jobs:
       - name: Copy API .env from persistent location
         run: |
           if [ -f /root/.env.api.prod ]; then
-            cp /root/.env.api.prod apps/api/.env
+            cp /root/.env.api.prod /root/actions-runner/_work/technos-web-m2/technos-web-m2/apps/api/.env
           else
             exit 1
           fi
@@ -31,7 +31,7 @@ jobs:
       - name: Copy Client .env from persistent location
         run: |
           if [ -f /root/.env.client.prod ]; then
-            cp /root/.env.client.prod apps/client/.env
+            cp /root/.env.client.prod /root/actions-runner/_work/technos-web-m2/technos-web-m2/apps/client/.env
           else
             exit 1
           fi
