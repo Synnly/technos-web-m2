@@ -212,7 +212,7 @@ npm run start
 - [x] Acheter un cosmétique pour son profil
 - [x] Valider une prédiction
 - [x] Afficher les probabilités de la prédiction par IA
-- [ ] Refonte de l'UI
+- [x] Refonte de l'UI
 
 <p align="right">(<a href="#readme-top">revenir en haut</a>)</p>
 
