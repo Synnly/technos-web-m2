@@ -110,8 +110,7 @@ describe("PublicationController", () => {
 
 	describe("createPublication", () => {
 		it("should create a publication and be retrievable via getById", async () => {
-			// simulate create does not return the created object (void behavior)
-			mockPublicationService.createPublication.mockResolvedValue(undefined);
+			mockPublicationService.createPublication.mockResolvedValue(expectedPub1);
 			mockPublicationService.getById.mockResolvedValue(expectedPub1);
 
 			await publicationController.createPublication(expectedPub1);
