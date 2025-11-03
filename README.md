@@ -159,6 +159,22 @@ JWT_SECRET=<secret JWT>
 > [!IMPORTANT]
 > Il est impératif de changer le secret JWT <ins>**AVANT**</ins> de lancer le projet
 
+#### Pronostic par IA
+Modifiez `ENABLE_AI_PRONOSTICS` pour activer / désactiver le pronostic par IA. Si le paramètre vaut `false`, les deux prochains paramètres n’ont aucune influence
+``` 
+ENABLE_AI_PRONOSTICS=false
+```
+#### LangSearch API
+Modifiez `LANGSEARCH_API_KEY` pour modifier la clé API LangSearch
+``` 
+LANGSEARCH_API_KEY=REPLACE_WITH_YOUR_OWN_KEY
+```
+
+#### OpenAI API
+Modifiez `OPENAI_API_KEY` pour modifier la clé API OpenAI
+``` 
+OPENAI_API_KEY=REPLACE_WITH_YOUR_OWN_KEY
+```
 
 ## Utilisation
 

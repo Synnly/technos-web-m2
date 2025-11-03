@@ -396,7 +396,7 @@ describe("PredictionService", () => {
 				{ new: true },
 			);
 
-			expect(pred.status).toBe(PredictionStatus.Valid);
+			expect(pred.status).toBe(PredictionStatus.Closed);
 			expect(pred.result).toBe("yes");
 			expect(pred.save).toHaveBeenCalled();
 		});
