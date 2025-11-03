@@ -88,9 +88,6 @@ const InputOptions: React.FC<InputOptionsProps> = ({
 						}}
 					/>
 				</div>
-				{Object.keys(value || {}).length < 2 && (
-					<Text type="warning">Il faut au moins deux options</Text>
-				)}
 			</Space>
 		</div>
 	);

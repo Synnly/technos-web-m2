@@ -182,6 +182,23 @@ const Sidebar: React.FC<SidebarProps> = ({
 										name: "options",
 										label: "Options",
 										component: InputOptions,
+										formItemProps: {
+											rules: [
+												{
+													validator: (_: any, value: any) => {
+														const count = Array.isArray(value)
+															? value.length
+															: value && typeof value === "object"
+															? Object.keys(value).length
+															: 0;
+														if (count < 2) {
+															return Promise.reject(new Error("Au moins deux options sont requises"));
+														}
+														return Promise.resolve();
+													},
+												},
+											],
+										},
 									},
 								]}
 								onFinish={async (values: any) => {
