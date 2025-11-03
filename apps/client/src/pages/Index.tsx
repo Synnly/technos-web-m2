@@ -33,8 +33,8 @@ function Index() {
 		setLoading(true);
 		const validPredictions = await PredictionController.getAllValidPredictions(token, "1", "1000", setToast);
 		const closedPredictions = await PredictionController.getAllClosedPredictions(token, "1", "1000", setToast);
-
-		setPredictions([...validPredictions, ...closedPredictions]);
+		const expiredPredictions = await PredictionController.getExpiredPredictions(token, "1", "1000", setToast);
+		setPredictions([...validPredictions, ...closedPredictions, ...expiredPredictions]);
 		setLoading(false);
 	};
 

@@ -215,7 +215,7 @@ export const PredictionController = {
 					message: "Utilisateur non authentifié",
 					type: "error",
 				});
-			return;
+			return [];
 		}
 		try {
 			const data = await PredictionResolver.getExpiredPredictions(token, page, limit);
@@ -226,7 +226,7 @@ export const PredictionController = {
 					message: "Erreur lors de la récupération des prédictions expirées",
 					type: "error",
 				});
-			return;
+			return [];
 		}
 	},
 

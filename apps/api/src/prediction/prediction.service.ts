@@ -280,8 +280,8 @@ export class PredictionService {
 			}
 		}
 
-		// Mettre à jour la prédiction comme validée
-		prediction.status = PredictionStatus.Valid;
+		// Mettre à jour la prédiction comme fermée
+		prediction.status = PredictionStatus.Closed;
 		prediction.result = winningOption;
 		await prediction.save();
 

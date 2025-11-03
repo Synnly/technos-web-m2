@@ -6,8 +6,10 @@ import PredictionController from "../modules/prediction/prediction.controller";
 import { userController } from "../modules/user/user.controller";
 import ToastComponent from "../components/toast/Toast.component";
 import type { PublicUser } from "../modules/user/user.interface";
+import { useAuth } from "../hooks/useAuth";
 
 function ValidatePrediction() {
+	const { username } = useAuth();
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [user, setUser] = useState<any>(null);
 	const [toast, setToast] = useState<Toast | null>(null);
@@ -27,15 +29,28 @@ function ValidatePrediction() {
 		);
 		setPredictions(data);
 	};
+
 	const fetchAllUsers = async () => {
 		const map = await userController.getAllUsers(token, setToast);
 		setUsersMap(map);
+	};
+
+	const fetchUserByUsername = async (username: string) => {
+		const u = await userController.getUserByUsername(username, token, setToast);
+		setUser(u);
 	};
 
 	useEffect(() => {
 		fetchAllUsers();
 		fetchAllPredictions();
 	}, [token]);
+
+	useEffect(() => {
+		if (username) {
+			fetchUserByUsername(username);
+			setPoints(user?.points || 0);
+		}
+	}, [username]);
 
 	return (
 		<>

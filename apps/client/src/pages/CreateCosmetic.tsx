@@ -1,14 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar/Sidebar.component";
 import type { Toast } from "../components/toast/Toast.interface";
 import CreateCosmeticForm from "../components/cosmetics/CreateCosmeticForm.component";
+import { useAuth } from "../hooks/useAuth";
+import { userController } from "../modules/user/user.controller";
 
 function CreateCosmetic() {
+	const { username } = useAuth();
 	const token = localStorage.getItem("token");
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [user, setUser] = useState<any>(null);
 	const [_, setPoints] = useState<number>(0);
 	const [__, setToast] = useState<Toast | null>(null);
+
+	const fetchUserByUsername = async (username: string) => {
+		const u = await userController.getUserByUsername(username, token, setToast);
+		setUser(u);
+	};
+
+	useEffect(() => {
+		if (username) {
+			fetchUserByUsername(username);
+			setPoints(user?.points || 0);
+		}
+	}, [username]);
 
 	return (
 		<div className="bg-gray-900 min-h-screen">

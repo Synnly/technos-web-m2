@@ -95,7 +95,7 @@ export const getActions = (onCreatePrediction: () => void): NavigationSectionPro
 			{
 				id: "create-cosmetic",
 				icon: React.createElement(Shirt, { className: "w-5 h-5" }),
-				title: "Créer un cosmetic",
+				title: "Créer un cosmetique",
 				description: "",
 				colorScheme: "red",
 				path: "/create-cosmetic",
