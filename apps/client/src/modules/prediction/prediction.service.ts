@@ -16,7 +16,7 @@ export const PredictionService = {
 		if (!username) return undefined;
 		try {
 			const headers = token ? { Authorization: `Bearer ${token}` } : {};
-			const res = await axios.get(`${API_URL}/user/${username}`, {
+			const res = await axios.get(`${API_URL}/user/by-username/${username}`, {
 				headers,
 			});
 			return res.data?._id;

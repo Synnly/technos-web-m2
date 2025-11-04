@@ -11,7 +11,7 @@ export const CosmeticService = {
 	},
 	async getUser(username: string, token: string) {
 		const headers = { Authorization: `Bearer ${token}` };
-		const res = await axios.get(`${API_URL}/user/${username}`, { headers });
+		const res = await axios.get(`${API_URL}/user/by-username/${username}`, { headers });
 		return res.data;
 	},
 

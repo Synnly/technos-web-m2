@@ -13,7 +13,7 @@ const AccountInfoTab = () => {
 	const getUser = async () => {
 		if (!username) return;
 		try {
-			const response = await axios.get(`${API_URL}/user/${username}`, {
+			const response = await axios.get(`${API_URL}/user/by-username/${username}`, {
 				headers: {
 					Authorization: `Bearer ${localStorage.getItem("token")}`,
 				},
