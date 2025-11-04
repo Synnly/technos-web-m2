@@ -105,6 +105,10 @@ export class VoteService {
 			.exec();
 		if (!prediction) throw new Error("Prédiction non trouvée");
 
+		if (prediction.dateFin && new Date(prediction.dateFin).getTime() <= Date.now()) {
+			throw new Error("La prédiction est expirée");
+		}
+
 		// Créer et sauvegarder le vote
 		const newVote = new this.voteModel(vote);
 		const created = await newVote.save();
@@ -161,6 +165,11 @@ export class VoteService {
 			.findById(vote.prediction_id)
 			.exec();
 		if (!prediction) throw new Error("Prédiction non trouvée");
+
+		// Empêcher de voter si la prédiction est expirée (dateFin passée)
+		if (prediction.dateFin && new Date(prediction.dateFin).getTime() <= Date.now()) {
+			throw new Error("La prédiction est expirée");
+		}
 
 		let newVote;
 

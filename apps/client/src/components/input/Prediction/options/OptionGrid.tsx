@@ -8,9 +8,10 @@ interface OptionGridProps {
 	aiPronostics: Record<string, number>;
 	result?: string;
 	status?: string;
+	dateFin: Date;
 }
 
-const OptionGrid: React.FC<OptionGridProps> = ({ options, userBets, onOptionSelect, optionSelected, aiPronostics, result, status }) => {
+const OptionGrid: React.FC<OptionGridProps> = ({ options, userBets, onOptionSelect, optionSelected, aiPronostics, result, status, dateFin }) => {
 	const maxCols = Math.min(Object.keys(options).length, 3);
 	return (
 			<div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-${maxCols} gap-2 md:gap-10`}>
@@ -25,6 +26,7 @@ const OptionGrid: React.FC<OptionGridProps> = ({ options, userBets, onOptionSele
 					aiPronostic={aiPronostics[optionKey]}
 					result={result}
 					status={status}
+					dateFin={dateFin}
 				/>
 			))}
 		</div>

@@ -4,6 +4,7 @@ import { VoteService } from "../../../src/vote/vote.service";
 import { getModelToken } from "@nestjs/mongoose";
 import { User } from "../../../src/user/user.schema";
 import { Prediction, PredictionStatus } from "../../../src/prediction/prediction.schema";
+import { CreateVoteDto } from "src/vote/dto/createvote.dto";
 
 const expectedUser1 = {
 	_id: "1",
@@ -31,14 +32,15 @@ const expectedPred1 = {
 } as Prediction;
 
 const expectedVote1 = {
-	_id: "1",
 	user_id: (expectedUser1 as any)._id,
 	prediction_id: (expectedPred1 as any)._id,
 	amount: 100,
 	option: "yes",
 	date: new Date(),
-} as Vote;
+} as CreateVoteDto;
 
+
+const expectedVote1_id = "1";
 let votesStore: Record<string, any> = {};
 
 const mockVoteModel: any = function (data: any) {
@@ -186,7 +188,7 @@ describe("VoteService", () => {
 			mockPredictionModel.findByIdAndUpdate.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedPred1) });
 
 			await voteService.createVote(expectedVote1);
-			await voteService.getById(expectedVote1._id);
+			await voteService.getById(expectedVote1_id);
 			expect(mockUserModel.findById).toHaveBeenCalled();
 			expect(mockPredictionModel.findById).toHaveBeenCalledWith(expectedPred1._id);
 		});
@@ -236,6 +238,14 @@ describe("VoteService", () => {
 
 			await expect(voteService.createVote(expectedVote1)).rejects.toThrow("Erreur update user: Database error");
 		});
+
+		it("should throw if prediction is expired", async () => {
+			mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+			const expiredPred = { ...expectedPred1, dateFin: new Date(Date.now() - 1000) } as any;
+			mockPredictionModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expiredPred) });
+
+			await expect(voteService.createVote(expectedVote1)).rejects.toThrow("La prédiction est expirée");
+		});
 	});
 
 	describe("createOrUpdateVote", () => {
@@ -261,7 +271,6 @@ describe("VoteService", () => {
 			const updatedVote = await voteService.getById("1");
 			expect(updatedVote).toEqual(
 				expect.objectContaining({
-					_id: "1",
 					user_id: (expectedUser1 as any)._id,
 					prediction_id: (expectedPred1 as any)._id,
 					amount: 150,
@@ -294,7 +303,7 @@ describe("VoteService", () => {
 			});
 
 			await expect(
-				voteService.createOrUpdateVote(expectedVote1._id, { ...expectedVote1, amount: 150 }),
+				voteService.createOrUpdateVote(expectedVote1_id, { ...expectedVote1, amount: 150 }),
 			).rejects.toThrow("Utilisateur non trouvé");
 		});
 
@@ -359,6 +368,28 @@ describe("VoteService", () => {
 				"Erreur création du vote: Database error",
 			);
 		});
+
+		it("should throw if prediction is expired when creating new vote", async () => {
+			mockVoteModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+			mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+			const expiredPred = { ...expectedPred1, dateFin: new Date(Date.now() - 1000) } as any;
+			mockPredictionModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expiredPred) });
+
+			await expect(voteService.createOrUpdateVote("3", expectedVote1)).rejects.toThrow("La prédiction est expirée");
+		});
+
+		it("should throw if prediction is expired when updating existing vote", async () => {
+			mockVoteModel.findById.mockReturnValue({
+				exec: jest.fn().mockResolvedValue({ ...expectedVote1, amount: 10, save: jest.fn() }),
+			});
+			mockUserModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expectedUser1) });
+			const expiredPred = { ...expectedPred1, dateFin: new Date(Date.now() - 1000) } as any;
+			mockPredictionModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(expiredPred) });
+
+			await expect(voteService.createOrUpdateVote("1", { ...expectedVote1, amount: 20 })).rejects.toThrow(
+				"La prédiction est expirée",
+			);
+		});
 	});
 
 	describe("deleteVote", () => {
@@ -372,8 +403,11 @@ describe("VoteService", () => {
 				}),
 			});
 
+			// After deletion, ensure subsequent findById returns null
+			mockVoteModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+
 			const deletedVote = await voteService.deleteVote("1");
-			const getVote = await voteService.getById("2");
+			const getVote = await voteService.getById("1");
 			expect(getVote).toBeUndefined();
 			expect(mockVoteModel.findByIdAndDelete).toHaveBeenCalledWith("1");
 		});
@@ -408,6 +442,9 @@ describe("VoteService", () => {
 			});
 
 			const deletedVote = await voteService.deleteVote("1");
+
+			// After deletion, ensure subsequent findById returns null
+			mockVoteModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
 			expect(mockVoteModel.findByIdAndDelete).toHaveBeenCalledWith("1");
 			const getVote = await voteService.getById("1");
 			expect(getVote).toBeUndefined();

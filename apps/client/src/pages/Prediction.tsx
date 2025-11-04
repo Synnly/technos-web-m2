@@ -298,6 +298,7 @@ function Prediction() {
 						result={prediction?.result}
 						status={prediction?.status}
 						aiPronostics={aiPronostics}
+						dateFin={prediction?.dateFin!}
 					/>
 				</div>
 				<div className={`${prediction?.status !== "Valid" || prediction?.dateFin < new Date() ? "hidden" : "mt-4"}`}>

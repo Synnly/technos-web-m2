@@ -40,14 +40,14 @@ export default function IsNotAuthenticatedHome({ onSignIn, onSignUp }: Unauthent
 							<button
 								onClick={onSignIn}
 								className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 
-								bg-gray-800 text-white border border-gray-700 hover:bg-gray-700"
+								bg-gray-800 text-white border border-gray-700 hover:bg-gray-700 cursor-pointer"
 							>
 								Connexion
 							</button>
 							<button
 								onClick={onSignUp}
 								className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 
-								bg-green-600 text-white hover:bg-green-600"
+								bg-green-600 text-white hover:bg-green-600 cursor-pointer"
 							>
 								Inscription
 							</button>
@@ -74,14 +74,14 @@ export default function IsNotAuthenticatedHome({ onSignIn, onSignUp }: Unauthent
 						<button
 							onClick={onSignUp}
 							className="bg-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-green-600 
-							hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-green-500/50"
+							hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-green-500/50 cursor-pointer"
 						>
 							Commencer gratuitement
 						</button>
 						<button
 							onClick={() => scrollToSection("how-it-works")}
 							className="bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold text-lg border 
-							border-gray-700 hover:bg-gray-700 hover:scale-105 transition-all duration-300"
+							border-gray-700 hover:bg-gray-700 hover:scale-105 transition-all duration-300 cursor-pointer"
 						>
 							Découvrir
 						</button>
@@ -139,7 +139,7 @@ export default function IsNotAuthenticatedHome({ onSignIn, onSignUp }: Unauthent
 					<button
 						onClick={onSignUp}
 						className="bg-green-500 text-white px-12 py-4 rounded-xl font-semibold text-xl hover:bg-green-600 
-						hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-green-500/50"
+						hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-green-500/50 cursor-pointer"
 					>
 						Rejoindre maintenant
 					</button>

@@ -9,16 +9,17 @@ export interface OptionCardProps {
 	aiPronostic?: number;
 	result?: string;
 	status?: string;
+	dateFin: Date;
 }
 
-const OptionCard: React.FC<OptionCardProps> = ({ name, points, userBet, onClick, optionSelected, aiPronostic, result, status }) => {
+const OptionCard: React.FC<OptionCardProps> = ({ name, points, userBet, onClick, optionSelected, aiPronostic, result, status, dateFin }) => {
 	const bgColor = result === name ? "bg-green-800/50" : optionSelected === name ? "bg-gray-700" : "bg-gray-800";
 	const borderColor = result === name ? "border-green-700" : "border-gray-700";
 	const textColor = result === name ? "text-green-400" : "text-white";
 	return (
 		<div
 			className={`${bgColor} border ${borderColor} rounded-lg shadow-md transition-all duration-300 
-        	${status !== "Valid" ? "" : "hover:scale-105 active:scale-95 hover:shadow-xl cursor-pointer"}`}
+        	${status !== "Valid" || dateFin < new Date() ? "" : "hover:scale-105 active:scale-95 hover:shadow-xl cursor-pointer"}`}
 			onClick={() => status === "Valid" && onClick(name)}
 		>
 			<div className="m-4 flex items-center justify-between">
