@@ -61,11 +61,14 @@ function Prediction() {
 
 	const fetchPredictionById = async (id: string) => {
 		const predictionFetched = await PredictionController.getPredictionById(id, token, setToast);
+		console.log(predictionFetched?.dateFin);
 		if (
 			predictionFetched?.status &&
 			predictionFetched.status !== ("Valid" as PredictionStatus) &&
 			predictionFetched.status !== ("Closed" as PredictionStatus)
+			
 		) {
+			
 			navigate("/", { replace: true });
 		}
 		setPrediction({ ...predictionFetched } as PredictionWithThisVotesAndPublications);
@@ -273,10 +276,10 @@ function Prediction() {
 						<PredictionTimeline votesAsPercentage={votesAsPercentage} timelineData={timelineData} />
 					</div>
 				</div>
-				<div className={`${prediction?.status !== "Valid" ? "hidden" : "text-white mt-5"}`}>
+				<div className={`${prediction?.status !== "Valid" || prediction?.dateFin < new Date() ? "hidden" : "text-white mt-5"}`}>
 					Vous avez <b>{points}</b> points.
 				</div>
-				<div className={`${prediction?.status !== "Valid" ? "hidden" : "mt-5"}`}>
+				<div className={`${prediction?.status !== "Valid" || prediction?.dateFin < new Date() ? "hidden" : "mt-5"}`}>
 					<AmountButtonRow
 						currentAmount={currentAmount}
 						customAmount={customAmount}
@@ -297,7 +300,7 @@ function Prediction() {
 						aiPronostics={aiPronostics}
 					/>
 				</div>
-				<div className={`${prediction?.status !== "Valid" ? "hidden" : "mt-4"}`}>
+				<div className={`${prediction?.status !== "Valid" || prediction?.dateFin < new Date() ? "hidden" : "mt-4"}`}>
 					<ConfirmVote onClick={onConfirmVoteClick} />
 				</div>
 				<div className="mt-5">

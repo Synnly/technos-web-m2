@@ -546,6 +546,7 @@ export class PredictionService {
 					"option2": nombre,
 					...
 					}
+					en remplacant "option1", "option2", ... par les options réelles. NE PAS LITTERALEMENT ENVOYER OPTION1, OPTION2, ...
 					\`\`\`
 					- Si aucune option n'est fournie :
 					\`\`\`json
